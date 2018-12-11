@@ -336,8 +336,7 @@ describe('## Order APIs', () => {
     };
 
     beforeAll(done => {
-      let Promises = [];
-      Promises.push(
+      Promise.all([
         createProduct(productGET1OfAnother, anotherJwtToken).then(product =>
           createOrder(
             { ...product, ...productGET1OfAnother },
@@ -348,10 +347,7 @@ describe('## Order APIs', () => {
             ordersByFirstUser++;
             ordersToAnotherUser++;
           })
-        )
-      );
-
-      Promises.push(
+        ),
         createProduct(productGET2, firstUserJwtToken).then(product =>
           createOrder({ ...product, ...productGET2 }, anotherJwtToken).then(
             o => {
@@ -360,10 +356,8 @@ describe('## Order APIs', () => {
               ordersToFirstUser++;
             }
           )
-        )
-      );
-
-      Promise.all(Promises)
+        ),
+      ])
         .then(() => done())
         .catch(err => {
           console.error(err);
