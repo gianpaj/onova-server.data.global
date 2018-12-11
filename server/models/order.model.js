@@ -19,8 +19,8 @@ var OrderSchema = new Schema(
       ref: 'User',
       required: true,
     },
-    citySender: String,
     cityRecipient: String,
+    citySender: String,
     currency: {
       type: String,
       required: true,
@@ -187,8 +187,8 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   archivedByBuyer: boolean;
   archivedBySeller: boolean;
   buyer: MongoId;
-  citySender: string;
   cityRecipient: string;
+  citySender: string;
   currency: string;
   dateCancelled: ?Date;
   dateCompleted: ?Date;
@@ -198,6 +198,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   datePaid: ?Date;
   datePending: Date;
   dateShipped: ?Date;
+  finalisedAt: ?Date;
   onovaFee: number;
   paymentMethod: ?string;
   priceOfItem: number;
@@ -206,16 +207,17 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   reviewFromBuyer: MongoId;
   reviewFromSeller: MongoId;
   seller: MongoId;
-  status: string;
-  taxAmount: ?number;
-  trackingNumber: ?string;
-  transactionFee: number;
-  transactionId: ?string;
-  transactionStatus: ?string;
   shippingFee: ?number;
   shippingProvider: ?string;
   shippingStatus: string;
   shippingUpdatedAt: string;
+  status: string;
+  taxAmount: ?number;
+  total: string;
+  trackingNumber: ?string;
+  transactionFee: number;
+  transactionId: ?string;
+  transactionStatus: ?string;
 }
 
 OrderSchema.loadClass(OrderDoc);
