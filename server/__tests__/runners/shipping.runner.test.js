@@ -114,7 +114,7 @@ describe('## Shipping Runner', () => {
         const interval = Math.floor(waitFor / 100);
         let totalTime = interval;
 
-        // test system message has been scheduled
+        // test a system message has been scheduled
         // Check every 150ms for up to 15 seconds
         const timer = setInterval(async () => {
           totalTime += interval;
@@ -126,20 +126,20 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          if (orderFound1.shippingStatus == NP.generated) {
+          if (orderFound1.status == 'confirmed') {
             expect(orderFound1.shippingStatus).toBe(NP.generated);
-            expect(orderFound1.status).toBe('confirmed');
+            // expect(orderFound1.status).toBe('confirmed');
 
-            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-              if (err) return done(err);
-              expect(jobs).toHaveLength(1);
-              const data = jobs.map(job => job.attrs.data);
-              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-              expect(
-                data[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
-              ).toBeTruthy();
-              done();
+            const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
+              'data.order.status': 'paid',
             });
+            if (jobs.length) {
+              expect(jobs).toHaveLength(1);
+              expect(
+                jobs[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
+              ).toBe(true);
+              done();
+            }
           }
 
           if (totalTime >= waitFor) {
@@ -184,18 +184,15 @@ describe('## Shipping Runner', () => {
             expect(orderFound1.status).toBe('shipped');
             expect(typeof orderFound1.dateShipped).toBe('string');
 
-            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-              if (err) return done(err);
-              const data = jobs.map(job => job.attrs.data);
-              expect(data).toHaveLength(2);
-              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-              data.map(data => {
-                // expect(data.shippingStatus).toBe(NP.shipped);
-                if (data.message.endsWith(i18n.orderShipped.slice(-10))) {
-                  done();
-                }
-              });
+            const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
+              'data.order.status': 'shipped',
             });
+            expect(jobs).toHaveLength(1);
+            const job = jobs[0];
+            expect(job.message.endsWith(i18n.orderShipped.slice(-10))).toBe(
+              true
+            );
+            done();
           }
 
           if (totalTime >= waitFor) {
@@ -208,7 +205,7 @@ describe('## Shipping Runner', () => {
       }
     });
 
-    it.only('should have checked an order has been delivered', async done => {
+    it('should have checked an order has been delivered', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -236,7 +233,7 @@ describe('## Shipping Runner', () => {
             .expect(httpStatus.OK);
 
           if (orderFound.shippingStatus == NP.delivered) {
-            expect(orderFound.shippingStatus).toBe(NP.delivered);
+            // expect(orderFound.shippingStatus).toBe(NP.delivered);
             expect(orderFound.dateDelivered).toBe(
               new Date(
                 novaPoshta.delivered.data[0].DateFirstDayStorage
@@ -244,18 +241,16 @@ describe('## Shipping Runner', () => {
             );
             expect(orderFound.status).toBe('delivered');
 
-            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-              if (err) return done(err);
-              const data = jobs.map(job => job.attrs.data);
-              expect(data).toHaveLength(2);
-              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-              data.map(data => {
-                // expect(data.shippingStatus).toBe(NP.shipped);
-                if (data.message.endsWith(i18n.orderDelivered.slice(-10))) {
-                  done();
-                }
-              });
+            const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
+              'data.order.status': 'delivered',
             });
+            if (jobs.length) {
+              expect(jobs).toHaveLength(1);
+              expect(
+                jobs[0].message.endsWith(i18n.orderDelivered.slice(-10))
+              ).toBe(true);
+              done();
+            }
           }
           if (totalTime >= waitFor) {
             clearInterval(timer);
@@ -297,20 +292,18 @@ describe('## Shipping Runner', () => {
           if (orderFound.shippingStatus == NP.collected) {
             expect(orderFound.shippingStatus).toBe(NP.collected);
             expect(orderFound.status).toBe('completed');
-            expect(typeof orderFound.dateCompleted).toBe('string');
+            expect(!isNaN(Date.parse(orderFound.dateCompleted))).toBe(true);
 
-            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-              if (err) return done(err);
-              const data = jobs.map(job => job.attrs.data);
-              expect(data).toHaveLength(2);
-              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-              data.map(data => {
-                // expect(data.shippingStatus).toBe(NP.shipped);
-                if (data.message.endsWith(i18n.orderCompleted.slice(-10))) {
-                  done();
-                }
-              });
+            const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
+              'data.order.status': 'completed',
             });
+            if (jobs.length) {
+              expect(jobs).toHaveLength(1);
+              expect(
+                jobs[0].message.endsWith(i18n.orderCompleted.slice(-10))
+              ).toBe(true);
+              done();
+            }
           }
 
           if (totalTime >= waitFor) {
@@ -353,18 +346,18 @@ describe('## Shipping Runner', () => {
           if (orderFound.shippingStatus == NP.refused) {
             expect(orderFound.shippingStatus).toBe(NP.refused);
             expect(orderFound.status).toBe('failed_by_buyer');
-            expect(typeof orderFound.dateFailed).toBe('string');
+            expect(!isNaN(Date.parse(orderFound.dateFailed))).toBe(true);
 
-            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-              if (err) return done(err);
-              const data = jobs.map(job => job.attrs.data);
-              expect(data).toHaveLength(2);
-              data.map(data => {
-                if (data.message.endsWith(i18n.refusedItem.slice(-10))) {
-                  done();
-                }
-              });
+            const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
+              'data.order.status': 'failed_by_buyer',
             });
+            if (jobs.length) {
+              expect(jobs).toHaveLength(1);
+              expect(
+                jobs[0].message.endsWith(i18n.refusedItem.slice(-10))
+              ).toBe(true);
+              done();
+            }
           }
 
           if (totalTime >= waitFor) {
@@ -378,6 +371,23 @@ describe('## Shipping Runner', () => {
     });
   });
 });
+
+function findJobs(jobName: string, extraQuery: Object = {}): Promise<any> {
+  return new Promise((resolve, reject) => {
+    agenda.jobs(
+      {
+        name: jobName,
+        ...extraQuery,
+      },
+      (err, jobs) => {
+        if (err) return reject(err);
+
+        const data = jobs.map(job => job.attrs.data);
+        resolve(data);
+      }
+    );
+  });
+}
 
 async function payOrder(orderId: string, buyerJWTToken, dealID) {
   mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
