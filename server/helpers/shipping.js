@@ -63,35 +63,25 @@ export default class Shipping {
     switch (statusCode) {
       case '1':
         return NP.generated;
-        break;
       case '4':
       case '6':
         return NP.shipped;
-        break;
       case '101':
         return NP.shipped;
-        break;
       case '7':
         return NP.delivered;
-        break;
       case '8':
         return NP.delivered;
-        break;
       case '102':
         return NP.refused;
-        break;
       case '103':
         return NP.refused;
-        break;
       case '108':
         return NP.refused;
-        break;
       case '9':
         return NP.collected;
-        break;
       default:
         return;
-        break;
     }
   }
 }

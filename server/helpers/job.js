@@ -8,7 +8,7 @@ import { i18n } from '../controllers/order.controller';
 import { NP } from '../helpers/shipping';
 
 export default class JobManager {
-  static sendSystemMessage(order: OrderDoc) {
+  static sendSystemMessage(order: OrderDoc): Promise<any> {
     return new Promise((resolve, reject) => {
       let msg = { order };
 
