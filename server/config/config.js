@@ -157,7 +157,7 @@ export default {
 
     remindToConfirmOrderEvery: '6 hours',
 
-    checkShippingStatusEvery: '2 hours',
+    checkShippingStatusEvery: '15 minutes',
 
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
