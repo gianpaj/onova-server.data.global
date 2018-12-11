@@ -114,37 +114,37 @@ describe('## Shipping Runner', () => {
         const interval = Math.floor(waitFor / 100);
         let totalTime = interval;
 
-        // test a system message has been scheduled
+        const {
+          body: { data: orderFound1 },
+        } = await request(app)
+          .get(`/api/orders/${o1.id}`)
+          .set('Authorization', user2JwtToken)
+          .expect(httpStatus.OK);
+
+        expect(orderFound1.shippingStatus).toBe(NP.generated);
+        expect(orderFound1.status).toBe('confirmed');
+
+        // test a system message has been scheduled saying that the order has been confirmed
         // Check every 150ms for up to 15 seconds
         const timer = setInterval(async () => {
           totalTime += interval;
 
-          const {
-            body: { data: orderFound1 },
-          } = await request(app)
-            .get(`/api/orders/${o1.id}`)
-            .set('Authorization', user2JwtToken)
-            .expect(httpStatus.OK);
-
-          if (orderFound1.status == 'confirmed') {
-            expect(orderFound1.shippingStatus).toBe(NP.generated);
-            // expect(orderFound1.status).toBe('confirmed');
-
-            const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
-              'data.order.status': 'paid',
-            });
-            if (jobs.length) {
-              expect(jobs).toHaveLength(1);
-              expect(
-                jobs[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
-              ).toBe(true);
-              done();
-            }
+          const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
+            'data.order.status': 'confirmed',
+          });
+          if (jobs.length) {
+            expect(jobs).toHaveLength(1);
+            expect(
+              jobs[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
+            ).toBe(true);
+            done();
           }
+
+          // it should not send a second confirmation system message - test this by using a long setTimeout
 
           if (totalTime >= waitFor) {
             clearInterval(timer);
-            throw new Error('timeout');
+            throw new Error('timeout for order: ' + o1.id);
           }
         }, interval);
       } catch (error) {
@@ -182,7 +182,7 @@ describe('## Shipping Runner', () => {
           if (orderFound1.shippingStatus == NP.shipped) {
             expect(orderFound1.shippingStatus).toBe(NP.shipped);
             expect(orderFound1.status).toBe('shipped');
-            expect(typeof orderFound1.dateShipped).toBe('string');
+            expect(!isNaN(Date.parse(orderFound1.dateShipped))).toBe(true);
 
             const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
               'data.order.status': 'shipped',
@@ -442,6 +442,6 @@ async function confirmOrder(
       expect(o.trackingNumber).toBe(
         sellerConfirmedResponse.data.handler.waybillNumber.toString()
       );
-      expect(typeof o.dateConfirmed).toBe('string');
+      expect(!isNaN(Date.parse(o.dateConfirmed))).toBe(true);
     });
 }

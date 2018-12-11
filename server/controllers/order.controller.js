@@ -354,6 +354,8 @@ async function update(
       await checkPaymentStatusAndUpdateOrder(foundOrder);
 
       // Schedule a msg with tracking number to notify both parties via chat (orderConfirmed)
+
+      foundOrder.status = newStatus; // now status is 'confirmed'
       await sendSystemMessage(foundOrder);
 
       foundOrder.dateConfirmed = new Date();

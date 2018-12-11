@@ -97,7 +97,7 @@ export default class EscrowRunner {
 
   defineCheckoutJob() {
     agenda.define(JOB.CHECKOUT, async (job, done) => {
-      console.log('checkout job running at', new Date());
+      debug('checkout job running at', new Date());
 
       const previousDate = new Date(
         Date.now() -
@@ -140,7 +140,7 @@ export default class EscrowRunner {
 
   defineCancelPaidOrdersJob() {
     agenda.define(JOB.CANCEL_PAID_ORDERS, async (job, done) => {
-      console.log('cancel-paid-orders job running at', new Date());
+      debug('cancel-paid-orders job running at', new Date());
 
       const previousDate = new Date(
         Date.now() -
@@ -210,10 +210,7 @@ export default class EscrowRunner {
 
   defineRemindToConfirmOrderJob() {
     agenda.define(JOB.PUSH_ORDER_CONFIRM_REMINDER, async (job, done) => {
-      console.log(
-        JOB.PUSH_ORDER_CONFIRM_REMINDER + ' job running at',
-        new Date()
-      );
+      debug(JOB.PUSH_ORDER_CONFIRM_REMINDER + ' job running at', new Date());
 
       const previousDate = new Date(
         Date.now() -

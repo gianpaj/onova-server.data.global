@@ -69,7 +69,7 @@ export default class ShippingRunner {
   createStatusCheckerJob(orderId: string) {
     return new Promise((resolve, reject) => {
       const job = agenda.create(JOBNAMES.SHIPPING_STATUS_CHECKER, { orderId });
-      job.unique({ jobName: JOBNAMES.SHIPPING_STATUS_CHECKER, orderId });
+      // job.unique({ jobName: JOBNAMES.SHIPPING_STATUS_CHECKER, orderId });
       job.save(err => {
         if (err) {
           const error = new Error(`Job failed with error: ${err}`);
@@ -86,7 +86,7 @@ export default class ShippingRunner {
    */
   defineStatusStarterJob() {
     agenda.define(RECURRING.SHIPPING_STATUS_STARTER, async (job, done) => {
-      console.log('shipping-status-starter job running at', new Date());
+      debug('shipping-status-starter job running at', new Date());
 
       const previousDate = new Date(
         Date.now() -
@@ -100,6 +100,7 @@ export default class ShippingRunner {
         // shippingStatus: { $in: [NP.generated, NP.shipped] },
         shippingUpdatedAt: { $lte: previousDate },
       });
+      debug('found', orders.length, 'orders');
       if (!orders.length) return done();
 
       const Promises = orders.map(order =>
@@ -120,10 +121,14 @@ export default class ShippingRunner {
   defineStatusCheckerJobs() {
     // define job for checking shipping status that needs to be updated and send system message
     agenda.define(JOBNAMES.SHIPPING_STATUS_CHECKER, async (job, done) => {
-      console.log('shipping-status-checker job running at', new Date());
+      const { orderId } = job.attrs.data;
 
-      const { orderId } = job.attrs;
-      // TODO: (later) validate order still needs to be updated
+      debug(
+        'shipping-status-checker job running at',
+        new Date(),
+        'for orderId:',
+        orderId
+      );
 
       try {
         const order: OrderDoc = await Order.findById(orderId);
@@ -135,6 +140,11 @@ export default class ShippingRunner {
         const { status, raw } = await Shipping.getShippingStatus(
           order.trackingNumber
         );
+
+        if (order.shippingStatus == status) {
+          debug('already updated with this shippingStatus', status);
+          return done();
+        }
 
         if (status == NP.shipped) {
           order.status = 'shipped';

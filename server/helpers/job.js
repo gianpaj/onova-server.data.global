@@ -74,6 +74,8 @@ export default class JobManager {
       }
 
       const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);
+      // now _also_ check manually during the individual SHIPPING_STATUS_CHECKER job
+
       job.unique({
         jobName: config.JOBNAMES.SYSTEM_MSG,
         shippingStatus: order.shippingStatus,
