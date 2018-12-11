@@ -30,9 +30,7 @@ const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.jobDb
 }`;
 
-export const agenda = new Agenda({
-  db: { address: jobDb, options: { useNewUrlParser: true } },
-});
+export const agenda = new Agenda({ db: { address: jobDb } });
 
 if (config.env === 'test') {
   agenda.on('ready', () => {
