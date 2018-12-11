@@ -24,6 +24,7 @@ import {
   buyerNeedsToPay,
   buyerPaidDeal,
   buyerPaymentFailure,
+  buyerPaymentCVCFailure,
   sellerCancelsAPaidDeal,
   sellerConfirmedResponse,
   dealConfirmationResp,
@@ -899,7 +900,22 @@ describe('## Order APIs', () => {
         .send({ cvc: '123' })
         .expect(httpStatus.INTERNAL_SERVER_ERROR)
         .then(({ body }) => {
-          expect(body.message).toBe('Payment error');
+          expect(body.message).toBe('Internal server error'); // coming from UAPAY
+        });
+    });
+
+    it('should return wrong CVC error', () => {
+      mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
+      mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
+      mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
+      mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaymentCVCFailure);
+      return request(app)
+        .post(`/api/orders/${orderId}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .send({ cvc: '123' })
+        .expect(httpStatus.INTERNAL_SERVER_ERROR)
+        .then(({ body }) => {
+          expect(body.message).toBe('Wrong CVV2 value');
         });
     });
 

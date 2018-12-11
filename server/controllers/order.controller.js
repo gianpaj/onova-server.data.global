@@ -549,7 +549,7 @@ function createPaymentUAPAY(
           // TODO: if existing order, get deal instead of creating a new one
           // externalId: order._id,
           productTitle: product.description,
-          productWeight: product.weight, // number
+          productWeight: product.weight,
           productPrice: product.price.toString().replace('.', ''), // to number in cents
           sellerFirstName: Sship.firstName,
           sellerLastName: Sship.lastName,
@@ -660,10 +660,16 @@ function createPaymentUAPAY(
           console.log('---');
         }
 
+        const statusText = JSON.parse(paym.statusText);
+        let errorMsg = 'Payment error';
+        if (statusText && statusText.message) {
+          errorMsg = statusText.message;
+        }
+
         // TODO: 074 = Invalid confirmation code or details of your card.
-        reject(new APIError('Payment error', httpStatus.INTERNAL_SERVER_ERROR));
+        throw new APIError(errorMsg, httpStatus.INTERNAL_SERVER_ERROR);
       } else {
-        reject(newDeal);
+        throw new Error(JSON.stringify(newDeal));
       }
     } catch (error) {
       reject(error);
