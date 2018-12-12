@@ -356,7 +356,13 @@ async function update(
       // Schedule a msg with tracking number to notify both parties via chat (orderConfirmed)
 
       foundOrder.status = newStatus; // now status is 'confirmed'
-      await sendSystemMessage(foundOrder);
+
+      setTimeout(() => {
+        // FIXME: do not delay scheduling the initial system message.
+        // part of the first message, should include the chat room creating with (buyer, seller and onovabot)
+        // this should be done synchronously
+        sendSystemMessage(foundOrder);
+      }, 5000);
 
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
@@ -753,7 +759,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             order.trackingNumber = handler.waybillNumber;
             order.shippingProvider = 'novaposhta';
 
-            // set by newStatus when seller send API request
+            // the following is done by newStatus when seller send API request - update()
             // order.dateConfirmed = new Date();
             // order.status = 'confirmed';
           }
