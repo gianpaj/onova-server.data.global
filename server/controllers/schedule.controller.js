@@ -285,6 +285,7 @@ async function list(
       }));
 
       // group jobs by dropId
+      // e.g. {'5c10f4a56c72b954bd942d92': [{}, {}]}
       // inspired by https://stackoverflow.com/a/47385953/728287
       const result = scheduled.reduce(
         (accumulator, currentValue) => ({

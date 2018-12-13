@@ -65,17 +65,13 @@ export default class Shipping {
         return NP.generated;
       case '4':
       case '6':
-        return NP.shipped;
       case '101':
         return NP.shipped;
       case '7':
-        return NP.delivered;
       case '8':
         return NP.delivered;
       case '102':
-        return NP.refused;
       case '103':
-        return NP.refused;
       case '108':
         return NP.refused;
       case '9':
