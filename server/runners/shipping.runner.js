@@ -153,7 +153,7 @@ export default class ShippingRunner {
 
         if (status == NP.delivered) {
           order.status = 'delivered';
-          order.dateDelivered = new Date(raw.DateFirstDayStorage);
+          order.dateDelivered = new Date();
         }
 
         if (status == NP.collected) {

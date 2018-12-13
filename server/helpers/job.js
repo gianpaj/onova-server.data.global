@@ -13,6 +13,7 @@ export default class JobManager {
       let msg = { order };
 
       switch (order.shippingStatus) {
+        // shipping status is still generated after a deal has been confirmed
         case NP.generated:
           msg = {
             ...msg,
