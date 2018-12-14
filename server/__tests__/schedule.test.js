@@ -259,11 +259,11 @@ describe('## Schedule APIs', () => {
           .expect(httpStatus.OK);
         const p = res.body.data;
         if (p.length) {
-          clearInterval(timer);
-
           expect(p).toHaveLength(2);
           expect(p.map(p => p.uuid)).toEqual(uuids);
           done();
+          clearInterval(timer);
+          return;
         }
         if (totalTime >= waitFor) {
           clearInterval(timer);
@@ -327,6 +327,8 @@ describe('## Schedule APIs', () => {
                 expect(jobs).toHaveLength(1);
                 expect(jobs[0].message).toBe(i18n.listedDrop);
                 done();
+                clearInterval(timer);
+                return;
               }
             }
             if (totalTime >= waitFor) {
@@ -404,6 +406,8 @@ describe('## Schedule APIs', () => {
           expect(jobs).toHaveLength(1);
           expect(jobs[0].message).toBe(i18n.listedDrop);
           done();
+          clearInterval(timer);
+          return;
         }
         if (totalTime >= waitFor) {
           clearInterval(timer);

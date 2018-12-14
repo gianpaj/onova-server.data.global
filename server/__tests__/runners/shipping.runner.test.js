@@ -138,6 +138,8 @@ describe('## Shipping Runner', () => {
               jobs[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
             ).toBe(true);
             done();
+            clearInterval(timer);
+            return;
           }
 
           // it should not send a second confirmation system message - test this by using a long setTimeout
@@ -193,6 +195,8 @@ describe('## Shipping Runner', () => {
               true
             );
             done();
+            clearInterval(timer);
+            return;
           }
 
           if (totalTime >= waitFor) {
@@ -246,6 +250,8 @@ describe('## Shipping Runner', () => {
                 jobs[0].message.endsWith(i18n.orderDelivered.slice(-10))
               ).toBe(true);
               done();
+              clearInterval(timer);
+              return;
             }
           }
           if (totalTime >= waitFor) {
@@ -299,6 +305,8 @@ describe('## Shipping Runner', () => {
                 jobs[0].message.endsWith(i18n.orderCompleted.slice(-10))
               ).toBe(true);
               done();
+              clearInterval(timer);
+              return;
             }
           }
 
@@ -353,6 +361,8 @@ describe('## Shipping Runner', () => {
                 jobs[0].message.endsWith(i18n.refusedItem.slice(-10))
               ).toBe(true);
               done();
+              clearInterval(timer);
+              return;
             }
           }
 
