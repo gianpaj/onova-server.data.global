@@ -208,13 +208,13 @@ describe('## Schedule APIs', () => {
           .send({
             ...product,
             dropId,
-            date: new Date(dropDate - 300),
+            date: new Date(dropDate + 500),
           })
           .expect(httpStatus.CREATED)
           .then(({ body }) => {
             const p = body.data.data.product;
             expect(p.categoryIds.sort()).toEqual(product.categoryIds);
-            expect(p.createdAt).toBe(new Date(dropDate - 300).toISOString());
+            expect(p.createdAt).toBe(new Date(dropDate + 500).toISOString());
             expect(p.description).toBe(product.description);
             expect(p.dropId).toBe(dropId.toHexString());
             return p.uuid;
@@ -260,6 +260,7 @@ describe('## Schedule APIs', () => {
         const p = res.body.data;
         if (p.length) {
           expect(p).toHaveLength(2);
+          // the first item will appear 2nd
           expect(p.map(p => p.uuid)).toEqual(uuids);
           done();
           clearInterval(timer);
