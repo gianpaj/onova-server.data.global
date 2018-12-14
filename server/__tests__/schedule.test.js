@@ -7,7 +7,6 @@ import addDays from 'date-fns/add_days';
 import BSON from 'bson';
 
 import app from '../index';
-import { agenda } from '../config/express';
 
 import { Notification, Product, User } from '../models';
 import { i18n } from '../controllers/schedule.controller';
@@ -36,6 +35,7 @@ describe('## Schedule APIs', () => {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
+    pushToken: 'testpushTokenpushToken',
   };
 
   // $FlowFixMe
@@ -43,6 +43,7 @@ describe('## Schedule APIs', () => {
     username: 'secondperson',
     emailAddress: 'gianpa+test2@gmail.com',
     password: 'express2',
+    pushToken: 'testpushTokenpushToken',
   };
 
   // $FlowFixMe
@@ -196,7 +197,7 @@ describe('## Schedule APIs', () => {
         );
     });
 
-    it.skip('should schedule listings in order', async done => {
+    it('should schedule listings in order', async done => {
       const dropDate = Date.now(); // in milliseconds
       const dropId = new BSON.ObjectId();
       let uuids;
@@ -272,10 +273,11 @@ describe('## Schedule APIs', () => {
     });
 
     it('should schedule a listing very soon', done => {
+      const dropId = new BSON.ObjectId();
       request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
-        .send({ ...product, dropId: new BSON.ObjectId() })
+        .send({ ...product, dropId })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const p = body.data.data.product;
@@ -307,29 +309,25 @@ describe('## Schedule APIs', () => {
           const timer = setInterval(async () => {
             totalTime += interval;
             const prod = await Product.findOne({ uuid: productUuid });
+            const notif = await Notification.findOne({
+              notifI18n: i18n.listedDrop,
+            });
 
-            if (prod) {
-              const notif = await Notification.findOne({
-                notifI18n: i18n.listedDrop,
-              });
-
+            if (prod && notif) {
               expect(notif.data.product.uuid).toBe(productUuid);
 
               expect(prod.uuid).toBe(productUuid);
               expect(p.photoURIs[0]).toContain('/products/');
 
-              agenda.jobs(
-                { name: config.JOBNAMES.PUSH_DROP_LISTED },
-                (err, jobs) => {
-                  if (err) return done(err);
-                  expect(jobs).toHaveLength(1);
-                  const data = jobs.map(job => job.attrs.data);
-                  data.map(data => {
-                    expect(data.message).toBe(i18n.listedDrop);
-                    done();
-                  });
-                }
-              );
+              const jobs = await findJobs(config.JOBNAMES.PUSH_DROP_LISTED, {
+                dropId,
+              });
+
+              if (jobs.length) {
+                expect(jobs).toHaveLength(1);
+                expect(jobs[0].message).toBe(i18n.listedDrop);
+                done();
+              }
             }
             if (totalTime >= waitFor) {
               clearInterval(timer);
@@ -350,7 +348,7 @@ describe('## Schedule APIs', () => {
             ...product,
             dropId,
             price: '150',
-            date: new Date(datetime - 500),
+            date: datetime,
           })
           .expect(httpStatus.CREATED)
           .then(({ body }) => {
@@ -369,7 +367,7 @@ describe('## Schedule APIs', () => {
             ...product,
             dropId,
             price: '200',
-            date: datetime,
+            date: new Date(datetime + 500),
           })
           .expect(httpStatus.CREATED)
           .then(({ body }) => {
@@ -393,7 +391,9 @@ describe('## Schedule APIs', () => {
       // a 1 Push notification has been scheduled to the seller
       const timer = setInterval(async () => {
         totalTime += interval;
-        const jobs = await findJobs(config.JOBNAMES.PUSH_DROP_LISTED);
+        const jobs = await findJobs(config.JOBNAMES.PUSH_DROP_LISTED, {
+          dropId,
+        });
 
         if (jobs.length) {
           const notif = await Notification.find({
@@ -539,13 +539,12 @@ describe('## Schedule APIs', () => {
   describe('# GET /api/schedule', () => {
     beforeAll(async () => {
       const drop1 = new BSON.ObjectId();
+      product.photos = [
+        'https://storage.googleapis.com/temp-uploads.onova.co/',
+      ];
       try {
-        product.photos = [
-          'https://storage.googleapis.com/temp-uploads.onova.co/',
-        ];
-
+        await clearJobs();
         await Promise.all([
-          clearJobs(),
           request(app)
             .post('/api/schedule')
             .set('Authorization', jwtToken1)
