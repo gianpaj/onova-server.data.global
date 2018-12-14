@@ -5,7 +5,6 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import request from 'supertest';
 
-import { agenda } from '../../config/express';
 import config from '../../config/config';
 
 import app from '../../index';
@@ -22,6 +21,7 @@ import {
   createProduct,
   createUserAndLogin,
   closeDBConnection,
+  findJobs,
 } from '../utils';
 import {
   buyerNeedsToPay,
@@ -234,11 +234,7 @@ describe('## Shipping Runner', () => {
 
           if (orderFound.shippingStatus == NP.delivered) {
             // expect(orderFound.shippingStatus).toBe(NP.delivered);
-            expect(orderFound.dateDelivered).toBe(
-              new Date(
-                novaPoshta.delivered.data[0].DateFirstDayStorage
-              ).toISOString()
-            );
+            expect(!isNaN(Date.parse(orderFound.dateDelivered))).toBe(true);
             expect(orderFound.status).toBe('delivered');
 
             const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
@@ -371,23 +367,6 @@ describe('## Shipping Runner', () => {
     });
   });
 });
-
-function findJobs(jobName: string, extraQuery: Object = {}): Promise<any> {
-  return new Promise((resolve, reject) => {
-    agenda.jobs(
-      {
-        name: jobName,
-        ...extraQuery,
-      },
-      (err, jobs) => {
-        if (err) return reject(err);
-
-        const data = jobs.map(job => job.attrs.data);
-        resolve(data);
-      }
-    );
-  });
-}
 
 async function payOrder(orderId: string, buyerJWTToken, dealID) {
   mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
