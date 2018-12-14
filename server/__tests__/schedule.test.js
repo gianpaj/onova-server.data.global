@@ -11,7 +11,12 @@ import { agenda } from '../config/express';
 
 import { Notification, Product, User } from '../models';
 import { i18n } from '../controllers/schedule.controller';
-import { clearJobs, createUserAndLogin, beforeAllTests } from './utils';
+import {
+  clearJobs,
+  createUserAndLogin,
+  beforeAllTests,
+  findJobs,
+} from './utils';
 import config from '../config/config';
 
 jest.setTimeout(15000);
@@ -332,6 +337,79 @@ describe('## Schedule APIs', () => {
             }
           }, interval);
         });
+    });
+
+    it('should notify the seller once for a number of items in one Drop', async done => {
+      const dropId = new BSON.ObjectId();
+      const datetime = new Date();
+      await Promise.all([
+        request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken1)
+          .send({
+            ...product,
+            dropId,
+            price: '150',
+            date: new Date(datetime - 500),
+          })
+          .expect(httpStatus.CREATED)
+          .then(({ body }) => {
+            const p = body.data.data.product;
+            expect(p.categoryIds.sort()).toEqual(product.categoryIds);
+            expect(p.description).toBe(product.description);
+            expect(p.price).toBe('150.00');
+            expect(p.seller).toBe(user1._id);
+            expect(p.status).toBe('forsale');
+            expect(p.typeIds.sort()).toEqual(product.typeIds);
+          }),
+        request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken1)
+          .send({
+            ...product,
+            dropId,
+            price: '200',
+            date: datetime,
+          })
+          .expect(httpStatus.CREATED)
+          .then(({ body }) => {
+            const p = body.data.data.product;
+            expect(p.price).toBe('200.00');
+            expect(p.seller).toBe(user1._id);
+            expect(p.status).toBe('forsale');
+          }),
+      ]);
+
+      if (!schedulerIsRunning) return done();
+
+      // const productUuid = p.uuid;
+      const waitFor = 15 * 1000; // seconds
+      const interval = Math.floor(waitFor / 100);
+      let totalTime = interval;
+
+      // Check every 150ms up to 15 seconds that
+      // a Product has been created
+      // a 1 Notification has been created to the seller
+      // a 1 Push notification has been scheduled to the seller
+      const timer = setInterval(async () => {
+        totalTime += interval;
+        const jobs = await findJobs(config.JOBNAMES.PUSH_DROP_LISTED);
+
+        if (jobs.length) {
+          const notif = await Notification.find({
+            'data.product.dropId': dropId,
+            notifI18n: i18n.listedDrop,
+          });
+          expect(notif).toHaveLength(1);
+          expect(jobs).toHaveLength(1);
+          expect(jobs[0].message).toBe(i18n.listedDrop);
+          done();
+        }
+        if (totalTime >= waitFor) {
+          clearInterval(timer);
+          throw new Error('timeout');
+        }
+      }, interval);
     });
 
     it('should NOT schedule a listing in the past', () => {

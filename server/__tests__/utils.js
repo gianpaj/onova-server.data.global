@@ -24,6 +24,7 @@ import {
 
 import app from '../index';
 import config from '../config/config';
+import { agenda } from '../config/express';
 
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
@@ -322,4 +323,15 @@ export function followUser(token: string, target: string): Promise<any> {
     .post(`/api/users/${target}/follow`)
     .set('Authorization', token)
     .expect(httpStatus.CREATED);
+}
+
+export function findJobs(name: string, extraQuery: Object = {}): Promise<any> {
+  return new Promise((resolve, reject) => {
+    agenda.jobs({ name, ...extraQuery }, (err, jobs) => {
+      if (err) return reject(err);
+
+      const data = jobs.map(job => job.attrs.data);
+      resolve(data);
+    });
+  });
 }
