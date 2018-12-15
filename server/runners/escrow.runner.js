@@ -114,6 +114,7 @@ export default class EscrowRunner {
 
       try {
         const orders: Array<OrderDoc> = await Order.find(query);
+        debug('orders found:', orders.length);
         if (!orders.length) return done();
 
         const ordersUpdated: Array<OrderDoc> = await Order.updateMany(query, {

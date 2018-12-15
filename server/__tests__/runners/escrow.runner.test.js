@@ -24,6 +24,7 @@ import {
 import {
   buyerNeedsToPay,
   buyerPaidDeal,
+  buyerPaymentFailure,
   sellerCancelsAPaidDeal,
   sellerConfirmedResponse,
 } from '../../helpers/shipping';
@@ -305,6 +306,115 @@ describe('## Escrow Manager', () => {
           if (totalTime >= waitFor) {
             clearInterval(timer);
             throw new Error('timeout for order: ' + o2.id);
+          }
+        }, interval);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    it.skip('should cancel an order after the buyer payment failed (rejected)', async done => {
+      const buyer = { ...user2, jwtToken: user2JwtToken };
+      const seller = {
+        ...user1,
+        jwtToken: user1JwtToken,
+        productUUID: user1ProductUuidA,
+      };
+
+      try {
+        const o = await createOrder(
+          { ...productA, uuid: seller.productUUID },
+          buyer.jwtToken
+        );
+        const dealID = '9B27M6E';
+
+        // buyer starts payment BUT payment fails
+        mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
+        mock.onPost('/deals').reply(200, { data: { id: dealID } });
+        mock.onPost(`/deals/${dealID}/payments`).reply(200);
+        mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
+        mock
+          .onGet('/handlers/NovaPoshta/costs')
+          .reply(200, { data: { handlerPrice: 2500 } });
+        await request(app)
+          .post(`/api/orders/${o.id}/pay`)
+          .set('Authorization', buyer.jwtToken)
+          .send({ cvc: '123' })
+          .expect(httpStatus.CREATED);
+        mock.onGet(`/deals/${dealID}`).reply(200, buyerPaymentFailure);
+        await request(app)
+          .get(`/api/orders/${o.id}/paymentStatus`)
+          .set('Authorization', buyer.jwtToken)
+          .expect(httpStatus.OK)
+          .then(({ body }) => {
+            expect(body.data.status).toBe('ua-rejected');
+            expect(body.data.rawStatus).toBe('REJECTED');
+          });
+
+        const waitFor = 15 * 1000; // seconds
+        const interval = Math.floor(waitFor / 100);
+        let totalTime = interval;
+
+        // Check every 150ms for up to 15 seconds
+        const timer = setInterval(async () => {
+          totalTime += interval;
+
+          const { body: product } = await request(app)
+            .get(`/api/products/${seller.productUUID}`) // order 1
+            .set('Authorization', user3JwtToken)
+            .expect(httpStatus.OK);
+
+          console.log(product.data.status);
+
+          if (product.data.status === 'forsale') {
+            // expect(product.data.status).toBe('forsale');
+            expect(product.data.datePending).toBe(undefined);
+
+            const { body: orderFound } = await request(app)
+              .get(`/api/orders/${o.id}`)
+              .set('Authorization', buyer.jwtToken)
+              .expect(httpStatus.OK);
+
+            expect(orderFound.data.status).toBe('failed_by_seller');
+            expect(orderFound.data.transactionStatus).toBe('ua-reversed');
+            expect(typeof orderFound.data.dateFailed).toBe('string');
+
+            expect(orderFound2.data.status).toBe('paid');
+            expect(orderFound2.data.transactionStatus).toBe('ua-finished');
+            expect(orderFound2.data.dateFailed).toBeUndefined();
+
+            agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
+              if (err) return done(err);
+
+              jobs = jobs.filter(
+                j => j.attrs.data.triggeredBy.toString() !== o2.id
+              );
+              expect(jobs).toHaveLength(3);
+              const targetUsers = jobs
+                .map(j => j.attrs)
+                .map(({ data }) => data.targetUser.toString())
+                .slice(1); // remove the first push notification job
+
+              expect(targetUsers.find(u => u === buyer._id)).toBeTruthy();
+              expect(targetUsers.find(u => u === seller._id)).toBeTruthy();
+
+              const { data: push1 } = jobs.map(j => j.attrs)[1];
+              expect(push1.triggeredBy.toString()).toBe(o.id);
+              expect(push1.triggeredType).toBe('Order');
+              expect(typeof push1.random).toBe('string');
+              const { data: push2 } = jobs.map(j => j.attrs)[2];
+              expect(push2.triggeredBy.toString()).toBe(o.id);
+              expect(push2.triggeredType).toBe('Order');
+              expect(typeof push2.random).toBe('string');
+
+              done();
+              clearInterval(timer);
+            });
+          }
+
+          if (totalTime >= waitFor) {
+            clearInterval(timer);
+            throw new Error('timeout for order: ' + o.id);
           }
         }, interval);
       } catch (error) {
