@@ -720,7 +720,7 @@ async function paymentStatus(
       },
     });
   } catch (error) {
-    order.save();
+    // order.save();
     if (!(error instanceof APIError)) {
       console.error(error);
       error = new APIError(
