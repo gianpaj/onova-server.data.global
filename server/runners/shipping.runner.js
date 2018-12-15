@@ -177,7 +177,7 @@ export default class ShippingRunner {
         await JobManager.sendSystemMessage(order);
         done();
       } catch (error) {
-        console.log(RECURRING.SHIPPING_STATUS_CHECKER);
+        console.log(JOBNAMES.SHIPPING_STATUS_CHECKER);
         console.error(error);
         done(error);
       }

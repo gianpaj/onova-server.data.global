@@ -720,6 +720,7 @@ async function paymentStatus(
       },
     });
   } catch (error) {
+    order.save();
     if (!(error instanceof APIError)) {
       console.error(error);
       error = new APIError(
@@ -780,10 +781,18 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
           break;
         // The bank has not been able to make debit for technical reasons
         case 'REJECTED':
+          const statusText = JSON.parse(paym.statusText);
+          let errorMsg = 'Payment error';
+          if (statusText && statusText.message) {
+            errorMsg = statusText.message;
+          }
+
+          // TODO: 074 = Invalid confirmation code or details of your card.
           console.log('payment rejected:');
           console.error(data);
           console.error(order);
           order.transactionStatus = 'ua-rejected';
+          throw new APIError(errorMsg, httpStatus.INTERNAL_SERVER_ERROR);
           break;
         // The payment was returned to the sender's card
         case 'REVERSED':
