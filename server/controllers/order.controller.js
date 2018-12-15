@@ -622,7 +622,7 @@ function createPaymentUAPAY(
         // console.log(newDeal.productPayment.waitingFor);
         await sleep(500);
       } while (
-        newDeal.productPayment.waitingFor === 'PAY_PROCESSING' &&
+        newDeal.productPayment.waitingFor !== 'CONFIRMATION' &&
         retryNum < 7
       );
 
