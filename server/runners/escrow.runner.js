@@ -128,7 +128,7 @@ export default class EscrowRunner {
         const updated = await this.removeProductsFromCheckout(
           productsToPutBackForSale
         );
-        debug('Products updated: ', updated.nModified);
+        debug('Products updated:', updated.nModified);
         done();
       } catch (error) {
         console.error(JOB.CHECKOUT);
@@ -138,6 +138,7 @@ export default class EscrowRunner {
     });
   }
 
+  // Reject UAPAY transaction of paid orders that seller has not confirmed
   defineCancelPaidOrdersJob() {
     agenda.define(JOB.CANCEL_PAID_ORDERS, async (job, done) => {
       debug('cancel-paid-orders job running at', new Date());
