@@ -626,7 +626,7 @@ function createPaymentUAPAY(
         await sleep(500);
       } while (
         newDeal.productPayment.waitingFor !== 'CONFIRMATION' &&
-        retryNum < 7
+        retryNum < 15
       );
 
       const { productPayment: paym } = newDeal;
