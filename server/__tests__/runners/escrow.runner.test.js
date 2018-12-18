@@ -313,6 +313,7 @@ describe('## Escrow Manager', () => {
       }
     });
 
+    // TODO: enable once the 'ua-rejected' transactionStatus is saved and the app doesn't check for existing order paymentStatus
     it.skip('should cancel an order after the buyer payment failed (rejected)', async done => {
       const buyer = { ...user2, jwtToken: user2JwtToken };
       const seller = {

@@ -355,14 +355,20 @@ async function update(
 
       // Schedule a msg with tracking number to notify both parties via chat (orderConfirmed)
 
+      // development
+      // foundOrder.shippingStatus = NP.generated;
+
       foundOrder.status = newStatus; // now status is 'confirmed'
 
-      setTimeout(() => {
-        // FIXME: do not delay scheduling the initial system message.
-        // part of the first message, should include the chat room creating with (buyer, seller and onovabot)
-        // this should be done synchronously
-        sendSystemMessage(foundOrder);
-      }, 5000);
+      setTimeout(
+        () => {
+          // FIXME: do not delay scheduling the initial system message.
+          // part of the first message, should include the chat room creating with (buyer, seller and onovabot)
+          // this should be done synchronously
+          sendSystemMessage(foundOrder);
+        },
+        config.env === 'test' ? 0 : 5000
+      );
 
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
@@ -377,18 +383,15 @@ async function update(
       const err = new APIError('"reason" is required', httpStatus.BAD_REQUEST);
       return next(err);
     }
-    if (iAmTheSeller) {
-      foundOrder.reason = reason;
-    } else {
-      if (foundOrder.status === 'paid') {
-        // buyer cannot cancel a paid order
-        const err = new APIError(
-          'cannot cancel a paid order',
-          httpStatus.BAD_REQUEST
-        );
-        return next(err);
-      }
+    if (!iAmTheSeller && foundOrder.status === 'paid') {
+      // buyer cannot cancel a paid order
+      const err = new APIError(
+        'cannot cancel a paid order',
+        httpStatus.BAD_REQUEST
+      );
+      return next(err);
     }
+    foundOrder.reason = reason;
 
     if (
       foundOrder.transactionId &&

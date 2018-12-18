@@ -498,6 +498,84 @@ export const buyerPaymentCVCFailure = {
   },
 };
 
+// from real payment
+export const buyerPaymentFailureInsufficientFunds = {
+  data: {
+    id: 'Y18QS3U',
+    externalId: null,
+    sellerUserId: null,
+    buyerUserId: null,
+    cartId: 202,
+    productTitle:
+      'Жіночий  віндстопер Mammut\n- чудово рятуватиме від вітру та дощу\n- антомічний крій \n - подовжений рукав\n-  висока горловина\nРозмір  L  (може міти на М )\nCтан  5\nЗаміри\nа - 64\nв - 49\nс - 75\nЦіна  - 500 грн',
+    productPrice: 56000,
+    productWeight: 5000,
+    handlerPrice: 6800,
+    status: 'NEW',
+    reasonStep: null,
+    buyerFirstName: 'Олександр',
+    buyerLastName: 'Костінський',
+    buyerPatronymic: '',
+    buyerPhone: '380677929197',
+    buyerEmail: 'isho@ukr.net',
+    sellerFirstName: 'Андрій',
+    sellerLastName: 'Головін',
+    sellerPatronymic: '',
+    sellerPhone: '380638047709',
+    sellerEmail: 'outdoor.kyiv2013@gmail.com',
+    lg: 'uk',
+    createdAt: '2018-12-15T07:10:29.000Z',
+    adId: null,
+    handler: {
+      status: 'NEW',
+      statusCode: null,
+      statusText: null,
+      waybillNumber: null,
+      senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      senderCityName: null,
+      senderOfficeId: '3fd42337-ed80-11e4-8a92-005056887b8d',
+      senderOfficeName: null,
+      recipientCityId: 'db5c88f5-391c-11dd-90d9-001a92567626',
+      recipientCityName: null,
+      recipientOfficeId: '39931b85-e1c2-11e3-8c4a-0050568002cf',
+      recipientOfficeName: null,
+      type: 'NovaPoshta',
+    },
+    productPayment: {
+      id: 400,
+      amount: 50000,
+      commissionAmount: 6000,
+      status: 'REJECTED',
+      statusCode: 'REJECTED',
+      statusText:
+        '{"code":"TECHNICAL_ERROR","message":"Insufficient funds","responseCode":"P2Ps2c101","source":"ALFA_P2P"}',
+      type: 'P2P_ONOVA',
+      waitingFor: null,
+      details: { confirmation: [Object] },
+      payReceipt:
+        'https://api.uapay.ua/api/receipts/60e4ccbd-bdbf-4f24-89bc-1ec0746ef047.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+    handlerPayment: {
+      id: 399,
+      amount: 6800,
+      commissionAmount: 0,
+      status: 'REVERSED',
+      statusCode: 'REVERSED',
+      statusText: null,
+      type: 'ECOM',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.uapay.ua/api/acquiring/receipts/escrowbox/a8c2f39a-bb01-41d7-b0a3-23f47fb1385a.pdf',
+      reverseReceipt:
+        'https://api.uapay.ua/api/acquiring/receipts/escrowbox/a8c2f39a-bb01-41d7-b0a3-23f47fb1385a.pdf',
+      finishReceipt: null,
+    },
+  },
+};
+
 export const buyerPaymentFailure = {
   data: {
     id: 'Z8QK927',
