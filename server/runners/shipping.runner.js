@@ -146,25 +146,27 @@ export default class ShippingRunner {
           return done();
         }
 
-        if (status == NP.shipped) {
-          order.status = 'shipped';
-          order.dateShipped = new Date();
-        }
+        switch (status) {
+          case NP.shipped:
+            order.status = 'shipped';
+            order.dateShipped = new Date();
+            break;
+          case NP.delivered:
+            order.status = 'delivered';
+            order.dateDelivered = new Date();
+            break;
+          case NP.collected:
+            order.status = 'completed';
+            order.dateCompleted = new Date();
+            break;
+          case NP.refused:
+            // TODO: distinguish between "Buyer fails to collect" and "Buyer refuses the item (not as described)"
+            order.status = 'failed_by_buyer';
+            order.dateFailed = new Date();
+            break;
 
-        if (status == NP.delivered) {
-          order.status = 'delivered';
-          order.dateDelivered = new Date();
-        }
-
-        if (status == NP.collected) {
-          order.status = 'completed';
-          order.dateCompleted = new Date();
-        }
-
-        if (status == NP.refused) {
-          // TODO: distinguish between "Buyer fails to collect" and "Buyer refuses the item (not as described)"
-          order.status = 'failed_by_buyer';
-          order.dateFailed = new Date();
+          default:
+            break;
         }
 
         // TODO: 'failed_by_seller' - did not ship on time - no status associated from Nova Poshta?

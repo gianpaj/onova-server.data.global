@@ -776,9 +776,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             // only update first time we check
             if (!order.datePaid) order.datePaid = new Date();
             createOrderNotification(order)
-              .then(() => {
-                debug('notification(s) created for order:', 'paid');
-              })
+              .then(() => debug('notification(s) created for order:', 'paid'))
               .catch(e => console.error(e));
           }
           break;
