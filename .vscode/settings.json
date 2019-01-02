@@ -9,7 +9,7 @@
   },
   "eslint.enable": true,
   "eslint.packageManager": "yarn",
-  "flow.useNPMPackagedFlow": true,
   "prettier.eslintIntegration": true,
+  "flow.useNPMPackagedFlow": true,
   "flow.enabled": false
 }

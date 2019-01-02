@@ -36,7 +36,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
         displayName: user.username,
       };
 
-      var request = mailjetClient.post('send', { version: 'v3.1' }).request({
+      const request = mailjetClient.post('send', { version: 'v3.1' }).request({
         Messages: [
           {
             From: {
@@ -84,7 +84,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
         displayName: user.username,
       };
 
-      var request = mailjetClient.post('send', { version: 'v3.1' }).request({
+      const request = mailjetClient.post('send', { version: 'v3.1' }).request({
         Messages: [
           {
             From: {
@@ -135,7 +135,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
         displayName: user.username,
       };
 
-      var request = mailjetClient.post('send', { version: 'v3.1' }).request({
+      const request = mailjetClient.post('send', { version: 'v3.1' }).request({
         Messages: [
           {
             From: {

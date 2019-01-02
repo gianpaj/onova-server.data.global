@@ -11,7 +11,7 @@ const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;
 
 /** @namespace */
-var FollowSchema = new Schema({
+const FollowSchema = new Schema({
   follower: {
     type: Schema.Types.ObjectId,
     ref: 'User',

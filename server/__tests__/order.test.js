@@ -851,7 +851,7 @@ describe('## Order APIs', () => {
       const dealID = '9B27M6A';
       mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: dealID } });
-      mock.onPost(`/deals/${dealID}/payments`).reply(200, buyerNeedsToPay);
+      mock.onPost(`/deals/${dealID}/payments`).reply(200);
       mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
       mock
         .onGet('/handlers/NovaPoshta/costs')
@@ -884,10 +884,11 @@ describe('## Order APIs', () => {
     });
 
     it('should NOT create a payment for an order if payment info', () => {
+      const dealID = '9B27M6B';
       mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
-      mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
-      mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
-      mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaymentFailure);
+      mock.onPost('/deals').reply(200, { data: { id: dealID } });
+      mock.onPost(`/deals/${dealID}/payments`).reply(200);
+      mock.onGet(`/deals/${dealID}`).reply(200, buyerPaymentFailure);
       return request(app)
         .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', anotherJwtToken)
@@ -901,7 +902,7 @@ describe('## Order APIs', () => {
     it('should return wrong CVC error', () => {
       mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
-      mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
+      mock.onPost(`/deals/9B27M6E/payments`).reply(200);
       mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaymentCVCFailure);
       return request(app)
         .post(`/api/orders/${orderId}/pay`)

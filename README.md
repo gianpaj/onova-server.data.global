@@ -93,6 +93,10 @@ yarn test:watch
 
 # Run individual test files
 DEBUG=express-mongoose-es6-rest-api:* NODE_ENV=test npx jest server/__tests__/order.test.js --forceExit --watch --bail
+
+# Run tests that require the job scheduler (like drop.test.js)
+cd ../server.push
+NODE_ENV=test yarn dev:start
 ```
 
 Lint:

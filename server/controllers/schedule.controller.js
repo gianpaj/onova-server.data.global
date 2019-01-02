@@ -4,7 +4,6 @@ import shortid from 'shortid';
 import httpStatus from 'http-status';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 import path from 'path';
-const debug = require('debug')('server-data:schedule');
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });

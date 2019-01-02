@@ -361,12 +361,10 @@ function update(
       new Promise((resolve, reject) => {
         photos
           .uploadProfilePic(req.user, req.file)
-          .then(cloudStoragePublicUrl =>
-            User.findByIdAndUpdate(req.user._id, {
+          .then(async cloudStoragePublicUrl => {
+            const doc = await User.findByIdAndUpdate(req.user._id, {
               $set: { profilePic: cloudStoragePublicUrl },
-            })
-          )
-          .then(async doc => {
+            });
             if (doc) {
               debug('profilePic updated for user:', doc._id);
               if (config.env === 'production') {
@@ -396,7 +394,7 @@ function update(
   return Promise.all(Promises)
     .then(() => user.save())
     .then(savedUser => res.json(savedUser))
-    .then(() => debug(`Username: ${user.username} saved.`))
+    .then(() => debug(`Username: ${user.username} updated.`))
     .catch(error => next(error));
 }
 

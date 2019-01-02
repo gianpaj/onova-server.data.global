@@ -484,7 +484,7 @@ describe('## Order APIs', () => {
         Review.collection,
       ];
 
-      var todo = collections.length;
+      let todo = collections.length;
       if (!todo) return done();
 
       collections.forEach(collection => {

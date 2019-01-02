@@ -20,6 +20,10 @@ const router = express.Router();
 
 router.use('/auth', authRoutes);
 router.use('/block', blockRoutes);
+
+// mount /feed/flat
+// AND
+// mount /feed/drops
 router.use('/feed', feedRoutes);
 
 // Check service health

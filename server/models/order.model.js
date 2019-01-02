@@ -10,7 +10,7 @@ import { NP } from '../helpers/shipping';
 const { Schema } = mongoose;
 
 /** @namespace */
-var OrderSchema = new Schema(
+const OrderSchema = new Schema(
   {
     archivedByBuyer: Boolean,
     archivedBySeller: Boolean,
@@ -272,9 +272,10 @@ OrderSchema.statics = {
    * @returns {Promise<OrderDoc[]>}
    */
   async list({ myid, skip = 0, limit = 50 }): Promise<OrderDoc[]> {
-    const usersIamBlockedBy = await Block.find({ targetUser: myid });
-
-    const usersIamBlocking = await Block.find({ sourceUser: myid });
+    const [usersIamBlockedBy, usersIamBlocking] = await Promise.all([
+      Block.find({ targetUser: myid }),
+      Block.find({ sourceUser: myid }),
+    ]);
 
     const idsA = usersIamBlockedBy.map(u => u.sourceUser);
     const idsB = usersIamBlocking.map(u => u.targetUser);

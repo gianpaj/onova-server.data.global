@@ -71,7 +71,7 @@ export default class JobManager {
                 order.shippingStatus
             )
           );
-          break;
+          return;
       }
 
       const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);

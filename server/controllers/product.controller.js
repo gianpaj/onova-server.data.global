@@ -322,43 +322,29 @@ async function list(
     }
   } else if (username) {
     // search products by seller's username (no pagination[lastId] yet allowed)
-    return User.findOne({ username })
-      .then(user => {
-        if (!user) {
-          const APIerr = new APIError('No seller found', httpStatus.NOT_FOUND);
-          return next(APIerr);
-        }
+    const user = await User.findOne({ username });
+    if (!user) {
+      const APIerr = new APIError('No seller found', httpStatus.NOT_FOUND);
+      return next(APIerr);
+    }
 
-        query = { ...query, seller: user._id };
-
-        // use static method from ProductSchema
-        return Product.list({ query, projection }).then(data =>
-          res.json({ data })
-        );
-      })
-      .catch(e => next(e));
+    query = { ...query, seller: user._id };
   }
 
   // for pagination - results are excluding the lastId
   if (lastId) {
-    return Product.findById(lastId).then(product => {
-      if (!product) {
-        const APIerr = new APIError('Product not found.', httpStatus.NOT_FOUND);
-        return next(APIerr);
-      }
+    const product = await Product.findById(lastId);
+    if (!product) {
+      const APIerr = new APIError('Product not found.', httpStatus.NOT_FOUND);
+      return next(APIerr);
+    }
 
-      query = { ...query, _id: { $lt: lastId } };
-
-      return Product.list({ query, projection, limit }).then(data =>
-        res.json({ data })
-      );
-    });
-  } else {
-    // use static method from ProductSchema
-    Product.list({ query, projection, limit })
-      .then(data => res.json({ data }))
-      .catch(e => next(e));
+    query = { ...query, _id: { $lt: lastId } };
   }
+  // use static method from ProductSchema
+  Product.list({ query, projection, limit })
+    .then(data => res.json({ data }))
+    .catch(e => next(e));
 }
 
 /**

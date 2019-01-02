@@ -448,7 +448,7 @@ describe('## Search APIs', () => {
     // delete all the Products
     beforeAll(done => {
       const collections = [Product.collection];
-      var todo = collections.length;
+      let todo = collections.length;
       if (!todo) return done();
 
       collections.forEach(collection => {

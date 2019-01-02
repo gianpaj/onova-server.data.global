@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-var LikeSchema = new Schema({
+const LikeSchema = new Schema({
   product: {
     type: Schema.Types.ObjectId,
     ref: 'Product',

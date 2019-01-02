@@ -171,7 +171,7 @@ export default class ShippingRunner {
 
         order.shippingStatus = status;
         order.shippingUpdatedAt = new Date();
-        order.save();
+        await order.save();
 
         // send system message for the various shippingStatus
         await JobManager.sendSystemMessage(order);

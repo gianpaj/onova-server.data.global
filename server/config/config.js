@@ -130,12 +130,13 @@ export default {
 
   // hard coded settings
   JOBNAMES: {
+    DROP_SUBSCRIPTION: 'drop-subscription',
+    SCHEDULE: 'listing-schedule',
     PUSH_COMMENT: 'send-push-comment',
     PUSH_DROP_LISTED: 'send-push-drop-listed',
     PUSH_FOLLOW: 'send-push-follow',
     PUSH_MSG: 'send-push-msg', // person to person
     PUSH_ORDER: 'send-push-order',
-    SCHEDULE: 'listing-schedule',
     SYSTEM_MSG: 'send-system-message',
     RECURRING: {
       CHECKOUT: 'checkout',

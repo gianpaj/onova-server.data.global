@@ -46,12 +46,12 @@ function flat(
 
       const followingIDs = following.map(f => f.following);
 
-      let blockedIDs = [];
-      const blocked = await Follow.find({
+      let blockedByIDs = [];
+      const blockedBy = await Follow.find({
         follower: req.user._id,
         status: -1,
       });
-      if (blocked) blockedIDs = blocked.map(f => f.following);
+      if (blockedBy) blockedByIDs = blockedBy.map(f => f.following);
 
       let DBqueryInclusive = {
         status: 'forsale',
@@ -59,7 +59,7 @@ function flat(
       };
       let DBqueryExclusive = {
         status: 'forsale',
-        seller: { $nin: [...followingIDs, ...blockedIDs] },
+        seller: { $nin: [...followingIDs, ...blockedByIDs] },
       };
 
       if (typeIds) {
@@ -113,34 +113,6 @@ function flat(
         data: [].concat.apply([], products).slice(0, +limit),
       });
     })
-    .catch(e => next(e));
-}
-
-/**
- * Get list of users a specific user is following
- *
- * GET /api/users/:userId/following
- *
- * @property {*} req - Express request
- * @property {*} req.params - Express params parameters
- * @property {string} req.params.userId
- * @property {*} req.query - Express query parameters
- * @property {number} req.query.skip Number of users to be skipped.
- * @property {number} req.query.limit Limit number of users to be returned.
- */
-function listFollowing(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  const { limit = 50, skip = 0 } = req.query;
-
-  const DBquery = { follower: req.params.userId };
-
-  // use static method from FollowSchema
-  // flow-disable-next-line
-  Follow.list({ DBquery, limit, skip })
-    .then(follows => res.json({ data: follows }))
     .catch(e => next(e));
 }
 
@@ -218,7 +190,4 @@ function listFollowing(
 //     .catch(next);
 // });
 
-export default {
-  flat,
-  // listFollowing,
-};
+export default { flat };

@@ -5,6 +5,7 @@ import passport from 'passport';
 
 import paramValidation from '../config/validation/feed.validation';
 import feedCtrl from '../controllers/feed.controller';
+import dropCtrl from '../controllers/drop.controller';
 
 // loads Authenticated user document in `req.user`
 const requireAuth = passport.authenticate('jwt', { session: false });
@@ -16,5 +17,10 @@ router
 
   // GET /api/feed/flat - simple time-based feed
   .get(validate(paramValidation.getFlatFeed), requireAuth, feedCtrl.flat);
+
+router
+  .route('/drops')
+  // GET /api/feed/drops
+  .get(requireAuth, dropCtrl.myFeed);
 
 export default router;

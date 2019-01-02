@@ -60,30 +60,76 @@ Array [
 ]
 `;
 
-exports[`## Product APIs # GET /api/products/ should get all products 1`] = `
+exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 1`] = `
 Array [
   "_id",
-  "accountStatus",
+  "amISubscribed",
   "createdAt",
-  "displayName",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "paymentInfo",
-  "profilePic",
-  "shippingAddress",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "status",
+  "subscribers",
+  "updatedAt",
+  "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 2`] = `
+Array [
+  "_id",
   "username",
 ]
 `;
 
-exports[`## Product APIs # GET /api/products/:uuid should get an existing product: product 1`] = `
+exports[`## Drops feed APIs # GET /api/v2/drops/:uuid should get one drop 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "status",
+  "subscribers",
+  "updatedAt",
+  "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # GET /api/v2/drops/:uuid should get one drop 2`] = `
+Array [
+  "_id",
+  "username",
+]
+`;
+
+exports[`## Drops feed APIs # POST /api/v2/drops should create a drop immediately with one product: drop 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "status",
+  "subscribers",
+  "updatedAt",
+  "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # POST /api/v2/drops should create a drop immediately with one product: product 1`] = `
 Array [
   "_id",
   "categoryIds",
   "createdAt",
   "currency",
   "description",
+  "dropId",
   "likes",
+  "locality",
   "photoURIs",
   "price",
   "seller",
@@ -93,21 +139,5 @@ Array [
   "updatedAt",
   "uuid",
   "weight",
-]
-`;
-
-exports[`## Product APIs # GET /api/products/:uuid should get an existing product: product.seller 1`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "createdAt",
-  "displayName",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "paymentInfo",
-  "profilePic",
-  "shippingAddress",
-  "username",
 ]
 `;

@@ -2,7 +2,7 @@
 
 import mongoose from 'mongoose';
 
-var TagSchema = new mongoose.Schema(
+const TagSchema = new mongoose.Schema(
   {
     _id: String,
   },

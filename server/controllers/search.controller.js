@@ -64,9 +64,10 @@ async function get(
   }
   if (typeIds) query = { ...query, typeIds: { $in: typeIds } };
 
-  const usersIamBlockedBy = await Block.find({ targetUser: req.user._id });
-
-  const usersIamBlocking = await Block.find({ sourceUser: req.user._id });
+  const [usersIamBlockedBy, usersIamBlocking] = await Promise.all([
+    Block.find({ targetUser: req.user._id }),
+    Block.find({ sourceUser: req.user._id }),
+  ]);
 
   const idsA = usersIamBlockedBy.map(u => u.sourceUser);
   const idsB = usersIamBlocking.map(u => u.targetUser);
@@ -79,20 +80,11 @@ async function get(
   if (lastId) {
     query = { ...query, _id: { $lt: lastId } };
 
-    return Product.findById(lastId).then(product => {
-      if (!product) {
-        const APIerr = new APIError('Product not found.', httpStatus.NOT_FOUND);
-        return next(APIerr);
-      }
-      return Product.find(query, projection)
-        .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-        .populate({
-          path: 'seller',
-          select: userPopulateFields,
-        })
-        .limit(+limit)
-        .then(data => res.json({ data }));
-    });
+    const product = await Product.findById(lastId);
+    if (!product) {
+      const APIerr = new APIError('Product not found.', httpStatus.NOT_FOUND);
+      return next(APIerr);
+    }
   }
   // using static method from ProductSchema
   Product.find(query, projection)

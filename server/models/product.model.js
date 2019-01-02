@@ -7,7 +7,7 @@ import shortid from 'shortid';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import { userPopulateFields } from './user.model';
+import { userPopulateFields } from './';
 
 const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;
@@ -46,7 +46,7 @@ const GeoJSON = new Schema({
 //   { label: 'Other', value: 2 },
 
 /** @namespace */
-var ProductSchema = new Schema(
+export const ProductSchema = new Schema(
   {
     categoryIds: {
       type: [Number],
@@ -93,7 +93,7 @@ var ProductSchema = new Schema(
       type: String,
       required: true,
       default: 'forsale',
-      enum: ['forsale', 'reserved', 'sold', 'banned', 'deleted'],
+      enum: ['forsale', 'reserved', 'sold', 'banned', 'deleted', 'ready'],
     },
     tags: {
       type: [String],
@@ -190,14 +190,14 @@ ProductSchema.statics = {
   /**
    * List products in descending order of 'createdAt' timestamp.
    *
-   * @param {Object} query Query params
-   * @param {number} query.skip Number of products to be skipped.
-   * @param {number} query.limit Limit number of products to be returned.
+   * @param {Object} obj
+   * @param {Object} obj.query DB query params
+   * @param {Object} obj.projection Limit number of fields to be returned
+   * @param {number} obj.limit Limit number of products to be returned.
    */
   list({
     query = {},
     projection = {},
-    skip = 0,
     limit = 50,
   }): Promise<ProductDoc[] | APIError> {
     return this.find(query, projection)
@@ -206,24 +206,22 @@ ProductSchema.statics = {
         select: userPopulateFields,
       })
       .sort({ createdAt: -1 })
-      .skip(+skip)
       .limit(+limit)
-      .then((products: ProductDoc[]) => {
-        if (!products) {
-          return Promise.reject();
-        }
-        return products;
-      })
-      .catch(() => {
-        const err = new APIError('Invalid products', httpStatus.BAD_REQUEST);
+      .then((products: ProductDoc[]) => products)
+      .catch(error => {
+        console.error(error);
+        const err = new APIError(
+          'Error getting products',
+          httpStatus.INTERNAL_SERVER_ERROR
+        );
         return Promise.reject(err);
       });
   },
 };
 
 ProductSchema.pre('save', function(next) {
-  let doc = this;
-  if (!this.uuid) return generateUnique(doc, next);
+  const doc = this;
+  if (!doc.uuid) return generateUnique(doc, next);
   next();
 });
 
@@ -231,7 +229,7 @@ ProductSchema.pre('save', function(next) {
 // Note that this doesn't effect `toObject`
 ProductSchema.set('toJSON', {
   transform: (doc, ret) => {
-    ret.price = ret.price.toString();
+    if (ret.price) ret.price = ret.price.toString();
     delete ret.__v;
     delete ret.location;
     return ret;
@@ -271,13 +269,9 @@ function generateUnique(doc, next) {
         doc.uuid = sid;
         next();
       },
-      err => {
-        next(err);
-      }
+      err => next(err)
     );
   }
-
-  // return sid;
 }
 
 export default mongoose.model('Product', ProductSchema);

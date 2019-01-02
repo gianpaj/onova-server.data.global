@@ -189,7 +189,7 @@ function create(
         order.priceOfItem = product.price;
         order.onovaFee = onovaFee;
         order.transactionFee = transactionFee;
-        order.save();
+        await order.save();
 
         await addProductToCheckout(product);
         throw { message: 'Duplicate order', order };
@@ -506,7 +506,7 @@ async function pay(
     // TODO: check transaction hasn't already started
     order.transactionStatus = 'ua-pending';
     order.shippingFee = shippingFee;
-    order.save();
+    await order.save();
 
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
@@ -557,7 +557,7 @@ function createPaymentUAPAY(
           cartId: cart.id,
           // TODO: if existing order, get deal instead of creating a new one
           // externalId: order._id,
-          productTitle: product.description,
+          productTitle: product.description.slice(0, 20),
           productWeight: product.weight,
           productPrice: product.price.toString().replace('.', ''), // to number in cents
           sellerFirstName: Sship.firstName,
@@ -597,7 +597,7 @@ function createPaymentUAPAY(
       );
 
       order.transactionId = deal.id;
-      order.save();
+      await order.save();
 
       // Step 3 - Start payment
       await axios.post(
@@ -611,8 +611,8 @@ function createPaymentUAPAY(
         },
         axiosConfig
       );
+      //TODO: confirm /payments returns waitingFor: 'PAY_PROCESSING'
 
-      // wait few secs?
       // Step 4 - Get deal info to send form details to client
       let retryNum = 0;
       let newDeal;
@@ -622,11 +622,11 @@ function createPaymentUAPAY(
           data: { data },
         } = await axios.get(`/deals/${deal.id}`, axiosConfig);
         newDeal = data;
-        // console.log(newDeal.productPayment.waitingFor);
+        // console.log(deal.id, newDeal.productPayment.waitingFor);
         await sleep(500);
       } while (
         newDeal.productPayment.waitingFor !== 'CONFIRMATION' &&
-        retryNum < 15
+        retryNum < (config.env === 'test' ? 1 : 15)
       );
 
       const { productPayment: paym } = newDeal;
@@ -715,7 +715,7 @@ async function paymentStatus(
 
     // if (data.productPayment.type === 'P2P_ONOVA')
 
-    order.save();
+    await order.save();
     res.json({
       data: {
         rawStatus: data.productPayment.statusCode,
@@ -822,7 +822,13 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
 export function rejectPayment(order: OrderDoc): Promise<any> {
   return Promise.all([
     Order.updateOne({ _id: order.id }, { transactionStatus: 'ua-reversed' }),
-    axios.post(`/deals/${order.transactionId}/rejections`, null, axiosConfig),
+    axios.post(
+      `/deals/${order.transactionId}/rejections`,
+      {
+        reasonBy: 'SELLER',
+      },
+      axiosConfig
+    ),
   ]);
 }
 

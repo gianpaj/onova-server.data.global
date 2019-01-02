@@ -1,5 +1,6 @@
 import Block, { BlockDoc } from './block.model';
 import DefaultFollow, { DefaultFollowDoc } from './defaultFollow.model';
+import Drop, { DropDoc } from './drop.model';
 import Cities from './cities.model';
 import Departments from './departments.model';
 import DiscardedUser, { DiscardedUserDoc } from './discardedUser.model';
@@ -34,6 +35,8 @@ Verification.syncIndexes();
 export {
   Block,
   BlockDoc,
+  Drop,
+  DropDoc,
   Cities,
   CommentDoc,
   Departments,

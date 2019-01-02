@@ -116,7 +116,7 @@ async function tempUploadProductImage(
       })
       .toFile(tempFilePath)
       .then(() => {
-        const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${tempFilePath}`;
+        const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co${tempFilePath}`;
         debug('temp product image uploaded to:', cloudStoragePublicUrl);
         res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
       })

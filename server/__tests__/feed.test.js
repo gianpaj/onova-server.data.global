@@ -150,17 +150,16 @@ describe('## Feed APIs', () => {
   );
 
   describe('# GET /api/feed/flat', () => {
-    it('should get the first user`s feed + the other 2', () => {
+    it('should get the first user`s feed with 2 products', () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data[0].uuid).toBe(anotherProductUuid);
-          expect(data[1].uuid).toBe(productUuid);
-          expect(Object.keys(data[0]).sort()).toEqual(feedFields.sort());
-          expect(data).toHaveLength(2);
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(2);
+          expect(body.data[0].uuid).toBe(anotherProductUuid);
+          expect(body.data[1].uuid).toBe(productUuid);
+          expect(Object.keys(body.data[0]).sort()).toEqual(feedFields.sort());
         });
     });
 
@@ -169,11 +168,10 @@ describe('## Feed APIs', () => {
         .get('/api/feed/flat')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data[0].uuid).toBe(productUuid);
-          expect(data[1].uuid).toBe(anotherProductUuid);
-          expect(data).toHaveLength(2);
+        .then(({ body }) => {
+          expect(body.data[0].uuid).toBe(productUuid);
+          expect(body.data[1].uuid).toBe(anotherProductUuid);
+          expect(body.data).toHaveLength(2);
         });
     });
 
@@ -283,7 +281,7 @@ describe('## Feed APIs', () => {
     // delete all Products
     beforeAll(done => {
       const collections = [Product.collection];
-      var todo = collections.length;
+      let todo = collections.length;
       if (!todo) return done();
 
       collections.forEach(collection => {
