@@ -9,7 +9,6 @@ import productRoutes from './product.route';
 import commentRoutes from './comment.route';
 import reportRoutes from './report.route';
 import searchRoutes from './search.route';
-import scheduleRoutes from './schedule.route';
 import shippingRoutes from './shipping.route';
 import suggestedUsersRoutes from './suggestedUsers.route';
 import userRoutes from './user.route';
@@ -43,8 +42,6 @@ router.use('/products', commentRoutes);
 
 router.use('/report', reportRoutes);
 router.use('/search', searchRoutes);
-
-router.use('/schedule', scheduleRoutes);
 
 router.use('/shipping', shippingRoutes);
 
