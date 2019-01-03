@@ -8,8 +8,8 @@ const http = axios.create({
     'Cache-Control': 'no-cache',
   },
   auth: {
-    username: '3',
-    password: '***REMOVED***',
+    username: '__USER_PROD__',
+    password: '__PASS_PROD__',
   },
 });
 
@@ -62,18 +62,28 @@ async function main() {
 
   const promises = citiesToLoad.map(
     throat(5, async city => {
-      const { data } = await http.get(
-        `/handlers/NovaPoshta/cities/${city.id}/offices`
-      );
-      const departmentsOnCity = await Department.findOne({ cityID: city.id });
-      if (departmentsOnCity) return;
-      console.log(city.uk);
-      if (!data.data || !data.data.length) {
-        console.log(data.data);
+      let data;
+      try {
+        const res = await http.get(
+          `/handlers/NovaPoshta/cities/${city.id}/offices`
+        );
+        if (!res.data || !res.data.data || !res.data.data.length) {
+          console.log(res);
+          if (!res.data.data)
+            console.error('error with city id:', city.id)
+          return Promise.resolve();
+        }
+        data = res.data.data
+        const departmentsOnCity = await Department.findOne({ cityID: city.id });
+        if (departmentsOnCity) return;
+        console.log(city.uk);
+      } catch (error) {
+        console.error(error);
         return Promise.resolve();
       }
+
       return await Department.insertMany(
-        data.data.map(o => ({ ...o, cityID: city.id }))
+        data.map(o => ({ ...o, cityID: city.id }))
       );
       // console.log(res[0]);
     })

@@ -164,15 +164,15 @@ Created db.sqlite with 132399 features.
 
 ```bash
 http "https://api.escrowbox.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
-# remove the "data: [" so it's only an array of objects
+# remove the "data: " so what's left is an an array of objects
 mongoimport -d onova-data -c cities cities.json --jsonArray --drop
 # output
 2018-10-11T12:33:15.248+0300	connected to: localhost
 2018-10-11T12:33:15.249+0300	dropping: onova-data.cities
-2018-10-11T12:33:15.356+0300	imported 993 documents
+2018-10-11T12:33:15.356+0300	imported 1181 documents
 ```
 
-3. Load the departments for every city, 993 of them, and delete cities without any departments
+1. Load the departments for every city, and delete the cities without any departments
 
 ```
 node loadDepartments.js
@@ -233,7 +233,7 @@ mongorestore --host localhost --port 9999 -d onova-data -c cities dump/onova-dat
 mongorestore --host localhost --port 9999 -d onova-data -c departments dump/onova-data/departments.bson --drop
 ```
 
-### Verify if the just-loaded cities or deparments have been updated
+### Verify if the just-loaded cities or departments have been updated
 
 1.  Export the departments collection without \_id field
 
