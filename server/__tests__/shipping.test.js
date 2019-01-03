@@ -62,7 +62,7 @@ describe('## Shipping', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
-          expect(body.data).toHaveLength(838);
+          expect(body.data).toHaveLength(1173);
         });
     });
   });
@@ -74,7 +74,7 @@ describe('## Shipping', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
-          expect(body.data).toHaveLength(280);
+          expect(body.data).toHaveLength(261);
         });
     });
 
