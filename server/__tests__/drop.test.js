@@ -643,6 +643,7 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[0].token)
         .expect(httpStatus.OK)
         .then(({ body }) => {
+          expect(body.data[0].amISubscribed).toBe(false);
           expect(body.data).toHaveLength(2);
         });
     });
