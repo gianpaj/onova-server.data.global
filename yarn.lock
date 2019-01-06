@@ -842,13 +842,22 @@
     through2 "^2.0.0"
     xdg-basedir "^3.0.0"
 
-"@pusher/chatkit-server@^0.12.2":
-  version "0.12.2"
-  resolved "https://registry.yarnpkg.com/@pusher/chatkit-server/-/chatkit-server-0.12.2.tgz#4933d34689923603765c99057f56025c7bf7c560"
-  integrity sha512-/YkgrjVMq4vVvrC9nZqFXvMMDxbG83L9H3tEJ6lMTsi2ZAB2sXlU7hEv11W6pJSwjTCX9Pl12rzgWvWTuIlVCQ==
+"@pusher/chatkit-server@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@pusher/chatkit-server/-/chatkit-server-1.0.4.tgz#7a71980edae031b52b2033c8b2d4d09c3d6b176f"
+  integrity sha512-71J2bpB7BG+ACWPAOJxdXrOMrOQ/BZxJmES0vbomghWmBTtVzx9a1jX5bVs3jh9R2Y2cwkJf2VFXuUMul3FSGA==
   dependencies:
+    "@pusher/platform-node" "^0.15.1"
     jsonwebtoken "^8.3.0"
-    pusher-platform-node "~0.13.0"
+
+"@pusher/platform-node@^0.15.1":
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/@pusher/platform-node/-/platform-node-0.15.2.tgz#5879b461fbe1ef525d012374d3702c35e26c8088"
+  integrity sha512-ZypRRj5KnzwZ5JTG+Y7r/rLxq5qC6z/0Ko6idya8zZzThjk2nJJ+D/Hlc677s15GDGB+aBMNv5Xfl+heBVR5Uw==
+  dependencies:
+    extend "^2.0.1"
+    jsonwebtoken "^8.3.0"
+    request "^2.88.0"
 
 "@segment/loosely-validate-event@^2.0.0":
   version "2.0.0"
@@ -1615,7 +1624,7 @@ body-parser@1.18.2:
     raw-body "2.3.2"
     type-is "~1.6.15"
 
-body-parser@1.18.3, body-parser@^1.17.2:
+body-parser@1.18.3:
   version "1.18.3"
   resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.18.3.tgz#5b292198ffdd553b3a0f20ded0592b956955c8b4"
   integrity sha1-WykhmP/dVTs6DyDe0FkrlWlVyLQ=
@@ -6679,16 +6688,6 @@ punycode@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
   integrity sha1-wNWmOycYgArY4esPpSachN1BhF4=
-
-pusher-platform-node@~0.13.0:
-  version "0.13.2"
-  resolved "https://registry.yarnpkg.com/pusher-platform-node/-/pusher-platform-node-0.13.2.tgz#11ee186bd94baa7fdcc496334e2b5f83f753cad1"
-  integrity sha512-tMAvoJORtRddO116YSrjAXinjfr2xF31E0fCGA880/N78/libi4szsDIe7bR5bgQI5QSYDAwVmFZRKKzohut1A==
-  dependencies:
-    body-parser "^1.17.2"
-    extend "^2.0.1"
-    jsonwebtoken "^8.3.0"
-    request "^2.81.0"
 
 qs@6.5.1:
   version "6.5.1"

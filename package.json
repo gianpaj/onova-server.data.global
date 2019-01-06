@@ -22,7 +22,7 @@
     "@babel/preset-env": "^7.1.0",
     "@babel/preset-flow": "^7.0.0",
     "@google-cloud/storage": "1.5.0",
-    "@pusher/chatkit-server": "^0.12.2",
+    "@pusher/chatkit-server": "^1.0.4",
     "@slack/client": "4.2.2",
     "agenda": "1.0.3",
     "analytics-node": "3.3.0",
