@@ -69,11 +69,10 @@ async function main() {
         );
         if (!res.data || !res.data.data || !res.data.data.length) {
           console.log(res);
-          if (!res.data.data)
-            console.error('error with city id:', city.id)
+          if (!res.data.data) console.error('error with city id:', city.id);
           return Promise.resolve();
         }
-        data = res.data.data
+        data = res.data.data;
         const departmentsOnCity = await Department.findOne({ cityID: city.id });
         if (departmentsOnCity) return;
         console.log(city.uk);
@@ -81,6 +80,8 @@ async function main() {
         console.error(error);
         return Promise.resolve();
       }
+
+      // TODO: update the number of departments for the city
 
       return await Department.insertMany(
         data.map(o => ({ ...o, cityID: city.id }))

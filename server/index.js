@@ -51,7 +51,7 @@ if (config.mongooseDebug) {
 // module.parent check is required to support jest watch
 // https://github.com/mochajs/mocha/issues/1912
 if (!module.parent) {
-  // option for for development
+  // option for for development, for onova.co domains
   if (process.env.HTTPS) {
     const httpsOptions = {
       key: fs.readFileSync('./localhost.key'),

@@ -20,6 +20,7 @@ function cities(
   next: express$NextFunction
 ) {
   Cities.find({}, { _id: 0, uk: 1, id: 1 })
+    .sort({ departmentsCount: -1 })
     .then(cities => {
       if (!cities.length) {
         throw new Error('Error getting cities');
