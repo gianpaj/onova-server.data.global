@@ -20,6 +20,7 @@ import {
   Tag,
   User,
   UserDoc,
+  UserWeb,
   Verification,
 } from '../models';
 
@@ -273,6 +274,7 @@ export function beforeAllTests(done: () => void) {
     SuggestedUsers.collection,
     Tag.collection,
     User.collection,
+    UserWeb.collection,
     Verification.collection,
   ];
 

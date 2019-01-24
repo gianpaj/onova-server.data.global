@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`## UserWeb APIs # Create user # POST /api/users-web should create a new web user 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "updatedAt",
+]
+`;

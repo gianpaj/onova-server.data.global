@@ -90,7 +90,7 @@ describe('## User APIs', () => {
   let resetToken;
 
   describe('# Create user and verify email address', () => {
-    describe('# POST /api/users - ', () => {
+    describe('# POST /api/users', () => {
       it('should create a new user', () => {
         return request(app)
           .post('/api/users')
