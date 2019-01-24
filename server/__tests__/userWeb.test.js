@@ -34,7 +34,7 @@ describe('## UserWeb APIs', () => {
 
   let userId1, user1token;
 
-  describe('# Create user', () => {
+  describe('# Create Web user', () => {
     describe('# POST /api/users-web', () => {
       it('should create a new web user', () => {
         return request(app)
@@ -43,7 +43,6 @@ describe('## UserWeb APIs', () => {
           .expect(httpStatus.CREATED)
           .then(res => {
             const { data, token } = res.body;
-            console.log(res.body);
             expect(typeof data._id).toBe('string');
             expect(data._id).toHaveLength(24);
             expect(typeof token).toBe('string');
@@ -52,6 +51,19 @@ describe('## UserWeb APIs', () => {
 
             userId1 = data._id;
             user1token = token;
+          });
+      });
+
+      it('should login with the token', () => {
+        return request(app)
+          .get('/api/users-web/me')
+          .set('Authorization', user1token)
+          .expect(httpStatus.OK)
+          .then(res => {
+            const { data } = res.body;
+            expect(typeof data._id).toBe('string');
+            expect(data._id).toHaveLength(24);
+            expect(Object.keys(data).sort()).toMatchSnapshot();
           });
       });
     });

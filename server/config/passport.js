@@ -6,7 +6,7 @@ import LocalStrategy from 'passport-local';
 import passport from 'passport';
 // import VKontakteTokenStrategy from 'passport-vkontakte-token';
 
-import { User, UserDoc } from '../models';
+import { User, UserDoc, UserWeb } from '../models';
 import config from './config';
 
 // Configure Passport authenticated session persistence.
@@ -56,16 +56,25 @@ const jwtOptions = {
 // Setting up JWT login strategy
 passport.use(
   new JwtStrategy(jwtOptions, (jwt_payload, done) => {
-    User.findById(jwt_payload._id)
-      .then((user: UserDoc) => {
-        if (user) {
-          done(null, user);
-        } else {
+    if (!jwt_payload.type) {
+      User.findById(jwt_payload._id)
+        .then((user: UserDoc) => {
+          if (user) {
+            return done(null, user);
+          }
           done(null, false);
-        }
-        return null;
-      })
-      .catch(err => done(err, false));
+        })
+        .catch(err => done(err, false));
+    } else if (jwt_payload.type == 'web') {
+      UserWeb.findById(jwt_payload._id)
+        .then((user: UserWebDoc) => {
+          if (user) {
+            return done(null, user);
+          }
+          done(null, false);
+        })
+        .catch(err => done(err, false));
+    }
   })
 );
 

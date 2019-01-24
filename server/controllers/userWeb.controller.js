@@ -32,7 +32,7 @@ function load(
 /**
  * Create new user
  *
- * POST /api/users
+ * POST /api/users-web
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
@@ -45,13 +45,30 @@ async function create(
   const user = await UserWeb.create({});
 
   return res.status(httpStatus.CREATED).json({
-    token: `JWT ${authCtrl.generateToken(user.toJSON())}`,
+    token: `JWT ${authCtrl.generateToken({ ...user.toJSON(), type: 'web' })}`,
     data: user,
+  });
+}
+
+/**
+ * Get my current user (authenticate / login)
+ *
+ * POST /api/users-web/me
+ *
+ * @property {*} req - Express request
+ */
+function getMe(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  return res.json({
+    data: { _id: req.user._id },
   });
 }
 
 export default {
   // load,
-  // get,
+  getMe,
   create,
 };

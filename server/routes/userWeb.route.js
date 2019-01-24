@@ -24,14 +24,14 @@ router
   // POST /api/users-web - Create new web user (anonymous)
   .post(userWebCtrl.create);
 
-// router
-//   .route('/me')
-//   // GET /api/users-web/ - Get current user
-//   .get(
-//     requireAuth,
-//     // isAuthorized,
-//     userWebCtrl.getMe
-//   );
+router
+  .route('/me')
+  // GET /api/users-web/ - Get current user
+  .get(
+    requireAuth,
+    // isAuthorized,
+    userWebCtrl.getMe
+  );
 
 // // PUT /api/users-web/:userId - Update user - Protected route
 // .put(

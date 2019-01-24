@@ -1,9 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`## UserWeb APIs # Create user # POST /api/users-web should create a new web user 1`] = `
+exports[`## UserWeb APIs # Create Web user # POST /api/users-web should create a new web user 1`] = `
 Array [
   "_id",
   "createdAt",
   "updatedAt",
+]
+`;
+
+exports[`## UserWeb APIs # Create Web user # POST /api/users-web should login with the token 1`] = `
+Array [
+  "_id",
 ]
 `;
