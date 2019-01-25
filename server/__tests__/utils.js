@@ -31,6 +31,7 @@ import { agenda } from '../config/express';
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
   'buyer',
+  'buyerType',
   'createdAt',
   'currency',
   'datePending',

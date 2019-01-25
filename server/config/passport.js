@@ -69,7 +69,7 @@ passport.use(
       UserWeb.findById(jwt_payload._id)
         .then((user: UserWebDoc) => {
           if (user) {
-            return done(null, user);
+            return done(null, { ...user.toJSON(), type: 'web' });
           }
           done(null, false);
         })

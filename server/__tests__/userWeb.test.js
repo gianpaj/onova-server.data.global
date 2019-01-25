@@ -39,7 +39,6 @@ describe('## UserWeb APIs', () => {
       it('should create a new web user', () => {
         return request(app)
           .post('/api/users-web')
-          .send(user)
           .expect(httpStatus.CREATED)
           .then(res => {
             const { data, token } = res.body;

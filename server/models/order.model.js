@@ -16,8 +16,13 @@ const OrderSchema = new Schema(
     archivedBySeller: Boolean,
     buyer: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      refPath: 'buyerType',
       required: true,
+    },
+    buyerType: {
+      type: String,
+      required: true,
+      enum: ['User', 'UserWeb'],
     },
     cityRecipient: String,
     citySender: String,

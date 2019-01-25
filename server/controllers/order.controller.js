@@ -156,7 +156,11 @@ function create(
   res: express$Response,
   next: express$NextFunction
 ) {
-  if (req.user.accountStatus !== 'verified') {
+  let buyerType = 'User';
+  if (req.user.type && req.user.type == 'web') buyerType = 'UserWeb';
+  const isWebBuyer = buyerType === 'UserWeb';
+
+  if (!isWebBuyer && req.user.accountStatus !== 'verified') {
     throw new APIError(
       'Please verify your account before buying a product.',
       400
@@ -217,6 +221,7 @@ function create(
 
       const order = new Order({
         buyer: req.user._id,
+        buyerType,
         currency: product.currency, // 'UAH' by default
         // datePending // Date.now by default
         onovaFee, // paid by the seller
