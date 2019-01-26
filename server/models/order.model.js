@@ -192,6 +192,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   archivedByBuyer: boolean;
   archivedBySeller: boolean;
   buyer: MongoId;
+  buyerType: string;
   cityRecipient: string;
   citySender: string;
   currency: string;

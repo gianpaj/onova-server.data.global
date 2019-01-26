@@ -81,7 +81,7 @@ export const i18n = {
 // export const i18n = {
 //   orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
 //   orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
-//   orderCancelled: 'Your order has been cancelled! Your money will be returned', // 33 chars
+//   orderCancelled: 'Your order has been cancelled. Your money will be returned', // 33 chars
 //   orderNotConfirmedToBuyer:
 //     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
 //   orderNotConfirmedToSeller:
@@ -869,8 +869,14 @@ export async function createOrderNotification(
       break;
 
     case 'confirmed':
-      // seller can ship item. we send a system message
-      return Promise.resolve();
+      // seller can ship item. we send a system message + email to buyer
+      notif = {
+        ...notif,
+        notifI18n: i18n.orderConfirmed,
+        targetUser: order.buyer._id,
+        onlyEmail: true,
+      };
+      break;
 
     case 'shipped':
       // notify the buyer

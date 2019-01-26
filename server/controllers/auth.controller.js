@@ -257,7 +257,8 @@ function getTokenForRequestingCardId(req, res, next) {
       params: {
         clientId: config.UAPAY_CLIENTID_P2P,
         method: 'createCard',
-        enableRedirectResponse: false,
+        // enableRedirectResponse: true,
+        enableRedirectResponse: false, // web app
       },
     },
     config.UAPAY_SECRET_P2P,

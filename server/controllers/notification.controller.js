@@ -7,6 +7,7 @@ import { sendPush } from '../helpers/push';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
 import { UserDoc, Notification, NotificationDoc } from '../models';
+import mailController from './mail.controller';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -86,6 +87,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
     sourceUser,
     triggeredType,
     onlyPush,
+    onlyEmail,
   } = notif;
 
   return new Promise(async (resolve, reject) => {
@@ -116,7 +118,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           sourceUser,
           triggeredType,
         })
-          .then(doc => resolve(doc))
+          .then(() => resolve())
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Product') {
@@ -146,7 +148,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           triggeredBy,
           triggeredType,
         })
-          .then(doc => resolve(doc))
+          .then(() => resolve())
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Order') {
@@ -160,7 +162,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           message: notifI18n,
         });
         debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
-        const doc = await Notification.create({
+        await Notification.create({
           data,
           notifI18n,
           targetUser,
@@ -168,7 +170,8 @@ function createNotification(notif: NotifPayload): Promise<null> {
           sourceUser,
           triggeredType,
         });
-        resolve(doc);
+        await mailController.sendOrderUpdate({ notifI18n, targetUser, data });
+        resolve();
       } catch (err) {
         console.error(err);
         reject(err);
