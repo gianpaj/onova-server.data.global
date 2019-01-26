@@ -163,7 +163,7 @@ function create(
   if (!isWebBuyer && req.user.accountStatus !== 'verified') {
     throw new APIError(
       'Please verify your account before buying a product.',
-      400
+      httpStatus.BAD_REQUEST
     );
   }
 

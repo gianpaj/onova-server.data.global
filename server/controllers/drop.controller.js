@@ -277,7 +277,7 @@ async function create(
 
   try {
     if (differenceInCalendarDays(body.date, Date.now()) > 90) {
-      throw new APIError('Cannot create a drop 90 days from today', 400);
+      throw new APIError('Cannot create a drop 90 days from today', httpStatus.BAD_REQUEST);
     }
 
     validateProducts(body.products);
