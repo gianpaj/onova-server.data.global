@@ -58,11 +58,10 @@ describe('## UserWeb APIs', () => {
           .get('/api/users-web/me')
           .set('Authorization', user1token)
           .expect(httpStatus.OK)
-          .then(res => {
-            const { data } = res.body;
-            expect(typeof data._id).toBe('string');
-            expect(data._id).toHaveLength(24);
-            expect(Object.keys(data).sort()).toMatchSnapshot();
+          .then(({ body }) => {
+            expect(typeof body.data._id).toBe('string');
+            expect(body.data._id).toHaveLength(24);
+            expect(Object.keys(body.data).sort()).toMatchSnapshot();
           });
       });
     });
