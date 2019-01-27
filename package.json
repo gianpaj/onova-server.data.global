@@ -6,7 +6,7 @@
   "scripts": {
     "start": "yarn prod:build && yarn prod:start",
     "dev:start": "nodemon --ignore lib --exec babel-node server",
-    "debug:start": "cross-env DEBUG=express-mongoose-es6-rest-api:* yarn start",
+    "debug:start": "cross-env DEBUG=server-data:* yarn dev:start",
     "prod:build": "rimraf lib && babel server -d lib --ignore .test.js",
     "prod:start": "node lib/index.js",
     "lint": "esw *.js server config --color",
