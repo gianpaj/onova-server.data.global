@@ -26,7 +26,7 @@ const bucket = storage.bucket(config.CLOUD_BUCKET);
 const uploadMulter = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB limit
+    fileSize: 15 * 1024 * 1024, // 15 MB limit
   },
   fileFilter: (req, file, cb) => {
     const filetypes = /jpg|jpeg|png/;
