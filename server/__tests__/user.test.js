@@ -23,8 +23,6 @@ afterAll(done => {
 });
 
 const validPhoneNumber = '0977414301';
-const validPhoneNumber2 = '0977414302';
-const invalidPhoneNumber = '09774143011';
 
 describe('## User APIs', () => {
   beforeAll(beforeAllTests);
@@ -365,8 +363,21 @@ describe('## User APIs', () => {
         });
     });
 
+    it("should update user's mobile number incl. +380", () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ ...user, mobileNumber: '+380977414301' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.mobileNumber).toBe('0977414301');
+          expect(body.username).toBe(user.username);
+          expect(body.accountStatus).toBe('verified');
+        });
+    });
     it("should update user's details", () => {
-      user.mobileNumber = validPhoneNumber2;
+      user.mobileNumber = '0977414302';
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
@@ -374,7 +385,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe(validPhoneNumber2);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
         });
@@ -384,7 +395,7 @@ describe('## User APIs', () => {
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send({ ...user, mobileNumber: invalidPhoneNumber })
+        .send({ ...user, mobileNumber: '09774143011' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res =>
           expect(res.body.message).toContain(
