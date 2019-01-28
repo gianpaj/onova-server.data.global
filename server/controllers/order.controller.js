@@ -20,13 +20,11 @@ import {
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';
-import JobManager from '../helpers/job';
+import { sendSystemMessage } from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
 
 import config from '../config/config';
-
-const { sendSystemMessage } = JobManager;
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
