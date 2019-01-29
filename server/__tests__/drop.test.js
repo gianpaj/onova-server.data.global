@@ -635,16 +635,26 @@ describe('## Drops feed APIs', () => {
 
   describe('# GET /api/v2/drops?username', () => {
     beforeAll(() => Drop.deleteMany({}));
-    beforeAll(() => Promise.all([createManyDrops(2, users[0].token)]));
+    beforeAll(() => createManyDrops(2, users[0].token));
 
-    it('should get user 0 scheduled drops', () => {
+    it('should get user 0 scheduled drops with auth', () => {
       return request(app)
         .get(`/api/v2/drops/?username=${users[0].username}`)
         .set('Authorization', users[0].token)
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data[0].amISubscribed).toBe(false);
           expect(body.data).toHaveLength(2);
+          expect(body.data[0].amISubscribed).toBe(false);
+        });
+    });
+
+    it('should get user 0 scheduled drops without auth', () => {
+      return request(app)
+        .get(`/api/v2/drops/?username=${users[0].username}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(2);
+          expect(body.data[0].amISubscribed).toBe(undefined);
         });
     });
 
@@ -653,9 +663,7 @@ describe('## Drops feed APIs', () => {
         .get('/api/v2/drops/?username=IDONTEXIST')
         .set('Authorization', users[0].token)
         .expect(httpStatus.NOT_FOUND)
-        .then(({ body }) => {
-          expect(body.message).toBe('User not found');
-        });
+        .then(({ body }) => expect(body.message).toBe('User not found'));
     });
   });
 

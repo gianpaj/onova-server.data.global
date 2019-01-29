@@ -297,7 +297,9 @@ export function clearJobs() {
     }`;
     MongoClient.connect(
       jobDb,
-      (err, client) => {
+      { useNewUrlParser: true }
+    )
+      .then(client => {
         mongoClient = client;
         const mongoDb = client.db(config.mongo.jobDb);
         mongoDb
@@ -307,9 +309,8 @@ export function clearJobs() {
             // console.log(res.deletedCount);
             resolve();
           });
-        if (err) reject(err);
-      }
-    );
+      })
+      .catch(err => reject(err));
   });
 }
 

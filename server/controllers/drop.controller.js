@@ -127,7 +127,7 @@ async function remove(
 /**
  * List a user's drops
  *
- * GET /api/v2/drop
+ * GET /api/v2/drops
  *
  * @property {*} req - Express request
  * @property {*} req.query
@@ -277,7 +277,10 @@ async function create(
 
   try {
     if (differenceInCalendarDays(body.date, Date.now()) > 90) {
-      throw new APIError('Cannot create a drop 90 days from today', 400);
+      throw new APIError(
+        'Cannot create a drop 90 days from today',
+        httpStatus.BAD_REQUEST
+      );
     }
 
     validateProducts(body.products);
