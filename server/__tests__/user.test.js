@@ -39,7 +39,6 @@ describe('## User APIs', () => {
     shippingAddress: {
       firstName: 'Джанфранко',
       lastName: 'Палумбо',
-      // fathersName: 'Мішель',
       city: 'Львів',
       departmentNovaposhta: '1',
     },
@@ -481,7 +480,6 @@ describe('## User APIs', () => {
           expect(body.username).toBe(tempuser.username);
           expect(shipInfo.firstName).toBe(shippingAddress.firstName);
           expect(shipInfo.lastName).toBe(shippingAddress.lastName);
-          expect(shipInfo.fathersName).toBe(shippingAddress.fathersName);
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.departmentNovaposhta).toBe(
             shippingAddress.departmentNovaposhta
@@ -610,7 +608,6 @@ describe('## User APIs', () => {
           expect(body.paymentInfo.method).toBe('uapay');
           expect(shipInfo.firstName).toBe(shippingAddress.firstName);
           expect(shipInfo.lastName).toBe(shippingAddress.lastName);
-          expect(shipInfo.fathersName).toBe(shippingAddress.fathersName);
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.departmentNovaposhta).toBe(
             shippingAddress.departmentNovaposhta
@@ -886,7 +883,6 @@ describe('## User APIs', () => {
     it("should NOT update another user's details", () => {
       anotherUser.shippingAddress = {
         departmentNovaposhta: '#25',
-        fathersName: 'banana',
       };
       return request(app)
         .put(`/api/users/${anotherUserId}`)
@@ -895,7 +891,6 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.shippingAddress.departmentNovaposhta).toBe('#25');
-          expect(res.body.shippingAddress.fathersName).toBe('banana');
         });
     });
 
