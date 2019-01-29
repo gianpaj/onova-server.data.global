@@ -12,6 +12,13 @@ import APIError from '../helpers/APIError';
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
 
+function optionalAuth(req, res, next) {
+  if (req.headers.authorization) {
+    return requireAuth(req, res, next);
+  }
+  next();
+}
+
 /**
  * Authorization Required middleware.
  */
@@ -50,7 +57,7 @@ router
 router
   .route('/')
   // GET /api/v2/drops - get a user's drops
-  .get(validate(paramValidation.getDrops), dropCtrl.list)
+  .get(validate(paramValidation.getDrops), optionalAuth, dropCtrl.list)
 
   // POST /api/v2/drops - create a drop
   .post(validate(paramValidation.create), requireAuth, dropCtrl.create);
