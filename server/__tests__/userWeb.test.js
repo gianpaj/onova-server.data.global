@@ -39,7 +39,6 @@ describe('## UserWeb APIs', () => {
             expect(token).toContain('JWT ');
             expect(Object.keys(data).sort()).toMatchSnapshot();
 
-            userId1 = data._id;
             user1token = token;
           });
       });

@@ -43,7 +43,7 @@ function getMe(
   res: express$Response,
   next: express$NextFunction
 ) {
-  return res.json({ data: { _id: req.user._id } });
+  res.json({ data: req.user });
 }
 
 /**
