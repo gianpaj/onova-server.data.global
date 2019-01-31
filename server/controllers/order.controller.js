@@ -16,6 +16,7 @@ import {
   ProductDoc,
   User,
   UserDoc,
+  UserWeb,
 } from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
@@ -532,7 +533,12 @@ function createPaymentUAPAY(
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
-      const buyer = await User.findById(order.buyer);
+      let buyer;
+      if (order.buyer.constructor.modelName === 'UserWeb') {
+        buyer = await UserWeb.findById(order.buyer);
+      } else {
+        buyer = await User.findById(order.buyer);
+      }
       const seller = await User.findById(order.seller);
 
       if (!canUserTransact(seller))
