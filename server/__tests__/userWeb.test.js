@@ -20,19 +20,10 @@ afterAll(done => {
   done();
 });
 
-const validPhoneNumber = '0977414301';
-
 describe('## UserWeb APIs', () => {
   beforeAll(beforeAllTests);
 
-  // $FlowFixMe
-  let user: UserWebDoc = {
-    username: 'firstperson',
-    emailAddress: 'gianpa+test@gmail.com',
-    mobileNumber: validPhoneNumber, // optional
-  };
-
-  let userId1, user1token;
+  let user1token;
 
   describe('# Create Web user', () => {
     describe('# POST /api/users-web', () => {

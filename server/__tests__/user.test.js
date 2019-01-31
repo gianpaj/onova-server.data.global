@@ -348,6 +348,19 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
+    let userWebId, userWebToken;
+    beforeAll(() => {
+      return request(app)
+        .post('/api/users-web')
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data, token } = res.body;
+
+          userWebId = data._id;
+          userWebToken = token;
+        });
+    });
+
     it("should remove the user's mobile number", () => {
       return request(app)
         .put(`/api/users/${userId}`)
@@ -416,6 +429,25 @@ describe('## User APIs', () => {
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
+        });
+    });
+
+    it('should update a web user', () => {
+      const userWeb = {
+        emailAddress: 'hello@onova.co',
+        mobileNumber: validPhoneNumber,
+        ...userPaymentInfo,
+      };
+      return request(app)
+        .put(`/api/users-web/me`)
+        .set('Authorization', userWebToken)
+        .send(userWeb)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe('hello@onova.co');
+          expect(body.mobileNumber).toBe(validPhoneNumber);
+          expect(typeof body.paymentInfo.last_four).toBe('string');
+          expect(body.paymentInfo.method).toBe('uapay');
         });
     });
 

@@ -1,3 +1,5 @@
+// @flow
+
 import Joi from 'joi';
 import libphonenumber from 'google-libphonenumber';
 const PhoneUtil = libphonenumber.PhoneNumberUtil.getInstance();

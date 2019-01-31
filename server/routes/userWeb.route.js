@@ -31,14 +31,14 @@ router
     requireAuth,
     // isAuthorized,
     userWebCtrl.getMe
-  );
+  )
 
-// // PUT /api/users-web/:userId - Update user - Protected route
-// .put(
-//   validate(paramValidation.updateUser),
-//   requireAuth,
-//   isAuthorized,
-//   userWebCtrl.update
-// );
+  // PUT /api/users-web/me - Update current user
+  .put(
+    validate(paramValidation.updateUserWeb),
+    requireAuth,
+    // isAuthorized,
+    userWebCtrl.update
+  );
 
 export default router;

@@ -11,25 +11,6 @@ import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 
 /**
- * Load userWeb and append to req. object
- */
-function load(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction,
-  id: string
-) {
-  // use static method from UserSchema
-  // flow-disable-next-line
-  UserWeb.get(id)
-    .then((user: UserDoc) => {
-      req.user = user;
-      return next();
-    })
-    .catch(e => next(e));
-}
-
-/**
  * Create new user
  *
  * POST /api/users-web
@@ -51,7 +32,7 @@ async function create(
 }
 
 /**
- * Get my current user (authenticate / login)
+ * Get my current user web (authenticate / login)
  *
  * POST /api/users-web/me
  *
@@ -62,13 +43,50 @@ function getMe(
   res: express$Response,
   next: express$NextFunction
 ) {
-  return res.json({
-    data: { _id: req.user._id },
-  });
+  return res.json({ data: { _id: req.user._id } });
+}
+
+/**
+ * Update my current user web
+ *
+ * PUT /api/users-web/me
+ *
+ * @property {*} req - Express request
+ */
+async function update(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { body, user: authUser } = req;
+
+  try {
+    const user = await UserWeb.findById(authUser._id);
+    if (!user) throw new APIError('Error getting your UserWeb');
+
+    if (body.emailAddress) user.emailAddress = body.emailAddress;
+
+    if (body.mobileNumber)
+      user.mobileNumber = body.mobileNumber.replace('+380', '0');
+
+    if (body.paymentInfoPayload) {
+      const bytes = bs58.decode(body.paymentInfoPayload);
+      const payload = JSON.parse(bytes.toString());
+      user.paymentInfo.last_four = payload.panMasked.slice(-4);
+      user.paymentInfo.card_token = payload.id;
+      user.paymentInfo.method = 'uapay';
+    }
+
+    const savedUser = await user.save();
+    res.json(savedUser);
+    debug(`UserWeb id: ${user.id} updated.`);
+  } catch (error) {
+    next(error);
+  }
 }
 
 export default {
-  // load,
   getMe,
   create,
+  update,
 };

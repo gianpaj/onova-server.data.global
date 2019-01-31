@@ -64,7 +64,7 @@ UserWebSchema.loadClass(UserWebDoc);
  */
 UserWebSchema.statics = {
   /**
-   * Get user
+   * Get Web User
    *
    * @param {MongoId} id - The ObjectId of user.
    */
