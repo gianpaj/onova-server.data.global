@@ -4,8 +4,8 @@ import passport from 'passport';
 
 import paramValidation from '../config/validation/user.validation';
 import userWebCtrl from '../controllers/userWeb.controller';
+import authCtrl from '../controllers/auth.controller';
 
-const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
 
 /**
@@ -28,7 +28,7 @@ router
   .route('/me')
   // GET /api/users-web/ - Get current user
   .get(
-    requireAuth,
+    authCtrl.requireAuth,
     // isAuthorized,
     userWebCtrl.getMe
   )
@@ -36,7 +36,7 @@ router
   // PUT /api/users-web/me - Update current user
   .put(
     validate(paramValidation.updateUserWeb),
-    requireAuth,
+    authCtrl.requireAuth,
     // isAuthorized,
     userWebCtrl.update
   );
