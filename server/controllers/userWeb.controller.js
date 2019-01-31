@@ -69,6 +69,8 @@ async function update(
     if (body.mobileNumber)
       user.mobileNumber = body.mobileNumber.replace('+380', '0');
 
+    if (body.shippingAddress) user.shippingAddress = body.shippingAddress;
+
     if (body.paymentInfoPayload) {
       const bytes = bs58.decode(body.paymentInfoPayload);
       const payload = JSON.parse(bytes.toString());

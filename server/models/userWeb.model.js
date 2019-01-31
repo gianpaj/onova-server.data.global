@@ -46,10 +46,16 @@ const UserWebSchema = new Schema(
   { timestamps: true, collection: 'usersweb' }
 );
 
+UserWebSchema.virtual('displayName').get(function() {
+  if (this.shippingAddress && this.shippingAddress.firstName)
+    return this.shippingAddress.firstName + ' ' + this.shippingAddress.lastName;
+});
+
 export class UserWebDoc /*:: extends Mongoose$Document */ {
   _id: bson$ObjectId;
   accountStatus: string;
   createdAt: Date;
+  displayName: string;
   emailAddress: string;
   mobileNumber: ?string;
   paymentInfo: ?any;
@@ -91,6 +97,7 @@ UserWebSchema.set('toJSON', {
     delete ret.__v;
     return ret;
   },
+  virtuals: true,
 });
 
 UserWebSchema.index({ emailAddress: 1 });
