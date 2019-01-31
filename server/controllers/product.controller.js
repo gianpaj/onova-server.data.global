@@ -177,7 +177,7 @@ async function create(
       if (seller.accountStatus !== 'verified') {
         throw new APIError(
           'Please verify your account before creating a listing',
-          400
+          httpStatus.BAD_REQUEST
         );
       }
       if (
@@ -186,13 +186,13 @@ async function create(
       ) {
         throw new APIError(
           'Please enter your shipping address info before listing an item',
-          400
+          httpStatus.BAD_REQUEST
         );
       }
       if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
         throw new APIError(
           'Please enter your payment info info before listing an item',
-          400
+          httpStatus.BAD_REQUEST
         );
       }
 

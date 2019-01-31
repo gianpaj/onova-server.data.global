@@ -14,6 +14,7 @@ import Review, { ReviewDoc } from './review.model';
 import SuggestedUsers, { SuggestedUsersDoc } from './suggestedUsers.model';
 import Tag, { TagDoc } from './tag.model';
 import User, { UserDoc } from './user.model';
+import UserWeb, { UserWebDoc } from './userWeb.model';
 import Verification, { VerificationDoc } from './verification.model';
 
 const userPopulateFields =
@@ -64,6 +65,8 @@ export {
   TagDoc,
   User,
   UserDoc,
+  UserWeb,
+  UserWebDoc,
   userPopulateFields,
   Verification,
   VerificationDoc,

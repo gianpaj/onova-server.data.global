@@ -53,10 +53,34 @@ function login(req, res, next) {
   })(req, res, next);
 }
 
+/**
+ * Responds with a http error or adds user into req.user
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*}
+ */
+function requireAuth(req, res, next) {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (info && info.name === 'TokenExpiredError') {
+      const APIerr = new APIError('jwt expired', httpStatus.UNAUTHORIZED);
+      return next(APIerr);
+    }
+    if (err || !user) {
+      const APIerr = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
+      return next(APIerr);
+    }
+    req.user = user;
+    next();
+  })(req, res, next);
+}
+
 // Generate JWT
 function generateToken(payload) {
   return jwt.sign(payload, config.jwtSecret, {
-    // expiresIn: 604800 // in seconds
+    expiresIn: 2000, // milliseconds
+    // expiresIn: "2 days",
   });
 }
 
@@ -233,7 +257,8 @@ function getTokenForRequestingCardId(req, res, next) {
       params: {
         clientId: config.UAPAY_CLIENTID_P2P,
         method: 'createCard',
-        enableRedirectResponse: false,
+        // enableRedirectResponse: true,
+        enableRedirectResponse: false, // web app
       },
     },
     config.UAPAY_SECRET_P2P,
@@ -254,6 +279,7 @@ export default {
   activate,
   generateToken,
   requestPassReset,
+  requireAuth,
   resetPage,
   resetFormSubmit,
   getTokenForRequestingCardId,

@@ -125,7 +125,6 @@ const UserSchema = new Schema(
     shippingAddress: {
       firstName: String,
       lastName: String,
-      fathersName: String,
       city: String,
       departmentNovaposhta: String,
     },
