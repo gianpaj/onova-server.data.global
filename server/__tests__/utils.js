@@ -297,10 +297,7 @@ export function clearJobs() {
     const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
       config.mongo.jobDb
     }`;
-    MongoClient.connect(
-      jobDb,
-      { useNewUrlParser: true }
-    )
+    MongoClient.connect(jobDb, { useNewUrlParser: true })
       .then(client => {
         mongoClient = client;
         const mongoDb = client.db(config.mongo.jobDb);

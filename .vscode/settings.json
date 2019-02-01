@@ -11,5 +11,5 @@
   "eslint.packageManager": "yarn",
   "prettier.eslintIntegration": true,
   "flow.useNPMPackagedFlow": true,
-  "flow.enabled": true
+  "flow.enabled": false
 }
