@@ -6,7 +6,7 @@ import LocalStrategy from 'passport-local';
 import passport from 'passport';
 // import VKontakteTokenStrategy from 'passport-vkontakte-token';
 
-import { User, UserDoc, UserWeb } from '../models';
+import { User, UserDoc, UserWeb, UserWebDoc } from '../models';
 import config from './config';
 
 // Configure Passport authenticated session persistence.
