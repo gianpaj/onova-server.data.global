@@ -154,22 +154,24 @@ function createNotification(notif: NotifPayload): Promise<null> {
     } else if (triggeredType == 'Order') {
       // Order update, created, cancelled, confirmation-reminder etc.
       try {
-        await sendPush({
-          data,
-          targetUser,
-          triggeredBy,
-          triggeredType,
-          message: notifI18n,
-        });
-        debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
-        await Notification.create({
-          data,
-          notifI18n,
-          targetUser,
-          triggeredBy,
-          sourceUser,
-          triggeredType,
-        });
+        if (!onlyEmail) {
+          await sendPush({
+            data,
+            targetUser,
+            triggeredBy,
+            triggeredType,
+            message: notifI18n,
+          });
+          debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
+          await Notification.create({
+            data,
+            notifI18n,
+            targetUser,
+            triggeredBy,
+            sourceUser,
+            triggeredType,
+          });
+        }
         await mailController.sendOrderUpdate({ notifI18n, targetUser, data });
         resolve();
       } catch (err) {
