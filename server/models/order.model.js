@@ -16,13 +16,8 @@ const OrderSchema = new Schema(
     archivedBySeller: Boolean,
     buyer: {
       type: Schema.Types.ObjectId,
-      refPath: 'buyerType',
+      ref: 'User',
       required: true,
-    },
-    buyerType: {
-      type: String,
-      required: true,
-      enum: ['User', 'UserWeb'],
     },
     cityRecipient: String,
     citySender: String,
@@ -192,7 +187,6 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   archivedByBuyer: boolean;
   archivedBySeller: boolean;
   buyer: MongoId;
-  buyerType: string;
   cityRecipient: string;
   citySender: string;
   currency: string;

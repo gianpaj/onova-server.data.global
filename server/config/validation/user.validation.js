@@ -73,6 +73,7 @@ export default {
       shippingAddress: {
         firstName: Joi.string(),
         lastName: Joi.string(),
+        fathersName: Joi.string(),
         city: Joi.string(),
         departmentNovaposhta: Joi.string(),
       },
@@ -87,27 +88,6 @@ export default {
       userId: validation.objectId.required(),
     },
   },
-
-  // UPDATE /api/users-web/me
-  updateUserWeb: {
-    body: {
-      mobileNumber: myCustomJoi
-        .string()
-        .empty('')
-        .phoneNumber(),
-      emailAddress: Joi.string().email(),
-      paymentInfoPayload: Joi.string()
-        .min(90)
-        .alphanum(),
-      shippingAddress: {
-        firstName: Joi.string(),
-        lastName: Joi.string(),
-        city: Joi.string(),
-        departmentNovaposhta: Joi.string(),
-      },
-    },
-  },
-
   notif: {
     query: {
       limit: Joi.number()

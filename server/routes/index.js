@@ -12,7 +12,6 @@ import searchRoutes from './search.route';
 import shippingRoutes from './shipping.route';
 import suggestedUsersRoutes from './suggestedUsers.route';
 import userRoutes from './user.route';
-import userWebRoutes from './userWeb.route';
 import photosRoutes from './photos.route';
 import reviewRoutes from './review.route';
 
@@ -50,8 +49,6 @@ router.use('/shipping', shippingRoutes);
 // AND
 // mount user notifications routes at /users/notifications
 router.use('/users', userRoutes);
-
-router.use('/users-web', userWebRoutes);
 
 router.use('/suggested-users', suggestedUsersRoutes);
 

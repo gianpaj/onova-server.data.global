@@ -7,7 +7,6 @@ import { sendPush } from '../helpers/push';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
 import { UserDoc, Notification, NotificationDoc } from '../models';
-import mailController from './mail.controller';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -87,7 +86,6 @@ function createNotification(notif: NotifPayload): Promise<null> {
     sourceUser,
     triggeredType,
     onlyPush,
-    onlyEmail,
   } = notif;
 
   return new Promise(async (resolve, reject) => {
@@ -118,7 +116,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           sourceUser,
           triggeredType,
         })
-          .then(() => resolve())
+          .then(doc => resolve(doc))
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Product') {
@@ -148,32 +146,29 @@ function createNotification(notif: NotifPayload): Promise<null> {
           triggeredBy,
           triggeredType,
         })
-          .then(() => resolve())
+          .then(doc => resolve(doc))
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Order') {
       // Order update, created, cancelled, confirmation-reminder etc.
       try {
-        if (!onlyEmail) {
-          await sendPush({
-            data,
-            targetUser,
-            triggeredBy,
-            triggeredType,
-            message: notifI18n,
-          });
-          debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
-          await Notification.create({
-            data,
-            notifI18n,
-            targetUser,
-            triggeredBy,
-            sourceUser,
-            triggeredType,
-          });
-        }
-        await mailController.sendOrderUpdate({ notifI18n, targetUser, data });
-        resolve();
+        await sendPush({
+          data,
+          targetUser,
+          triggeredBy,
+          triggeredType,
+          message: notifI18n,
+        });
+        debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
+        const doc = await Notification.create({
+          data,
+          notifI18n,
+          targetUser,
+          triggeredBy,
+          sourceUser,
+          triggeredType,
+        });
+        resolve(doc);
       } catch (err) {
         console.error(err);
         reject(err);

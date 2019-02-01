@@ -3,7 +3,7 @@
 import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 
-import { User, UserDoc, Verification, UserWeb } from '../models';
+import { UserDoc, Verification } from '../models';
 import config from '../config/config';
 
 const mailjetClient = mailjet.connect(
@@ -69,7 +69,6 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
 function resendVerificationEmail(emailTo: string, user: Object): void {
   const subject = 'Verify your new email address';
 
-  // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
 
   // generate link
@@ -121,7 +120,6 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
 function sendResetEmail(emailTo: string, user: Object): void {
   const subject = 'Відновлення пароля';
 
-  // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
 
   // generate link
@@ -169,52 +167,8 @@ function sendResetEmail(emailTo: string, user: Object): void {
     .catch(e => console.error(e));
 }
 
-/**
- * Send emails for an order notification / update
- */
-async function sendOrderUpdate({ notifI18n, targetUser, data }) {
-  const SandboxMode = config.env === 'test';
-  let user;
-
-  const isWebUser = data.buyerType === 'UserWeb';
-
-  if (isWebUser) {
-    user = await UserWeb.findById(targetUser);
-  } else {
-    user = await User.findById(targetUser);
-  }
-
-  const vars = {
-    displayName: user.displayName || user.username,
-    updateText: notifI18n,
-  };
-
-  return mailjetClient.post('send', { version: 'v3.1' }).request({
-    Messages: [
-      {
-        From: {
-          Email: 'noreply@onova.co',
-          Name: 'Onova',
-        },
-        To: [{ Email: user.emailAddress }],
-        Variables: vars,
-        Subject: notifI18n,
-        TemplateID: 670839,
-        TemplateLanguage: true,
-        TemplateErrorDeliver: true,
-        TemplateErrorReporting: {
-          Email: 'gianfranco@onova.co',
-          Name: 'gianfranco',
-        },
-      },
-    ],
-    SandboxMode,
-  });
-}
-
 export default {
   sendVerificationEmail,
   resendVerificationEmail,
   sendResetEmail,
-  sendOrderUpdate,
 };

@@ -2,7 +2,7 @@
 
 import { Order, OrderDoc } from '../models';
 import Shipping, { NP } from '../helpers/shipping';
-import { sendSystemMessage } from '../helpers/job';
+import JobManager from '../helpers/job';
 
 import config from '../config/config';
 
@@ -176,7 +176,7 @@ export default class ShippingRunner {
         await order.save();
 
         // send system message for the various shippingStatus
-        await sendSystemMessage(order);
+        await JobManager.sendSystemMessage(order);
         done();
       } catch (error) {
         console.log(JOBNAMES.SHIPPING_STATUS_CHECKER);

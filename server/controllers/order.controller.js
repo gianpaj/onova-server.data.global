@@ -16,16 +16,17 @@ import {
   ProductDoc,
   User,
   UserDoc,
-  UserWeb,
 } from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';
-import { sendSystemMessage } from '../helpers/job';
+import JobManager from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
 
 import config from '../config/config';
+
+const { sendSystemMessage } = JobManager;
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
@@ -80,7 +81,7 @@ export const i18n = {
 // export const i18n = {
 //   orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
 //   orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
-//   orderCancelled: 'Your order has been cancelled. Your money will be returned', // 33 chars
+//   orderCancelled: 'Your order has been cancelled! Your money will be returned', // 33 chars
 //   orderNotConfirmedToBuyer:
 //     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
 //   orderNotConfirmedToSeller:
@@ -155,14 +156,10 @@ function create(
   res: express$Response,
   next: express$NextFunction
 ) {
-  let buyerType = 'User';
-  if (req.user.type && req.user.type == 'web') buyerType = 'UserWeb';
-  const isWebBuyer = buyerType === 'UserWeb';
-
-  if (!isWebBuyer && req.user.accountStatus !== 'verified') {
+  if (req.user.accountStatus !== 'verified') {
     throw new APIError(
       'Please verify your account before buying a product.',
-      httpStatus.BAD_REQUEST
+      400
     );
   }
 
@@ -220,7 +217,6 @@ function create(
 
       const order = new Order({
         buyer: req.user._id,
-        buyerType,
         currency: product.currency, // 'UAH' by default
         // datePending // Date.now by default
         onovaFee, // paid by the seller
@@ -533,12 +529,7 @@ function createPaymentUAPAY(
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
-      let buyer;
-      if (order.buyer.constructor.modelName === 'UserWeb') {
-        buyer = await UserWeb.findById(order.buyer);
-      } else {
-        buyer = await User.findById(order.buyer);
-      }
+      const buyer = await User.findById(order.buyer);
       const seller = await User.findById(order.seller);
 
       if (!canUserTransact(seller))
@@ -873,14 +864,8 @@ export async function createOrderNotification(
       break;
 
     case 'confirmed':
-      // seller can ship item. we send a system message + email to buyer
-      notif = {
-        ...notif,
-        notifI18n: i18n.orderConfirmed,
-        targetUser: order.buyer._id,
-        onlyEmail: true,
-      };
-      break;
+      // seller can ship item. we send a system message
+      return Promise.resolve();
 
     case 'shipped':
       // notify the buyer

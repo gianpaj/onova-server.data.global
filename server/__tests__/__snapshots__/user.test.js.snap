@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`## User APIs # Create user and verify email address # POST /api/users should create a new user 1`] = `
+exports[`## User APIs # Create user and verify email address # POST /api/users -  should create a new user 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -15,7 +15,7 @@ Array [
 ]
 `;
 
-exports[`## User APIs # Create user and verify email address # POST /api/users should create a new user without mobile num 1`] = `
+exports[`## User APIs # Create user and verify email address # POST /api/users -  should create a new user without mobile num 1`] = `
 Array [
   "_id",
   "accountStatus",

@@ -23,6 +23,8 @@ afterAll(done => {
 });
 
 const validPhoneNumber = '0977414301';
+const validPhoneNumber2 = '0977414302';
+const invalidPhoneNumber = '09774143011';
 
 describe('## User APIs', () => {
   beforeAll(beforeAllTests);
@@ -39,6 +41,7 @@ describe('## User APIs', () => {
     shippingAddress: {
       firstName: 'Джанфранко',
       lastName: 'Палумбо',
+      // fathersName: 'Мішель',
       city: 'Львів',
       departmentNovaposhta: '1',
     },
@@ -87,7 +90,7 @@ describe('## User APIs', () => {
   let resetToken;
 
   describe('# Create user and verify email address', () => {
-    describe('# POST /api/users', () => {
+    describe('# POST /api/users - ', () => {
       it('should create a new user', () => {
         return request(app)
           .post('/api/users')
@@ -348,14 +351,6 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    let userWebToken;
-    beforeAll(() => {
-      return request(app)
-        .post('/api/users-web')
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => (userWebToken = body.token));
-    });
-
     it("should remove the user's mobile number", () => {
       return request(app)
         .put(`/api/users/${userId}`)
@@ -370,22 +365,8 @@ describe('## User APIs', () => {
         });
     });
 
-    it("should update user's mobile number incl. +380", () => {
-      return request(app)
-        .put(`/api/users/${userId}`)
-        .set('Authorization', jwtToken)
-        .send({ ...user, mobileNumber: '+380977414301' })
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.emailAddress).toBe(user.emailAddress);
-          expect(body.mobileNumber).toBe('0977414301');
-          expect(body.username).toBe(user.username);
-          expect(body.accountStatus).toBe('verified');
-        });
-    });
-
     it("should update user's details", () => {
-      user.mobileNumber = '0977414302';
+      user.mobileNumber = validPhoneNumber2;
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
@@ -393,7 +374,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body.mobileNumber).toBe(validPhoneNumber2);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
         });
@@ -403,7 +384,7 @@ describe('## User APIs', () => {
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send({ ...user, mobileNumber: '09774143011' })
+        .send({ ...user, mobileNumber: invalidPhoneNumber })
         .expect(httpStatus.BAD_REQUEST)
         .then(res =>
           expect(res.body.message).toContain(
@@ -425,37 +406,6 @@ describe('## User APIs', () => {
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
-        });
-    });
-
-    it('should update a web user', () => {
-      const { shippingAddress } = userShippingAddress;
-      const userWeb = {
-        emailAddress: 'hello@onova.co',
-        mobileNumber: validPhoneNumber,
-        ...userPaymentInfo,
-        ...userShippingAddress,
-      };
-      return request(app)
-        .put('/api/users-web/me')
-        .set('Authorization', userWebToken)
-        .send(userWeb)
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          const shipInfo = body.shippingAddress;
-          expect(body.emailAddress).toBe('hello@onova.co');
-          expect(body.mobileNumber).toBe(validPhoneNumber);
-          expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(body.paymentInfo.method).toBe('uapay');
-          expect(body.displayName).toBe(
-            `${shipInfo.firstName} ${shipInfo.lastName}`
-          );
-          expect(shipInfo.firstName).toBe(shippingAddress.firstName);
-          expect(shipInfo.lastName).toBe(shippingAddress.lastName);
-          expect(shipInfo.city).toBe(shippingAddress.city);
-          expect(shipInfo.departmentNovaposhta).toBe(
-            shippingAddress.departmentNovaposhta
-          );
         });
     });
 
@@ -520,6 +470,7 @@ describe('## User APIs', () => {
           expect(body.username).toBe(tempuser.username);
           expect(shipInfo.firstName).toBe(shippingAddress.firstName);
           expect(shipInfo.lastName).toBe(shippingAddress.lastName);
+          expect(shipInfo.fathersName).toBe(shippingAddress.fathersName);
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.departmentNovaposhta).toBe(
             shippingAddress.departmentNovaposhta
@@ -648,6 +599,7 @@ describe('## User APIs', () => {
           expect(body.paymentInfo.method).toBe('uapay');
           expect(shipInfo.firstName).toBe(shippingAddress.firstName);
           expect(shipInfo.lastName).toBe(shippingAddress.lastName);
+          expect(shipInfo.fathersName).toBe(shippingAddress.fathersName);
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.departmentNovaposhta).toBe(
             shippingAddress.departmentNovaposhta
@@ -923,6 +875,7 @@ describe('## User APIs', () => {
     it("should NOT update another user's details", () => {
       anotherUser.shippingAddress = {
         departmentNovaposhta: '#25',
+        fathersName: 'banana',
       };
       return request(app)
         .put(`/api/users/${anotherUserId}`)
@@ -931,6 +884,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.shippingAddress.departmentNovaposhta).toBe('#25');
+          expect(res.body.shippingAddress.fathersName).toBe('banana');
         });
     });
 
