@@ -43,7 +43,7 @@ describe('## UserWeb APIs', () => {
           });
       });
 
-      it('should login with the token', () => {
+      it('should get my user info with valid JWT token', () => {
         return request(app)
           .get('/api/users-web/me')
           .set('Authorization', user1token)
@@ -53,6 +53,19 @@ describe('## UserWeb APIs', () => {
             expect(body.data._id).toHaveLength(24);
             expect(Object.keys(body.data).sort()).toMatchSnapshot();
           });
+      });
+
+      it('should get my user info with valid an expired token', done => {
+        setTimeout(() => {
+          request(app)
+            .get('/api/users-web/me')
+            .set('Authorization', user1token)
+            .expect(httpStatus.UNAUTHORIZED)
+            .then(({ body }) => {
+              expect(body.message).toBe('jwt expired');
+              done();
+            });
+        }, 2500);
       });
     });
   });
