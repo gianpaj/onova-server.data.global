@@ -57,6 +57,11 @@ function ensureAgendaIndexes() {
     { name: 1, 'data.product.seller': 1 },
     { background: true }
   );
+  // for PUSH_MSG
+  agenda._collection.createIndex(
+    { message: 1, targetUser: 1, triggeredBy: 1 },
+    { background: true }
+  );
 }
 
 /**

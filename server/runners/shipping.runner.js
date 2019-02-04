@@ -137,7 +137,7 @@ export default class ShippingRunner {
           throw new Error('Error getting order for checking shipping status');
         }
 
-        const { status, raw } = await Shipping.getShippingStatus(
+        const { status } = await Shipping.getShippingStatus(
           order.trackingNumber
         );
 

@@ -78,7 +78,7 @@ export default class JobManager {
       // now _also_ check manually during the individual SHIPPING_STATUS_CHECKER job
 
       job.unique({
-        jobName: config.JOBNAMES.SYSTEM_MSG,
+        name: config.JOBNAMES.SYSTEM_MSG,
         shippingStatus: order.shippingStatus,
         trackingNumber: order.trackingNumber,
       });
