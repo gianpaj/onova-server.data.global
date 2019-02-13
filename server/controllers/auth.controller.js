@@ -81,7 +81,7 @@ function requireAuth(req, res, next) {
 // Generate JWT
 function generateToken(payload) {
   const options = {};
-  if (config.env === 'test') options.expiresIn = 2; // milliseconds
+  if (config.env === 'test') options.expiresIn = 2000; // milliseconds
   // expiresIn: "2 days",
   return jwt.sign(payload, config.jwtSecret, options);
 }

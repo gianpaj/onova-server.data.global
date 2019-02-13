@@ -32,7 +32,7 @@ async function create(
 }
 
 /**
- * Get my current user web (authenticate / login)
+ * Get my current user web
  *
  * POST /api/users-web/me
  *

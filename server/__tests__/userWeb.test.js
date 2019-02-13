@@ -6,8 +6,8 @@ import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
 
 import app from '../index';
-import { UserWebDoc } from '../models';
 import { beforeAllTests } from './utils';
+import config from '../config/config';
 
 /**
  * root level hooks
@@ -27,19 +27,24 @@ describe('## UserWeb APIs', () => {
 
   describe('# Create Web user', () => {
     describe('# POST /api/users-web', () => {
-      it('should create a new web user', () => {
-        return request(app)
+      it.only('should create a new web user', done => {
+        request(app)
           .post('/api/users-web')
           .expect(httpStatus.CREATED)
           .then(res => {
-            const { data, token } = res.body;
+            let { data, token } = res.body;
             expect(typeof data._id).toBe('string');
             expect(data._id).toHaveLength(24);
             expect(typeof token).toBe('string');
             expect(token).toContain('JWT ');
             expect(Object.keys(data).sort()).toMatchSnapshot();
-
-            user1token = token;
+            token = token.split('JWT ')[1];
+            jwt.verify(token, config.jwtSecret, (err, decoded) => {
+              expect(err).toBeFalsy();
+              expect(decoded.type).toBe('web');
+              user1token = token;
+              done();
+            });
           });
       });
 
