@@ -77,6 +77,9 @@ const envVarsSchema = Joi.object({
   SEGMENT: Joi.string()
     .required()
     .description('Segment.com Analytics write key'),
+  SENTRY_DSN: Joi.string()
+    .required()
+    .description('Sentry key'),
   UAPAY_CLIENTID_P2P: Joi.string()
     .required()
     .description(
@@ -127,7 +130,6 @@ export default {
     instanceLocator: envVars.CHATKIT_INSTANCE,
     key: envVars.CHATKIT_KEY,
   },
-
   // hard coded settings
   JOBNAMES: {
     DROP_SUBSCRIPTION: 'drop-subscription',
