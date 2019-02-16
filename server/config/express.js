@@ -15,7 +15,6 @@ import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
 import Agenda from 'agenda';
-import Sentry from '@sentry/node';
 require('winston-daily-rotate-file');
 
 import winstonInstance from './winston';
@@ -129,6 +128,7 @@ if (config.env === 'test') {
 }
 
 if (config.env === 'production') {
+  const Sentry = require('@sentry/node');
   Sentry.init({ dsn: config.SENTRY_DSN });
 
   app.use(
