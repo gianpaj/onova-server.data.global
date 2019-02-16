@@ -68,7 +68,7 @@ export default class JobManager {
           reject(
             new Error(
               'Invalid shippingStatus for scheduling system message:' +
-                order.shippingStatus
+                JSON.stringify(order)
             )
           );
           return;
