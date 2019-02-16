@@ -15,6 +15,12 @@ pipelines:
   branches:
     master:
       - step:
+          name: Sentry Release
+          image: getsentry/sentry-cli
+          script:
+            - sentry-cli releases -o "${SENTRY_ORG}" new -p "${SENTRY_PROJECT}" "${BITBUCKET_BUILD_NUMBER}"
+            - sentry-cli releases -o "${SENTRY_ORG}" set-commits --auto "${BITBUCKET_BUILD_NUMBER}"
+      - step:
           # caches:
           #   - node
           script:
@@ -27,3 +33,10 @@ pipelines:
                 yarn &&
                 pm2 reload server.data --silent --no-color;
               EOF
+      - step:
+          name: Sentry Finalize Release & Deploy
+          deployment: production
+          image: getsentry/sentry-cli
+          script:
+            - sentry-cli releases -o "${SENTRY_ORG}" finalize "${BITBUCKET_BUILD_NUMBER}"
+            - sentry-cli releases -o "${SENTRY_ORG}" deploys "${BITBUCKET_BUILD_NUMBER}" new -e "production"
