@@ -1,9 +1,11 @@
+import config from './config/config';
+if (config.env === 'production') require('sqreen');
+
 import mongoose from 'mongoose';
 import util from 'util';
 // import stream from 'getstream-node';
 
 // config should be imported before importing any other file
-import config from './config/config';
 import app from './config/express';
 import * as https from 'https';
 import * as fs from 'fs';
