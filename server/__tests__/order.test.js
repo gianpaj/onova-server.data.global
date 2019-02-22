@@ -856,6 +856,8 @@ describe('## Order APIs', () => {
       mock
         .onGet('/handlers/NovaPoshta/costs')
         .reply(200, { data: { handlerPrice: 2500 } });
+
+      const { confirmation } = buyerNeedsToPay.data.productPayment.details;
       await request(app)
         .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', anotherJwtToken)
@@ -863,10 +865,10 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           expect(body.data.order.status).toBe('pending');
-          expect(body.data.payment.redirectUrl).toContain(
-            '.uapay.ua/api/payments/'
-          );
-          expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+          expect(body.data.payment.redirectUrl).toBe(confirmation.redirectUrl);
+          expect(body.data.payment.url).toContain(confirmation.url);
+          expect(body.data.payment.PaReq).toBe(confirmation.form.PaReq);
+          expect(Object.keys(body.data.payment).sort()).toMatchSnapshot();
         });
 
       return request(app)

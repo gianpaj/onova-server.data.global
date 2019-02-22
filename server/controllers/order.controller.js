@@ -656,6 +656,7 @@ function createPaymentUAPAY(
         resolve({
           redirectUrl: confirmation.redirectUrl,
           PaReq: confirmation.form.PaReq,
+          url: confirmation.url,
         });
       } else if (paym.statusCode === 'REJECTED') {
         if (config.env === 'production') {

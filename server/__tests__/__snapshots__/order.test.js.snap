@@ -141,3 +141,11 @@ Array [
   "updatedAt",
 ]
 `;
+
+exports[`## Order APIs # PUT /api/orders/:orderId/pay should create a payment for an order 1`] = `
+Array [
+  "PaReq",
+  "redirectUrl",
+  "url",
+]
+`;
