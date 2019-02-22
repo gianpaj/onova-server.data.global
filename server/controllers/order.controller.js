@@ -650,7 +650,8 @@ function createPaymentUAPAY(
       if (
         // paym.amount == product.product.toString().replace('.', '') &&
         paym.type === 'P2P_ONOVA' &&
-        paym.statusCode === 'NEEDS_CONFIRMATION'
+        paym.statusCode === 'NEEDS_CONFIRMATION' &&
+        paym.details.confirmation.type === '3DS'
       ) {
         const { confirmation } = paym.details;
         resolve({
