@@ -75,6 +75,10 @@ export const i18n = {
   //   'TODO - The package with tracking number: __TRACKING_NUM__\n was not collected on time',
   refusedItem:
     'Замовлення за номером накладної __TRACKING_NUM__\n було скасовано покупцем на відділенні нової пошти',
+
+  // emails
+  openApp: 'Відкрийте мобільний додаток щоб продовжити',
+  // please open the Mobile app to continue
 };
 
 // export const i18n = {
@@ -792,8 +796,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
         // The bank has not been able to make debit for technical reasons
         case 'REJECTED':
           console.log('payment rejected:');
-          console.error(data);
-          console.error(order);
+          console.log(data);
+          console.log(order);
 
           const statusText = JSON.parse(data.productPayment.statusText);
           let errorMsg = 'Payment error';
@@ -869,6 +873,7 @@ export async function createOrderNotification(
         notifI18n: i18n.orderPaid,
         targetUser: order.seller._id,
         sourceUser: order.buyer._id,
+        actionMsg: i18n.openApp,
       };
       break;
 

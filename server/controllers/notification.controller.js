@@ -88,6 +88,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
     triggeredType,
     onlyPush,
     onlyEmail,
+    actionMsg,
   } = notif;
 
   return new Promise(async (resolve, reject) => {
@@ -172,7 +173,12 @@ function createNotification(notif: NotifPayload): Promise<null> {
             triggeredType,
           });
         }
-        await mailController.sendOrderUpdate({ notifI18n, targetUser, data });
+        await mailController.sendOrderUpdate({
+          notifI18n,
+          targetUser,
+          data,
+          actionMsg,
+        });
         resolve();
       } catch (err) {
         console.error(err);

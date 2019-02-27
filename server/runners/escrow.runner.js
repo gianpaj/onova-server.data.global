@@ -232,6 +232,7 @@ export default class EscrowRunner {
 
         const notifications = orders.map(order =>
           notifCtrl.createNotification({
+            actionMsg: i18n.openApp,
             data: order,
             notifI18n: i18n.orderPaidReminder,
             sourceUser: order.buyer._id,

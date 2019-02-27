@@ -5,6 +5,7 @@ import crypto from 'crypto';
 
 import { User, UserDoc, Verification, UserWeb } from '../models';
 import config from '../config/config';
+import { prepareMessage } from '../helpers/job';
 
 const mailjetClient = mailjet.connect(
   config.mailjet.apikeyPublic,
@@ -172,9 +173,10 @@ function sendResetEmail(emailTo: string, user: Object): void {
 /**
  * Send emails for an order notification / update
  */
-async function sendOrderUpdate({ notifI18n, targetUser, data }) {
+async function sendOrderUpdate({ notifI18n, targetUser, data, actionMsg }) {
   const SandboxMode = config.env === 'test';
-  let user;
+  let user,
+    text = notifI18n;
 
   const isWebUser = data.buyerType === 'UserWeb';
 
@@ -184,9 +186,13 @@ async function sendOrderUpdate({ notifI18n, targetUser, data }) {
     user = await User.findById(targetUser);
   }
 
+  if (data.shippingStatus)
+    text = prepareMessage(data.shippingStatus, data.trackingNumber);
+
   const vars = {
     displayName: user.displayName || user.username,
-    updateText: notifI18n,
+    updateText: text,
+    ...(actionMsg ? { actionMsg } : {}),
   };
 
   return mailjetClient.post('send', { version: 'v3.1' }).request({
@@ -198,7 +204,7 @@ async function sendOrderUpdate({ notifI18n, targetUser, data }) {
         },
         To: [{ Email: user.emailAddress }],
         Variables: vars,
-        Subject: notifI18n,
+        Subject: text,
         TemplateID: 670839,
         TemplateLanguage: true,
         TemplateErrorDeliver: true,
