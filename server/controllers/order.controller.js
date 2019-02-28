@@ -905,6 +905,7 @@ export async function createOrderNotification(
         notifI18n: i18n.orderCancelled,
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
+        actionMsg: order.reason,
       };
       break;
 
