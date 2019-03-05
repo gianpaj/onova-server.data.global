@@ -174,10 +174,35 @@ export default class ShippingRunner {
         order.shippingStatus = status;
         order.shippingUpdatedAt = new Date();
         await order.save();
-
-        // send system message for the various shippingStatus
-        await JobManager.sendSystemMessage(order);
-        done();
+        agenda.jobs(
+          {
+            name: config.JOBNAMES.SYSTEM_MSG,
+            'data.order.shippingStatus': order.shippingStatus,
+            'data.order.trackingNumber': order.trackingNumber,
+            'data.order._id': order._id,
+          },
+          async (err, duplicateJob) => {
+            if (duplicateJob.length > 0) {
+              console.log(
+                JSON.stringify(
+                  {
+                    name: config.JOBNAMES.SYSTEM_MSG,
+                    'data.order.shippingStatus': order.shippingStatus,
+                    'data.order.trackingNumber': order.trackingNumber,
+                    'data.order._id': order._id,
+                  },
+                  null,
+                  2
+                )
+              );
+              console.log('duplicate job');
+              return done();
+            }
+            // send system message for the a shippingStatus update
+            await JobManager.sendSystemMessage(order);
+            done();
+          }
+        );
       } catch (error) {
         console.log(JOBNAMES.SHIPPING_STATUS_CHECKER);
         console.error(error);

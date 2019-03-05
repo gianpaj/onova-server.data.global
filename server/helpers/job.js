@@ -10,7 +10,11 @@ import { NP } from '../helpers/shipping';
 export default class JobManager {
   static sendSystemMessage(order: OrderDoc): Promise<any> {
     return new Promise((resolve, reject) => {
-      let msg = { order };
+      let msg = {
+        order,
+        shippingStatus: order.shippingStatus,
+        trackingNumber: order.trackingNumber,
+      };
 
       switch (order.shippingStatus) {
         // shipping status is still generated after a deal has been confirmed
@@ -76,12 +80,6 @@ export default class JobManager {
 
       const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);
       // now _also_ check manually during the individual SHIPPING_STATUS_CHECKER job
-
-      job.unique({
-        name: config.JOBNAMES.SYSTEM_MSG,
-        shippingStatus: order.shippingStatus,
-        trackingNumber: order.trackingNumber,
-      });
 
       job.save(err => {
         if (err) {
