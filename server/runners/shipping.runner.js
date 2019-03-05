@@ -96,7 +96,7 @@ export default class ShippingRunner {
       );
 
       const orders: Array<OrderDoc> = await Order.find({
-        status: { $in: ['confirmed', 'shipped', 'delivered'] },
+        status: { $in: ['confirmed', 'shipped'] },
         // shippingStatus: { $in: [NP.generated, NP.shipped] },
         shippingUpdatedAt: { $lte: previousDate },
       });
