@@ -502,7 +502,7 @@ async function pay(
       throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
     // confirmation info
-    const payment = await createPaymentUAPAY(order, product, body.cvc);
+    const payment = await createPaymentUAPAY(order, product, body.cvc, req.ip);
 
     const shippingFee = await getShippingCost(
       product.weight,
@@ -533,7 +533,8 @@ async function pay(
 function createPaymentUAPAY(
   order: OrderDoc,
   product: ProductDoc,
-  cvc: string
+  cvc: string,
+  remoteIP: string
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
@@ -616,7 +617,7 @@ function createPaymentUAPAY(
       await axios.post(
         `/deals/${deal.id}/payments`,
         {
-          remoteIP: '127.0.0.1', // Payer IP Address?
+          remoteIP,
           card: {
             id: buyer.paymentInfo.card_token,
             securityCode: cvc,
