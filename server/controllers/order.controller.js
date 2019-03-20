@@ -855,6 +855,7 @@ export async function createOrderNotification(
 ) {
   let notif: NotifPayload = {
     data: order,
+    sourceUserType: order.buyerType,
     triggeredBy: order._id,
     triggeredType: 'Order',
   };

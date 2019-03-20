@@ -163,6 +163,7 @@ function saveComment(comment, req, res, next) {
         }
       } else {
         if (comment.userIds) {
+          // TODO: map and parallelise Promises
           comment.userIds.forEach(userId => {
             if (userId == req.user._id.toString()) return;
             // $FlowFixMe

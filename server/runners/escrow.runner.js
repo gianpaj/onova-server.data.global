@@ -236,6 +236,7 @@ export default class EscrowRunner {
             data: order,
             notifI18n: i18n.orderPaidReminder,
             sourceUser: order.buyer._id,
+            sourceUserType: order.buyer.buyerType,
             targetUser: order.seller._id,
             triggeredBy: order._id,
             triggeredType: 'Order',

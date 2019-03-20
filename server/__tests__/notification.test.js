@@ -48,6 +48,7 @@ const notifFields = [
   'data',
   'notifI18n',
   'sourceUser',
+  'sourceUserType',
   'targetUser',
   'triggeredBy',
   'triggeredType',
