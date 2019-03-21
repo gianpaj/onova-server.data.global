@@ -78,12 +78,14 @@ UserWebSchema.statics = {
     return this.findById(id)
       .then((user: UserDoc) => {
         if (!user) {
-          return Promise.reject();
+          throw new APIError('No UserWeb found', httpStatus.NOT_FOUND);
         }
         return user;
       })
-      .catch(() => {
-        const err = new APIError('Invalid web user', httpStatus.BAD_REQUEST);
+      .catch(err => {
+        if (!(err instanceof APIError)) {
+          err = new APIError('Invalid web user', httpStatus.BAD_REQUEST);
+        }
         return Promise.reject(err);
       });
   },

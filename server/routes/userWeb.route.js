@@ -13,6 +13,11 @@ router
   .post(userWebCtrl.create);
 
 router
+  .route('/:userId')
+  // GET /api/users-web/:userId - Get a user
+  .get(authCtrl.requireAuth, userWebCtrl.get);
+
+router
   .route('/me')
   // GET /api/users-web/ - Get current user
   .get(

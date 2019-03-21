@@ -47,6 +47,25 @@ function getMe(
 }
 
 /**
+ * Get a user web
+ *
+ * POST /api/users-web/:userId
+ *
+ * @property {*} req - Express request
+ * @property {*} req.params - express session parameters
+ * @property {MongoId} req.params.userId
+ */
+async function get(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  UserWeb.get(req.params.userId)
+    .then((user: UserDoc) => res.json(user))
+    .catch(e => next(e));
+}
+
+/**
  * Update my current user web
  *
  * PUT /api/users-web/me
@@ -88,6 +107,7 @@ async function update(
 }
 
 export default {
+  get,
   getMe,
   create,
   update,

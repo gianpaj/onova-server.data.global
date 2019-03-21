@@ -26,8 +26,9 @@ describe('## UserWeb APIs', () => {
   let user1token;
 
   describe('# Create Web user', () => {
-    describe('# POST /api/users-web', () => {
-      it.only('should create a new web user', done => {
+    describe('# POST & GET /api/users-web', () => {
+      let user1Id;
+      it('should create a new web user', done => {
         request(app)
           .post('/api/users-web')
           .expect(httpStatus.CREATED)
@@ -38,17 +39,38 @@ describe('## UserWeb APIs', () => {
             expect(typeof token).toBe('string');
             expect(token).toContain('JWT ');
             expect(Object.keys(data).sort()).toMatchSnapshot();
+            user1Id = data._id;
+            user1token = token;
             token = token.split('JWT ')[1];
             jwt.verify(token, config.jwtSecret, (err, decoded) => {
               expect(err).toBeFalsy();
               expect(decoded.type).toBe('web');
-              user1token = token;
               done();
             });
           });
       });
 
-      it('should get my user info with valid JWT token', () => {
+      it('should get a user info with valid JWT token', () => {
+        return request(app)
+          .get(`/api/users-web/${user1Id}`)
+          .set('Authorization', user1token)
+          .expect(httpStatus.OK)
+          .then(({ body }) => {
+            expect(typeof body._id).toBe('string');
+            expect(body._id).toHaveLength(24);
+            expect(Object.keys(body).sort()).toMatchSnapshot();
+          });
+      });
+
+      it('should NOT get a user info with valid JWT token', () => {
+        return request(app)
+          .get('/api/users-web/5c935290d006f476bacd072f')
+          .set('Authorization', user1token)
+          .expect(httpStatus.NOT_FOUND)
+          .then(({ body }) => expect(body.message).toBe('No UserWeb found'));
+      });
+
+      it.skip('should get my user info with valid JWT token', () => {
         return request(app)
           .get('/api/users-web/me')
           .set('Authorization', user1token)
@@ -60,7 +82,7 @@ describe('## UserWeb APIs', () => {
           });
       });
 
-      it('should get my user info with valid an expired token', done => {
+      it.skip('should get my user info with valid an expired token', done => {
         setTimeout(() => {
           request(app)
             .get('/api/users-web/me')
