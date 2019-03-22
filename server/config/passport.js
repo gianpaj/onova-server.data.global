@@ -59,9 +59,7 @@ passport.use(
     if (!jwt_payload.type) {
       User.findById(jwt_payload._id)
         .then((user: UserDoc) => {
-          if (user) {
-            return done(null, user);
-          }
+          if (user) return done(null, user);
           done(null, false);
         })
         .catch(err => done(err, false));

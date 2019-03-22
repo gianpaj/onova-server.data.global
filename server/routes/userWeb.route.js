@@ -15,16 +15,7 @@ router
 router
   .route('/:userId')
   // GET /api/users-web/:userId - Get a user
-  .get(authCtrl.requireAuth, userWebCtrl.get);
-
-router
-  .route('/me')
-  // GET /api/users-web/ - Get current user
-  .get(
-    authCtrl.requireAuth,
-    // isAuthorized,
-    userWebCtrl.getMe
-  )
+  .get(authCtrl.requireAuth, userWebCtrl.get)
 
   // PUT /api/users-web/me - Update current user
   .put(

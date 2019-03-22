@@ -70,7 +70,7 @@ describe('## UserWeb APIs', () => {
           .then(({ body }) => expect(body.message).toBe('No UserWeb found'));
       });
 
-      it.skip('should get my user info with valid JWT token', () => {
+      it('should get my user info with valid JWT token', () => {
         return request(app)
           .get('/api/users-web/me')
           .set('Authorization', user1token)
@@ -82,7 +82,7 @@ describe('## UserWeb APIs', () => {
           });
       });
 
-      it.skip('should get my user info with valid an expired token', done => {
+      it('should get my user info with valid an expired token', done => {
         setTimeout(() => {
           request(app)
             .get('/api/users-web/me')

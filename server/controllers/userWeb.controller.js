@@ -32,24 +32,9 @@ async function create(
 }
 
 /**
- * Get my current user web
+ * Get a user web or my user
  *
- * POST /api/users-web/me
- *
- * @property {*} req - Express request
- */
-function getMe(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  res.json({ data: req.user });
-}
-
-/**
- * Get a user web
- *
- * POST /api/users-web/:userId
+ * POST /api/users-web/:userId|me
  *
  * @property {*} req - Express request
  * @property {*} req.params - express session parameters
@@ -60,6 +45,8 @@ async function get(
   res: express$Response,
   next: express$NextFunction
 ) {
+  if (req.params.userId === 'me') return res.json({ data: req.user });
+
   UserWeb.get(req.params.userId)
     .then((user: UserDoc) => res.json(user))
     .catch(e => next(e));
@@ -78,6 +65,11 @@ async function update(
   next: express$NextFunction
 ) {
   const { body, user: authUser } = req;
+
+  if (req.params.userId !== 'me') {
+    const err = new APIError('Bad Request');
+    return next(err);
+  }
 
   try {
     const user = await UserWeb.findById(authUser._id);
@@ -108,7 +100,6 @@ async function update(
 
 export default {
   get,
-  getMe,
   create,
   update,
 };
