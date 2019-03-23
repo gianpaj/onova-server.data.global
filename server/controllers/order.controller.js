@@ -190,6 +190,15 @@ function create(
       });
       // FIXME: extend APIError to be able to send extra data
       if (order) {
+        if (
+          order.status === 'paid' &&
+          order.transactionStatus === 'ua-finished'
+        ) {
+          throw new APIError(
+            "This product has been paid and it's waiting for seller's confirmation",
+            httpStatus.BAD_REQUEST
+          );
+        }
         const { onovaFee, transactionFee } = calculateFees(product.price);
         order.datePending = new Date();
         order.status = 'pending';
