@@ -65,8 +65,14 @@ function login(req, res, next) {
  */
 function requireAuth(req, res, next) {
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
-    if (info && info.name === 'TokenExpiredError') {
-      const APIerr = new APIError('jwt expired', httpStatus.UNAUTHORIZED);
+    if (info) {
+      let message;
+      if (info.name === 'TokenExpiredError') {
+        message = 'jwt expired';
+      } else {
+        message = `Unauthorized ${info.type} user`;
+      }
+      const APIerr = new APIError(message, httpStatus.UNAUTHORIZED);
       return next(APIerr);
     }
     if (err || !user) {

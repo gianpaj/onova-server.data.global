@@ -59,19 +59,17 @@ passport.use(
     if (!jwt_payload.type) {
       User.findById(jwt_payload._id)
         .then((user: UserDoc) => {
-          if (user) return done(null, user);
-          done(null, false);
+          if (!user) return done(null, false, { type: 'user' });
+          done(null, user);
         })
         .catch(err => done(err, false));
     } else if (jwt_payload.type == 'web') {
       UserWeb.findById(jwt_payload._id)
         .then((user: UserWebDoc) => {
-          if (user) {
-            return done(null, { ...user.toJSON(), type: 'web' });
-          }
-          done(null, false);
+          if (!user) return done(null, false, { type: 'web' });
+          done(null, { ...user.toJSON(), type: 'web' });
         })
-        .catch(err => done(err, false));
+        .catch(err => done(err, false, { type: 'web' }));
     }
   })
 );
