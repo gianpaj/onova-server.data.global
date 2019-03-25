@@ -61,7 +61,7 @@ export default {
       categoryIds: validation.categoriesOrTypes,
       limit: Joi.number()
         .min(1)
-        .max(100),
+        .max(200),
       userid: validation.objectId,
       username: validation.username.min(3),
       tags: validation.tags.unique(),
