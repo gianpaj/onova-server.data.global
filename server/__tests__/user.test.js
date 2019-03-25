@@ -236,7 +236,8 @@ describe('## User APIs', () => {
           .expect(httpStatus.OK)
           .then(res => {
             expect(res.text).toContain(
-              'something wrong with the link you received'
+              'Виникла проблема при активації вашого профілю'
+              // 'something wrong with the link you received'
             );
           });
       });
@@ -247,7 +248,8 @@ describe('## User APIs', () => {
           .expect(httpStatus.OK)
           .then(res => {
             expect(res.text).toContain(
-              'something wrong with the link you received'
+              'Виникла проблема при активації вашого профілю'
+              // 'something wrong with the link you received'
             );
           });
       });
@@ -990,7 +992,8 @@ describe('## User APIs', () => {
                 .send({ password: 'americano', passwordagain: 'americano' })
                 .expect(httpStatus.OK)
                 .then(res => {
-                  expect(res.text).toContain('Your password has been updated');
+                  // expect(res.text).toContain('Your password has been updated');
+                  expect(res.text).toContain('Ваш пароль оновлено');
                   anotherUser.password = 'americano';
                   done();
                 })
@@ -1007,7 +1010,8 @@ describe('## User APIs', () => {
           .expect(httpStatus.BAD_REQUEST)
           .then(res => {
             expect(res.text).toContain(
-              'There was an issue resetting your password'
+              'Виникла проблема при зміні паролю'
+              // 'There was an issue resetting your password'
             );
           });
       });

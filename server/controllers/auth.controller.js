@@ -92,14 +92,17 @@ function activate(req, res) {
   Verification.findOne({ resetToken: token })
     .populate('user')
     .exec((err, verDoc) => {
-      let data = {
+      if (err) throw err;
+      const data = {
         title: 'Onova - Email confirmation',
       };
-      if (err) throw err;
       if (!verDoc || !verDoc.user) {
-        data.heading = 'There was an issue activating your account';
+        // data.heading = 'There was an issue activating your account';
+        data.heading = 'Виникла проблема при активації вашого профілю';
+        // data.paragraph =
+        //   'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
         data.paragraph =
-          'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
+          'не так з посиланням котре ви отримали. Воно стає недійсне через 24 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на <a href="mailto:hello@onova.co">hello@onova.co</a>';
       } else if (verDoc.user.accountStatus == 'notverified') {
         const { username } = verDoc.user;
         data.heading = 'Профіль активовано!';
@@ -113,11 +116,15 @@ function activate(req, res) {
 
         verDoc.remove();
       } else if (verDoc.user.accountStatus == 'verified') {
-        const { username } = verDoc.user;
-        (data.heading = 'Account is already activated!'),
-          (data.paragraph = `Double hi five ${username}! Your account is already activated (${
-            verDoc.user.emailAddress
-          }).`);
+        // const { username } = verDoc.user;
+        // data.heading = 'Account is already activated!';
+        data.heading = 'Ваш профіль активовано!!';
+        // data.paragraph = `Double hi five ${username}! Your account is already activated (${
+        //   verDoc.user.emailAddress
+        // }).`;
+        data.paragraph = `Вітання, ваш профіль активовано (${
+          verDoc.user.emailAddress
+        }).`;
       }
       return res.render('activation', data);
     });
@@ -136,19 +143,24 @@ function resetPage(req, res) {
   Verification.findOne({ resetToken: token })
     .populate('user')
     .exec((err, verDoc) => {
-      let data = {
-        title: 'Onova - Password reset',
+      if (err) throw err;
+      const data = {
+        // title: 'Onova - Password reset',
+        title: 'Онова - Заміна паролю',
+        // .heading: 'Enter your new password',
+        heading: 'Зміна паролю',
+        // paragraph: 'Please enter your password twice:',
+        paragraph: 'Введи новий пароль двічі:',
         show_form: true,
       };
-      if (err) throw err;
       if (!verDoc || !verDoc.user) {
-        data.heading = 'There was an issue resetting your password';
+        // data.heading = 'There was an issue resetting your password';
+        data.heading = 'Виникла проблема при зміні паролю';
+        // data.paragraph =
+        //   'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
         data.paragraph =
-          'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
+          'не так з посиланням котре ви отримали. Воно стає недійсне через 24 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на <a href="mailto:hello@onova.co">hello@onova.co</a>';
         data.show_form = false;
-      } else {
-        data.heading = 'Enter your new password';
-        data.paragraph = 'Please enter your password twice:';
       }
       return res.render('pass-reset', data);
     });
@@ -163,41 +175,45 @@ function resetPage(req, res) {
  */
 function resetFormSubmit(req, res) {
   let data = {
-    title: 'Onova - Password reset',
-    heading: 'Enter your new password',
+    // title: 'Onova - Password reset',
+    title: 'Онова - Заміна паролю',
+    // heading: 'Enter your new password',
+    heading: 'Зміна паролю',
     show_form: false,
   };
-  if (req.body.password != req.body.passwordagain) {
+  if (req.body.password !== req.body.passwordagain) {
+    // data.paragraph =
+    //   '<div class="alert alert-danger" role="alert">Your passwords did not match.</div>';
     data.paragraph =
-      '<div class="alert alert-danger" role="alert">Your passwords did not match.</div>';
+      '<div class="alert alert-danger" role="alert">Ваші паролі не співпали.</div>';
     data.show_form = true;
     return res.render('pass-reset', data);
-  } else {
-    const token = req.params.token;
-
-    Verification.findOne({ resetToken: token })
-      .populate('user')
-      .exec((err, verDoc) => {
-        if (err) throw err;
-        if (!verDoc || !verDoc.user) {
-          data.heading = 'There was an issue resetting your password';
-          return res.status(httpStatus.BAD_REQUEST).render('pass-reset', data);
-        } else {
-          data.heading = '';
-          data.paragraph = 'Hi five! Your password has been updated.';
-
-          verDoc.user.password = req.body.password;
-
-          verDoc.user.save(err => {
-            if (err) {
-              return next(err);
-            }
-            verDoc.remove();
-            return res.render('pass-reset', data);
-          });
-        }
-      });
   }
+  const { token } = req.params;
+
+  Verification.findOne({ resetToken: token })
+    .populate('user')
+    .exec((err, verDoc) => {
+      if (err) throw err;
+      if (!verDoc || !verDoc.user) {
+        // data.heading = 'There was an issue resetting your password';
+        data.heading = 'Виникла проблема при зміні паролю';
+        return res.status(httpStatus.BAD_REQUEST).render('pass-reset', data);
+      }
+      data.heading = '';
+      data.paragraph = 'Ваш пароль оновлено.';
+      // data.paragraph = 'Hi five! Your password has been updated.';
+
+      verDoc.user.password = req.body.password;
+
+      verDoc.user.save(err => {
+        if (err) {
+          return next(err);
+        }
+        verDoc.remove();
+        return res.render('pass-reset', data);
+      });
+    });
 }
 
 /**
