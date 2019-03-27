@@ -526,9 +526,19 @@ async function pay(
 
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
-    if (err.response && err.response.data) console.error(err.response.data);
+    if (err.response && err.response.data) {
+      const { response } = err;
+      console.error(JSON.stringify(response.data));
+      console.error({
+        config: err.config,
+        response: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        },
+      });
+    } else console.error(err);
     if (!(err instanceof APIError)) {
-      console.error(err);
       err = new APIError(
         'Error creating payment',
         httpStatus.INTERNAL_SERVER_ERROR
