@@ -359,12 +359,12 @@ async function update(
       } catch (error) {
         if (error.response && error.response.data)
           console.error(error.response.data);
-        console.log(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
         );
         return next(err);
+        else console.log(error);
       }
 
       // checks status of deal and saves tracking number (shippingStatus = NP.generated)
@@ -376,6 +376,7 @@ async function update(
       // foundOrder.shippingStatus = NP.generated;
 
       foundOrder.status = newStatus; // now status is 'confirmed'
+      foundOrder.dateConfirmed = new Date();
 
       setTimeout(
         () => {
@@ -386,8 +387,6 @@ async function update(
         },
         config.env === 'test' ? 0 : 5000
       );
-
-      foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
     }
   } catch (err) {
