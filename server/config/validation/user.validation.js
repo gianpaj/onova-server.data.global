@@ -73,7 +73,6 @@ export default {
       shippingAddress: {
         firstName: Joi.string(),
         lastName: Joi.string(),
-        fathersName: Joi.string(),
         city: Joi.string(),
         departmentNovaposhta: Joi.string(),
       },

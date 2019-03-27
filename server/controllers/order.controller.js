@@ -4,6 +4,7 @@ const debug = require('debug')('server-data:index');
 
 import axios from 'axios';
 import httpStatus from 'http-status';
+import * as Sentry from '@sentry/node';
 
 import APIError from '../helpers/APIError';
 import {
@@ -531,7 +532,9 @@ async function pay(
           headers: response.headers,
         },
       });
-    } else console.error(err);
+    }
+    if (config.env === 'production') Sentry.captureException(err);
+
     if (!(err instanceof APIError)) {
       err = new APIError(
         'Error creating payment',

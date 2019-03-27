@@ -76,7 +76,6 @@ const userShippingAddress = {
   shippingAddress: {
     firstName: 'Джанфранко',
     lastName: 'Палумбо',
-    // fathersName: 'Мішель',
     city: '8d5a980d-391c-11dd-90d9-001a92567626', // Київ
     departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf', // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
   },
