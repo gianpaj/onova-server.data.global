@@ -64,10 +64,10 @@ export default class Shipping {
       case '1':
         return NP.generated;
       case '4':
+      case '5':
       case '6':
       case '101':
         return NP.shipped;
-      case '5':
       case '7':
       case '8':
         return NP.delivered;
