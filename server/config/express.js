@@ -15,6 +15,7 @@ import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
 import Agenda from 'agenda';
+import * as Sentry from '@sentry/node';
 require('winston-daily-rotate-file');
 
 import winstonInstance from './winston';
@@ -85,6 +86,13 @@ if (config.env === 'development') {
   app.use(logger('dev'));
 }
 
+if (config.env === 'production') {
+  Sentry.init({ dsn: config.SENTRY_DSN, integrations });
+
+  // The request handler must be the first middleware on the app
+  app.use(Sentry.Handlers.requestHandler());
+}
+
 // parse body params and attache them to req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -128,9 +136,6 @@ if (config.env === 'test') {
 }
 
 if (config.env === 'production') {
-  const Sentry = require('@sentry/node');
-  Sentry.init({ dsn: config.SENTRY_DSN });
-
   app.use(
     expressWinston.logger({
       transports: [
@@ -181,6 +186,9 @@ if (config.env === 'development') {
     })
   );
 } else if (config.env === 'production') {
+  // The error handler must be before any other error middleware
+  app.use(Sentry.Handlers.errorHandler());
+
   // log errors to files
   app.use(
     expressWinston.errorLogger({

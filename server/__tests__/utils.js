@@ -20,6 +20,7 @@ import {
   Tag,
   User,
   UserDoc,
+  UserWeb,
   Verification,
 } from '../models';
 
@@ -30,6 +31,7 @@ import { agenda } from '../config/express';
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
   'buyer',
+  'buyerType',
   'createdAt',
   'currency',
   'datePending',
@@ -76,7 +78,6 @@ const userShippingAddress = {
   shippingAddress: {
     firstName: 'Джанфранко',
     lastName: 'Палумбо',
-    // fathersName: 'Мішель',
     city: '8d5a980d-391c-11dd-90d9-001a92567626', // Київ
     departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf', // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
   },
@@ -273,6 +274,7 @@ export function beforeAllTests(done: () => void) {
     SuggestedUsers.collection,
     Tag.collection,
     User.collection,
+    UserWeb.collection,
     Verification.collection,
   ];
 
@@ -295,7 +297,10 @@ export function clearJobs() {
     const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
       config.mongo.jobDb
     }`;
-    MongoClient.connect(jobDb, { useNewUrlParser: true })
+    MongoClient.connect(
+      jobDb,
+      { useNewUrlParser: true }
+    )
       .then(client => {
         mongoClient = client;
         const mongoDb = client.db(config.mongo.jobDb);

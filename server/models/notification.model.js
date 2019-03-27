@@ -19,8 +19,14 @@ const NotificationSchema = new Schema({
   },
   sourceUser: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    refPath: 'sourceUserType',
     required: true,
+  },
+  sourceUserType: {
+    type: String,
+    required: true,
+    default: 'User',
+    enum: ['User', 'UserWeb'],
   },
   triggeredBy: {
     type: Schema.Types.ObjectId,

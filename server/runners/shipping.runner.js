@@ -2,7 +2,7 @@
 
 import { Order, OrderDoc } from '../models';
 import Shipping, { NP } from '../helpers/shipping';
-import JobManager from '../helpers/job';
+import { sendSystemMessage } from '../helpers/job';
 
 import config from '../config/config';
 
@@ -199,7 +199,7 @@ export default class ShippingRunner {
               return done();
             }
             // send system message for the a shippingStatus update
-            await JobManager.sendSystemMessage(order);
+            await sendSystemMessage(order);
             done();
           }
         );

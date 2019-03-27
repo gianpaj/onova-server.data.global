@@ -67,6 +67,7 @@ Array [
 exports[`## Order APIs # PUT /api/orders (more) should allow the buyer to cancel an order 1`] = `
 Array [
   "buyer",
+  "buyerType",
   "createdAt",
   "currency",
   "dateCancelled",
@@ -86,6 +87,7 @@ Array [
 exports[`## Order APIs # PUT /api/orders should allow the buyer to cancel the order without a reason 1`] = `
 Array [
   "buyer",
+  "buyerType",
   "createdAt",
   "currency",
   "dateCancelled",
@@ -105,6 +107,7 @@ Array [
 exports[`## Order APIs # PUT /api/orders should allow the seller to cancel the order 1`] = `
 Array [
   "buyer",
+  "buyerType",
   "createdAt",
   "currency",
   "dateCancelled",

@@ -4,6 +4,7 @@ const debug = require('debug')('server-data:index');
 
 import axios from 'axios';
 import httpStatus from 'http-status';
+import * as Sentry from '@sentry/node';
 
 import APIError from '../helpers/APIError';
 import {
@@ -16,17 +17,16 @@ import {
   ProductDoc,
   User,
   UserDoc,
+  UserWeb,
 } from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';
-import JobManager from '../helpers/job';
+import { sendSystemMessage } from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
 
 import config from '../config/config';
-
-const { sendSystemMessage } = JobManager;
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
@@ -76,12 +76,16 @@ export const i18n = {
   //   'TODO - The package with tracking number: __TRACKING_NUM__\n was not collected on time',
   refusedItem:
     'Замовлення за номером накладної __TRACKING_NUM__\n було скасовано покупцем на відділенні нової пошти',
+
+  // emails
+  openApp: 'Відкрийте мобільний додаток щоб продовжити',
+  // please open the Mobile app to continue
 };
 
 // export const i18n = {
 //   orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
 //   orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
-//   orderCancelled: 'Your order has been cancelled! Your money will be returned', // 33 chars
+//   orderCancelled: 'Your order has been cancelled. Your money will be returned', // 33 chars
 //   orderNotConfirmedToBuyer:
 //     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
 //   orderNotConfirmedToSeller:
@@ -156,10 +160,14 @@ function create(
   res: express$Response,
   next: express$NextFunction
 ) {
-  if (req.user.accountStatus !== 'verified') {
+  let buyerType = 'User';
+  if (req.user.type && req.user.type == 'web') buyerType = 'UserWeb';
+  const isWebBuyer = buyerType === 'UserWeb';
+
+  if (!isWebBuyer && req.user.accountStatus !== 'verified') {
     throw new APIError(
       'Please verify your account before buying a product.',
-      400
+      httpStatus.BAD_REQUEST
     );
   }
 
@@ -183,6 +191,15 @@ function create(
       });
       // FIXME: extend APIError to be able to send extra data
       if (order) {
+        if (
+          order.status === 'paid' &&
+          order.transactionStatus === 'ua-finished'
+        ) {
+          throw new APIError(
+            "This product has been paid and it's waiting for seller's confirmation",
+            httpStatus.BAD_REQUEST
+          );
+        }
         const { onovaFee, transactionFee } = calculateFees(product.price);
         order.datePending = new Date();
         order.status = 'pending';
@@ -217,6 +234,7 @@ function create(
 
       const order = new Order({
         buyer: req.user._id,
+        buyerType,
         currency: product.currency, // 'UAH' by default
         // datePending // Date.now by default
         onovaFee, // paid by the seller
@@ -342,7 +360,7 @@ async function update(
       } catch (error) {
         if (error.response && error.response.data)
           console.error(error.response.data);
-        console.log(error);
+        else console.log(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
@@ -359,6 +377,7 @@ async function update(
       // foundOrder.shippingStatus = NP.generated;
 
       foundOrder.status = newStatus; // now status is 'confirmed'
+      foundOrder.dateConfirmed = new Date();
 
       setTimeout(
         () => {
@@ -369,8 +388,6 @@ async function update(
         },
         config.env === 'test' ? 0 : 5000
       );
-
-      foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
     }
   } catch (err) {
@@ -494,7 +511,7 @@ async function pay(
       throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
     // confirmation info
-    const payment = await createPaymentUAPAY(order, product, body.cvc);
+    const payment = await createPaymentUAPAY(order, product, body.cvc, req.ip);
 
     const shippingFee = await getShippingCost(
       product.weight,
@@ -510,9 +527,21 @@ async function pay(
 
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
-    if (err.response && err.response.data) console.error(err.response.data);
+    if (err.response && err.response.data) {
+      const { response } = err;
+      console.error(JSON.stringify(response.data));
+      console.error({
+        config: err.config,
+        response: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        },
+      });
+    }
+    if (config.env === 'production') Sentry.captureException(err);
+
     if (!(err instanceof APIError)) {
-      console.error(err);
       err = new APIError(
         'Error creating payment',
         httpStatus.INTERNAL_SERVER_ERROR
@@ -525,11 +554,17 @@ async function pay(
 function createPaymentUAPAY(
   order: OrderDoc,
   product: ProductDoc,
-  cvc: string
+  cvc: string,
+  remoteIP: string
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
-      const buyer = await User.findById(order.buyer);
+      let buyer;
+      if (order.buyer.constructor.modelName === 'UserWeb') {
+        buyer = await UserWeb.findById(order.buyer);
+      } else {
+        buyer = await User.findById(order.buyer);
+      }
       const seller = await User.findById(order.seller);
 
       if (!canUserTransact(seller))
@@ -603,7 +638,7 @@ function createPaymentUAPAY(
       await axios.post(
         `/deals/${deal.id}/payments`,
         {
-          remoteIP: '127.0.0.1', // Payer IP Address?
+          remoteIP,
           card: {
             id: buyer.paymentInfo.card_token,
             securityCode: cvc,
@@ -785,8 +820,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
         // The bank has not been able to make debit for technical reasons
         case 'REJECTED':
           console.log('payment rejected:');
-          console.error(data);
-          console.error(order);
+          console.log(data);
+          console.log(order);
 
           const statusText = JSON.parse(data.productPayment.statusText);
           let errorMsg = 'Payment error';
@@ -843,6 +878,7 @@ export async function createOrderNotification(
 ) {
   let notif: NotifPayload = {
     data: order,
+    sourceUserType: order.buyerType,
     triggeredBy: order._id,
     triggeredType: 'Order',
   };
@@ -862,12 +898,19 @@ export async function createOrderNotification(
         notifI18n: i18n.orderPaid,
         targetUser: order.seller._id,
         sourceUser: order.buyer._id,
+        actionMsg: i18n.openApp,
       };
       break;
 
     case 'confirmed':
-      // seller can ship item. we send a system message
-      return Promise.resolve();
+      // seller can ship item. we send a system message + email to buyer
+      notif = {
+        ...notif,
+        notifI18n: i18n.orderConfirmed,
+        targetUser: order.buyer._id,
+        onlyEmail: true,
+      };
+      break;
 
     case 'shipped':
       // notify the buyer
@@ -887,6 +930,7 @@ export async function createOrderNotification(
         notifI18n: i18n.orderCancelled,
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
+        actionMsg: order.reason,
       };
       break;
 

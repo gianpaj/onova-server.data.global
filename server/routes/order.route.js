@@ -1,14 +1,13 @@
 // @flow
 
 import express from 'express';
+import httpStatus from 'http-status';
 import validate from 'express-validation';
-import passport from 'passport';
 
 import paramValidation from '../config/validation/order.validation';
+import authCtrl from '../controllers/auth.controller';
 import orderCtrl from '../controllers/order.controller';
 import APIError from '../helpers/APIError';
-
-const requireAuth = passport.authenticate('jwt', { session: false });
 
 const router = express.Router();
 
@@ -20,7 +19,7 @@ function isAuthorized(req, res, next) {
     req.user._id.toString() !== req.order.buyer._id.toString() &&
     req.user._id.toString() !== req.order.seller._id.toString()
   ) {
-    const err = new APIError('Unauthorized', 401);
+    const err = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
     return next(err);
   }
   next();
@@ -28,7 +27,7 @@ function isAuthorized(req, res, next) {
 
 function isAuthorizedBuyer(req, res, next) {
   if (req.user._id.toString() !== req.order.buyer._id.toString()) {
-    const err = new APIError('Unauthorized', 401);
+    const err = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
     return next(err);
   }
   next();
@@ -38,17 +37,21 @@ function isAuthorizedBuyer(req, res, next) {
 router
   .route('/')
   // GET /api/orders - Get list of orders of the user who requested (via JWT)
-  .get(requireAuth, orderCtrl.list)
+  .get(authCtrl.requireAuth, orderCtrl.list)
 
   // POST /api/orders - Create new order
-  .post(validate(paramValidation.create), requireAuth, orderCtrl.create);
+  .post(
+    validate(paramValidation.create),
+    authCtrl.requireAuth,
+    orderCtrl.create
+  );
 
 router
   .route('/:orderId')
   // GET /api/orders/:orderId - Get a single order
   .get(
     validate(paramValidation.orderId),
-    requireAuth,
+    authCtrl.requireAuth,
     isAuthorized,
     orderCtrl.get
   )
@@ -56,7 +59,7 @@ router
   // PUT /api/orders/:orderId - Update order
   .put(
     validate(paramValidation.orderId),
-    requireAuth,
+    authCtrl.requireAuth,
     isAuthorized,
     orderCtrl.update
   );
@@ -66,7 +69,7 @@ router
   // POST /api/orders/:orderId/pay - Start payment
   .post(
     validate(paramValidation.pay),
-    requireAuth,
+    authCtrl.requireAuth,
     isAuthorizedBuyer,
     orderCtrl.pay
   );
@@ -76,7 +79,7 @@ router
   // GET /api/orders/:orderId/paymentStatus - Get payment from UAPAY
   .get(
     validate(paramValidation.orderId),
-    requireAuth,
+    authCtrl.requireAuth,
     isAuthorizedBuyer,
     orderCtrl.paymentStatus
   );

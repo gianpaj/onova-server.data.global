@@ -102,6 +102,7 @@ const UserSchema = new Schema(
         enum: ['paypal', 'uapay'],
       },
       card_token: String,
+      first_four: String,
       last_four: String,
     },
     profilePic: String,
@@ -125,7 +126,6 @@ const UserSchema = new Schema(
     shippingAddress: {
       firstName: String,
       lastName: String,
-      fathersName: String,
       city: String,
       departmentNovaposhta: String,
     },

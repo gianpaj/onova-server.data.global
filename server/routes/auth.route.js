@@ -33,7 +33,12 @@ router.route('/random-number').get(requireAuth, authCtrl.getRandomNumber);
 /**
  * GET /api/auth/get-token
  */
-router.route('/get-token').get(authCtrl.getTokenForRequestingCardId);
+router
+  .route('/get-token')
+  .get(
+    validate(paramValidation.cardToken),
+    authCtrl.getTokenForRequestingCardId
+  );
 
 /**
  * GET /api/auth/activate/:token
