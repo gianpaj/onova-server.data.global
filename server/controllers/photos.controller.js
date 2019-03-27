@@ -234,16 +234,15 @@ async function uploadToVK(
 
     debug('File(s) saved to', files.map(f => f.filename));
 
-    let uploads = files.map(file => {
+    const uploads = files.map(file => {
       return new Promise((resolve, reject) => {
-        let formData = new FormData();
+        const formData = new FormData();
         const filename = file.filename.split('/')[
           file.filename.split('/').length - 1
         ];
         formData.append('photo', file.image, { filename });
         fetch(upload_url, {
           method: 'POST',
-          // timeout: ,
           body: formData,
         })
           .then(res => res.json())
@@ -258,8 +257,12 @@ async function uploadToVK(
 
     res.status(httpStatus.CREATED).json({ data });
   } catch (err) {
-    console.error(err);
-    return next(err);
+    if (config.env === 'test' && err.message.includes(403)) {
+      console.error("Couldn't test uploading images to VK - enable VPN access");
+    } else {
+      console.error(err);
+    }
+    next(err);
   }
 }
 

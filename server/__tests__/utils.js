@@ -20,6 +20,7 @@ import {
   Tag,
   User,
   UserDoc,
+  UserWeb,
   Verification,
 } from '../models';
 
@@ -30,6 +31,7 @@ import { agenda } from '../config/express';
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
   'buyer',
+  'buyerType',
   'createdAt',
   'currency',
   'datePending',
@@ -272,6 +274,7 @@ export function beforeAllTests(done: () => void) {
     SuggestedUsers.collection,
     Tag.collection,
     User.collection,
+    UserWeb.collection,
     Verification.collection,
   ];
 
@@ -294,7 +297,10 @@ export function clearJobs() {
     const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
       config.mongo.jobDb
     }`;
-    MongoClient.connect(jobDb, { useNewUrlParser: true })
+    MongoClient.connect(
+      jobDb,
+      { useNewUrlParser: true }
+    )
       .then(client => {
         mongoClient = client;
         const mongoDb = client.db(config.mongo.jobDb);

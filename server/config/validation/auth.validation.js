@@ -21,6 +21,12 @@ export default {
     },
   },
 
+  cardToken: {
+    query: {
+      shortCard: Joi.bool(),
+    },
+  },
+
   // POST /api/auth/reset
   requestReset: {
     body: {

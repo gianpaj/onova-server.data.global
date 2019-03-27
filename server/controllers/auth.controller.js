@@ -280,7 +280,7 @@ function getTokenForRequestingCardId(req, res, next) {
     {
       params: {
         clientId: config.UAPAY_CLIENTID_P2P,
-        method: 'createCard',
+        method: req.query.shortCard ? 'createShortCard' : 'createCard',
         enableRedirectResponse: false,
       },
     },

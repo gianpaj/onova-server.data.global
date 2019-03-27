@@ -3,7 +3,7 @@
 import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 
-import { UserDoc, Verification } from '../models';
+import { User, UserDoc, Verification, UserWeb } from '../models';
 import config from '../config/config';
 import { prepareMessage } from '../helpers/job';
 
@@ -22,6 +22,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
   const subject =
     'Підтвердження профілю - Welcome to Onova, verify your email address';
 
+  // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
 
   // generate link
@@ -70,6 +71,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
 function resendVerificationEmail(emailTo: string, user: Object): void {
   const subject = 'Verify your new email address';
 
+  // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
 
   // generate link
@@ -121,6 +123,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
 function sendResetEmail(emailTo: string, user: Object): void {
   const subject = 'Відновлення пароля';
 
+  // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
 
   // generate link

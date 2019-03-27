@@ -83,6 +83,7 @@ async function update(
     if (body.paymentInfoPayload) {
       const bytes = bs58.decode(body.paymentInfoPayload);
       const payload = JSON.parse(bytes.toString());
+      user.paymentInfo.first_four = payload.panMasked.slice(0, 4);
       user.paymentInfo.last_four = payload.panMasked.slice(-4);
       user.paymentInfo.card_token = payload.id;
       user.paymentInfo.method = 'uapay';

@@ -7,6 +7,7 @@ import { sendPush } from '../helpers/push';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
 import { UserDoc, Notification, NotificationDoc } from '../models';
+import mailController from './mail.controller';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -25,6 +26,7 @@ export type NotifPayload = {
   triggeredBy: string,
   triggeredType: string,
   onlyPush: ?boolean,
+  onlyEmail: ?boolean,
   message: ?string,
 };
 
@@ -76,6 +78,7 @@ async function get(
  * @property {MongoId} notif.triggeredBy
  * @property {string} notif.triggeredType User|Product|Order
  * @property {boolean} notif.onlyPush (default false)
+ * @property {boolean} notif.onlyEmail (default false)
  */
 function createNotification(notif: NotifPayload): Promise<null> {
   const {
@@ -117,7 +120,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           notifI18n,
           sourceUser,
         })
-          .then(doc => resolve(doc))
+          .then(() => resolve())
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Product') {
@@ -138,7 +141,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           notifI18n,
           sourceUser,
         })
-          .then(doc => resolve(doc))
+          .then(() => resolve())
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Order') {

@@ -97,62 +97,67 @@ describe('## Order APIs', () => {
     ...photos,
   };
 
-  let firstUserProductAUuid, firstUserProductBUuid2, anotherUserProductUuid;
-  let firstUserJwtToken, anotherJwtToken, nonActiveUserJwtToken, forthJwtToken;
+  let firstUserProductAUuid,
+    firstUserProductBUuid2,
+    anotherUserProductUuid,
+    anotherUserProductUuid2;
+  let firstUserJwtToken,
+    anotherJwtToken,
+    nonActiveUserJwtToken,
+    forthJwtToken,
+    userWebToken;
   let ordersByFirstUser = 0;
   let ordersToFirstUser = 0;
   let ordersByAnotherUser = 0;
   let ordersToAnotherUser = 0;
 
-  // create 3 users. 1 not activated
-  beforeAll(done => {
-    // TODO: use Promise.all().then(() => done());
-    // $FlowFixMe
-    createUserAndLogin(firstUser)
-      .then(({ user: resUser, jwtToken: token }) => {
-        firstUser._id = resUser._id;
-        firstUserJwtToken = token;
-      })
-      .then(() =>
-        request(app)
-          .put(`/api/users/${firstUser._id}`)
-          .set('Authorization', firstUserJwtToken)
-          .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
-          .expect(httpStatus.OK)
-      )
-      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
-      .then(() =>
-        // $FlowFixMe
-        createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
-          anotherUser._id = user._id;
-          anotherJwtToken = jwtToken;
-        })
-      )
-      .then(() =>
-        createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
-          forthUser._id = user._id;
-          forthJwtToken = jwtToken;
-        })
-      )
-      .then(() =>
-        request(app)
-          .post('/api/users')
-          .send(nonActiveUser)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            const resUser = res.body.data;
-            expect(typeof resUser._id).toBe('string');
-            expect(resUser.username).toBe(nonActiveUser.username);
-            expect(resUser.emailAddress).toBe(nonActiveUser.emailAddress);
-            expect(resUser.accountStatus).toBe('notverified');
-            expect(resUser).not.toHaveProperty('password');
-            expect(typeof res.body.token).toBe('string');
-            nonActiveUserJwtToken = res.body.token;
-            // flow-disable-next-line
-            nonActiveUser._id = resUser._id;
-            done();
-          })
-      );
+  // create 3 users. 1 not activated. 1 web user
+  beforeAll(async () => {
+    const { user: resUser, jwtToken: token } = await createUserAndLogin(
+      firstUser
+    );
+    firstUser._id = resUser._id;
+    firstUserJwtToken = token;
+    await Promise.all([
+      request(app)
+        .put(`/api/users/${firstUser._id}`)
+        .set('Authorization', firstUserJwtToken)
+        .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+        .expect(httpStatus.OK),
+      Tag.create([{ _id: 'winter' }, { _id: 'summer' }]),
+    ]);
+    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(
+      anotherUser
+    );
+    anotherUser._id = resUser2._id;
+    anotherJwtToken = token2;
+    const { user: resUser4, jwtToken: token4 } = await createUserAndLogin(
+      forthUser
+    );
+    forthUser._id = resUser4._id;
+    forthJwtToken = token4;
+    await request(app)
+      .post('/api/users')
+      .send(nonActiveUser)
+      .expect(httpStatus.CREATED)
+      .then(res => {
+        const resUser = res.body.data;
+        expect(typeof resUser._id).toBe('string');
+        expect(resUser.username).toBe(nonActiveUser.username);
+        expect(resUser.emailAddress).toBe(nonActiveUser.emailAddress);
+        expect(resUser.accountStatus).toBe('notverified');
+        expect(resUser).not.toHaveProperty('password');
+        expect(typeof res.body.token).toBe('string');
+        nonActiveUserJwtToken = res.body.token;
+        // flow-disable-next-line
+        nonActiveUser._id = resUser._id;
+      });
+    const {
+      body: { token: token5 },
+    } = await request(app)
+      .post('/api/users-web')
+      .expect(httpStatus.CREATED);
+    userWebToken = token5;
   });
 
   // create 3 products and delete 1 of them
@@ -166,6 +171,11 @@ describe('## Order APIs', () => {
     Promises.push(
       createProduct(productC, anotherJwtToken).then(p => {
         anotherUserProductUuid = p.uuid;
+      })
+    );
+    Promises.push(
+      createProduct(productC, anotherJwtToken).then(p => {
+        anotherUserProductUuid2 = p.uuid;
       })
     );
 
@@ -313,6 +323,26 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('You cannot buy your own items');
+        });
+    });
+
+    it('should create an order by a web user', () => {
+      const price = parseFloat(productC.price);
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', userWebToken)
+        .send({ product: anotherUserProductUuid2 })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields);
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((price * 0.085).toString()); // 8.5 %
+          expect(o.total).toBe(price.toString()); // for buyer
+          expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
+          expect(o.priceOfItem).toBe(productC.price);
+          ordersToAnotherUser++;
         });
     });
   });

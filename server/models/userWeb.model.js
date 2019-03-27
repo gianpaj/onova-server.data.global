@@ -33,6 +33,7 @@ const UserWebSchema = new Schema(
         enum: ['paypal', 'uapay'],
       },
       card_token: String,
+      first_four: String,
       last_four: String,
     },
     shippingAddress: {
