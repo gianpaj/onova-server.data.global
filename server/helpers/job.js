@@ -7,88 +7,86 @@ import { OrderDoc } from '../models';
 import { i18n } from '../controllers/order.controller';
 import { NP } from '../helpers/shipping';
 
-export default class JobManager {
-  static sendSystemMessage(order: OrderDoc): Promise<any> {
-    return new Promise((resolve, reject) => {
-      let msg = {
-        order,
-        shippingStatus: order.shippingStatus,
-        trackingNumber: order.trackingNumber,
-      };
+export function sendSystemMessage(order: OrderDoc): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let msg = {
+      order,
+      shippingStatus: order.shippingStatus,
+      trackingNumber: order.trackingNumber,
+    };
 
-      switch (order.shippingStatus) {
-        // shipping status is still generated after a deal has been confirmed
-        case NP.generated:
-          msg = {
-            ...msg,
-            message: i18n.orderConfirmed.replace(
-              '__TRACKING_NUM__',
-              order.trackingNumber
-            ),
-          };
-          break;
+    switch (order.shippingStatus) {
+      // shipping status is still generated after a deal has been confirmed
+      case NP.generated:
+        msg = {
+          ...msg,
+          message: i18n.orderConfirmed.replace(
+            '__TRACKING_NUM__',
+            order.trackingNumber
+          ),
+        };
+        break;
 
-        case NP.shipped:
-          msg = {
-            ...msg,
-            message: i18n.orderShipped.replace(
-              '__TRACKING_NUM__',
-              order.trackingNumber
-            ),
-          };
-          break;
+      case NP.shipped:
+        msg = {
+          ...msg,
+          message: i18n.orderShipped.replace(
+            '__TRACKING_NUM__',
+            order.trackingNumber
+          ),
+        };
+        break;
 
-        case NP.delivered:
-          msg = {
-            ...msg,
-            message: i18n.orderDelivered.replace(
-              '__TRACKING_NUM__',
-              order.trackingNumber
-            ),
-          };
-          break;
+      case NP.delivered:
+        msg = {
+          ...msg,
+          message: i18n.orderDelivered.replace(
+            '__TRACKING_NUM__',
+            order.trackingNumber
+          ),
+        };
+        break;
 
-        case NP.refused:
-          msg = {
-            ...msg,
-            message: i18n.refusedItem.replace(
-              '__TRACKING_NUM__',
-              order.trackingNumber
-            ),
-          };
-          break;
+      case NP.refused:
+        msg = {
+          ...msg,
+          message: i18n.refusedItem.replace(
+            '__TRACKING_NUM__',
+            order.trackingNumber
+          ),
+        };
+        break;
 
-        case NP.collected:
-          msg = {
-            ...msg,
-            message: i18n.orderCompleted.replace(
-              '__TRACKING_NUM__',
-              order.trackingNumber
-            ),
-          };
-          break;
+      case NP.collected:
+        msg = {
+          ...msg,
+          message: i18n.orderCompleted.replace(
+            '__TRACKING_NUM__',
+            order.trackingNumber
+          ),
+        };
+        break;
 
-        default:
-          reject(
-            new Error(
-              'Invalid shippingStatus for scheduling system message:' +
-                JSON.stringify(order)
-            )
-          );
-          return;
+      default:
+        reject(
+          new Error(
+            'Invalid shippingStatus for scheduling system message:' +
+              JSON.stringify(order)
+          )
+        );
+        return;
+    }
+
+    const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);
+    // now _also_ check manually during the individual SHIPPING_STATUS_CHECKER job
+
+    job.save(err => {
+      if (err) {
+        const error = new Error(`Job failed with error: ${err}`);
+        return reject(error);
       }
-
-      const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);
-      // now _also_ check manually during the individual SHIPPING_STATUS_CHECKER job
-
-      job.save(err => {
-        if (err) {
-          const error = new Error(`Job failed with error: ${err}`);
-          return reject(error);
-        }
-        debug(config.JOBNAMES.SYSTEM_MSG, 'Job successfully saved');
-        resolve();
-      });
+      debug(config.JOBNAMES.SYSTEM_MSG, 'Job successfully saved');
+      resolve();
     });
-  }
+  });
 }

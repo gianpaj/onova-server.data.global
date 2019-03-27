@@ -20,13 +20,11 @@ import {
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';
-import JobManager from '../helpers/job';
+import { sendSystemMessage } from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
 
 import config from '../config/config';
-
-const { sendSystemMessage } = JobManager;
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
@@ -355,12 +353,12 @@ async function update(
       } catch (error) {
         if (error.response && error.response.data)
           console.error(error.response.data);
+        else console.log(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
         );
         return next(err);
-        else console.log(error);
       }
 
       // checks status of deal and saves tracking number (shippingStatus = NP.generated)
