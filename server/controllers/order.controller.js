@@ -530,18 +530,21 @@ async function pay(
     if (err.response && err.response.data) {
       const { response } = err;
       console.error(JSON.stringify(response.data));
-      console.error({
+      const errorJSON = {
         config: err.config,
         response: {
           status: response.status,
           statusText: response.statusText,
           headers: response.headers,
         },
-      });
+      };
+      console.error(errorJSON);
+      if (config.env === 'production') Sentry.captureException(errorJSON);
     }
-    if (config.env === 'production') Sentry.captureException(err);
 
     if (!(err instanceof APIError)) {
+      if (config.env === 'production') Sentry.captureException(err);
+      console.error(err);
       err = new APIError(
         'Error creating payment',
         httpStatus.INTERNAL_SERVER_ERROR
