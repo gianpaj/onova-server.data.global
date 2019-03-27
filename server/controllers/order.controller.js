@@ -76,6 +76,10 @@ export const i18n = {
   //   'TODO - The package with tracking number: __TRACKING_NUM__\n was not collected on time',
   refusedItem:
     'Замовлення за номером накладної __TRACKING_NUM__\n було скасовано покупцем на відділенні нової пошти',
+
+  // emails
+  openApp: 'Відкрийте мобільний додаток щоб продовжити',
+  // please open the Mobile app to continue
 };
 
 // export const i18n = {
@@ -183,6 +187,15 @@ function create(
       });
       // FIXME: extend APIError to be able to send extra data
       if (order) {
+        if (
+          order.status === 'paid' &&
+          order.transactionStatus === 'ua-finished'
+        ) {
+          throw new APIError(
+            "This product has been paid and it's waiting for seller's confirmation",
+            httpStatus.BAD_REQUEST
+          );
+        }
         const { onovaFee, transactionFee } = calculateFees(product.price);
         order.datePending = new Date();
         order.status = 'pending';
@@ -342,12 +355,12 @@ async function update(
       } catch (error) {
         if (error.response && error.response.data)
           console.error(error.response.data);
-        console.log(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
         );
         return next(err);
+        else console.log(error);
       }
 
       // checks status of deal and saves tracking number (shippingStatus = NP.generated)
@@ -359,6 +372,7 @@ async function update(
       // foundOrder.shippingStatus = NP.generated;
 
       foundOrder.status = newStatus; // now status is 'confirmed'
+      foundOrder.dateConfirmed = new Date();
 
       setTimeout(
         () => {
@@ -369,8 +383,6 @@ async function update(
         },
         config.env === 'test' ? 0 : 5000
       );
-
-      foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
     }
   } catch (err) {
@@ -494,7 +506,7 @@ async function pay(
       throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
     // confirmation info
-    const payment = await createPaymentUAPAY(order, product, body.cvc);
+    const payment = await createPaymentUAPAY(order, product, body.cvc, req.ip);
 
     const shippingFee = await getShippingCost(
       product.weight,
@@ -510,9 +522,19 @@ async function pay(
 
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
-    if (err.response && err.response.data) console.error(err.response.data);
+    if (err.response && err.response.data) {
+      const { response } = err;
+      console.error(JSON.stringify(response.data));
+      console.error({
+        config: err.config,
+        response: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        },
+      });
+    } else console.error(err);
     if (!(err instanceof APIError)) {
-      console.error(err);
       err = new APIError(
         'Error creating payment',
         httpStatus.INTERNAL_SERVER_ERROR
@@ -525,7 +547,8 @@ async function pay(
 function createPaymentUAPAY(
   order: OrderDoc,
   product: ProductDoc,
-  cvc: string
+  cvc: string,
+  remoteIP: string
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
@@ -603,7 +626,7 @@ function createPaymentUAPAY(
       await axios.post(
         `/deals/${deal.id}/payments`,
         {
-          remoteIP: '127.0.0.1', // Payer IP Address?
+          remoteIP,
           card: {
             id: buyer.paymentInfo.card_token,
             securityCode: cvc,
@@ -785,8 +808,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
         // The bank has not been able to make debit for technical reasons
         case 'REJECTED':
           console.log('payment rejected:');
-          console.error(data);
-          console.error(order);
+          console.log(data);
+          console.log(order);
 
           const statusText = JSON.parse(data.productPayment.statusText);
           let errorMsg = 'Payment error';
@@ -843,6 +866,7 @@ export async function createOrderNotification(
 ) {
   let notif: NotifPayload = {
     data: order,
+    sourceUserType: order.buyerType,
     triggeredBy: order._id,
     triggeredType: 'Order',
   };
@@ -862,6 +886,7 @@ export async function createOrderNotification(
         notifI18n: i18n.orderPaid,
         targetUser: order.seller._id,
         sourceUser: order.buyer._id,
+        actionMsg: i18n.openApp,
       };
       break;
 
@@ -887,6 +912,7 @@ export async function createOrderNotification(
         notifI18n: i18n.orderCancelled,
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
+        actionMsg: order.reason,
       };
       break;
 

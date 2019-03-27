@@ -55,11 +55,41 @@ function login(req, res, next) {
   })(req, res, next);
 }
 
+/**
+ * Responds with a http error or adds user into req.user
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*}
+ */
+function requireAuth(req, res, next) {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (info) {
+      let message;
+      if (info.name === 'TokenExpiredError') {
+        message = 'jwt expired';
+      } else {
+        message = `Unauthorized ${info.type} user`;
+      }
+      const APIerr = new APIError(message, httpStatus.UNAUTHORIZED);
+      return next(APIerr);
+    }
+    if (err || !user) {
+      const APIerr = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
+      return next(APIerr);
+    }
+    req.user = user;
+    next();
+  })(req, res, next);
+}
+
 // Generate JWT
 function generateToken(payload) {
-  return jwt.sign(payload, config.jwtSecret, {
-    // expiresIn: 604800 // in seconds
-  });
+  const options = {};
+  if (config.env === 'test') options.expiresIn = 20; // seconds
+  // expiresIn: "2 days",
+  return jwt.sign(payload, config.jwtSecret, options);
 }
 
 /**
@@ -272,6 +302,7 @@ export default {
   activate,
   generateToken,
   requestPassReset,
+  requireAuth,
   resetPage,
   resetFormSubmit,
   getTokenForRequestingCardId,

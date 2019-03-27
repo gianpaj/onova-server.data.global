@@ -1,6 +1,7 @@
 // @flow
 
 import express from 'express';
+import httpStatus from 'http-status';
 import validate from 'express-validation';
 import passport from 'passport';
 
@@ -20,7 +21,7 @@ function isAuthorized(req, res, next) {
     req.user._id.toString() !== req.order.buyer._id.toString() &&
     req.user._id.toString() !== req.order.seller._id.toString()
   ) {
-    const err = new APIError('Unauthorized', 401);
+    const err = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
     return next(err);
   }
   next();
@@ -28,7 +29,7 @@ function isAuthorized(req, res, next) {
 
 function isAuthorizedBuyer(req, res, next) {
   if (req.user._id.toString() !== req.order.buyer._id.toString()) {
-    const err = new APIError('Unauthorized', 401);
+    const err = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
     return next(err);
   }
   next();

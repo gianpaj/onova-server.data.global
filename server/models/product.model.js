@@ -123,7 +123,7 @@ export const ProductSchema = new Schema(
 export class ProductDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
   categoryIds: Array<Number>;
-  comments: Array<MongoId>; // optional
+  comments: ?Array<MongoId>;
   createdAt: Date;
   currency: string;
   description: string;
@@ -142,7 +142,7 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   reservedDate: Date;
   seller: string;
   status: string;
-  tags: Array<string>; // optional
+  tags: ?Array<string>;
   typeIds: Array<Number>;
   weight: Number;
   uuid: string;
