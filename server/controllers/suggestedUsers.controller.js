@@ -161,7 +161,7 @@ async function getSuggestions(userId): Promise<any> {
       },
     },
     {
-      $match: { isFollowedBy: { $not: { $in: [userId] } } },
+      $match: { isFollowedBy: { $nin: [userId] }, _id: { $ne: userId } },
     },
     {
       $group: {

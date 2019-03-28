@@ -29,28 +29,28 @@ type User = {
 
 let users: Array<User> = [
   {
-    username: 'user1',
-    emailAddress: 'gianpa+test@gmail.com',
+    username: 'user0',
+    emailAddress: 'gianpa+test0@gmail.com',
     password: 'expressos',
+  },
+  {
+    username: 'user1',
+    emailAddress: 'gianpa+test1@gmail.com',
+    password: 'express2',
   },
   {
     username: 'user2',
     emailAddress: 'gianpa+test2@gmail.com',
-    password: 'express2',
+    password: 'express3',
   },
   {
     username: 'user3',
     emailAddress: 'gianpa+test3@gmail.com',
-    password: 'express3',
+    password: 'express4',
   },
   {
     username: 'user4',
     emailAddress: 'gianpa+test4@gmail.com',
-    password: 'express4',
-  },
-  {
-    username: 'user5',
-    emailAddress: 'gianpa+test5@gmail.com',
     password: 'express5',
   },
 ];
@@ -76,6 +76,7 @@ describe('## Suggested Users APIs', () => {
         .expect(httpStatus.OK),
       followUser(users[0].token, users[1]._id),
       followUser(users[0].token, users[3]._id),
+      followUser(users[1].token, users[0]._id),
       followUser(users[1].token, users[2]._id),
       followUser(users[1].token, users[3]._id),
       followUser(users[1].token, users[4]._id),
@@ -89,6 +90,7 @@ describe('## Suggested Users APIs', () => {
      * | user0 | follows -> | user3  |
      * | user1 | follows -> | user2  |
      * | user1 | follows -> | user3  |
+     * | user1 | follows -> | user4  |
      * | user2 | follows -> | user3  |
      */
   });
@@ -130,7 +132,9 @@ describe('## Suggested Users APIs', () => {
       .expect(httpStatus.OK)
       .then(({ body }) => {
         expect(body.data).toHaveLength(2);
-        const firstSuggestion = body.data[0];
+        const [firstSuggestion, secondSuggestion] = body.data;
+        expect(firstSuggestion._id.username).toBe('user2');
+        expect(secondSuggestion._id.username).toBe('user4');
         expect(Object.keys(firstSuggestion._id).sort()).toEqual([
           '_id',
           'profilePic',
