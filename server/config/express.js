@@ -87,7 +87,7 @@ if (config.env === 'development') {
 }
 
 if (config.env === 'production') {
-  Sentry.init({ dsn: config.SENTRY_DSN, integrations });
+  Sentry.init({ dsn: config.SENTRY_DSN });
 
   // The request handler must be the first middleware on the app
   app.use(Sentry.Handlers.requestHandler());
