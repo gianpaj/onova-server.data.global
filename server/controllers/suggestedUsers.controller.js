@@ -43,29 +43,7 @@ async function list(
     if (found) {
       if (!found.suggestions.length) return res.json({ data: [], new: false });
 
-      let suggestions = found.suggestions.filter(s => s._id);
-      // find if I am now following those suggested users
-      const ids = suggestions.map(s => s._id._id);
-      let myFollowings = await Follow.find({
-        follower: myUserId.toString(),
-        following: { $in: ids },
-      });
-      myFollowings = myFollowings.map(f => f.following.toString());
-
-      suggestions = suggestions.map(s => {
-        s = s.toJSON();
-        s = {
-          ...s,
-          _id: {
-            ...s._id,
-            amIAFollower: false,
-          },
-        };
-        if (myFollowings.indexOf(s._id._id.toString()) > -1) {
-          s._id.amIAFollower = true;
-        }
-        return s;
-      });
+      const suggestions = await getFollowingStatus(found.suggestions, myUserId);
 
       return res.json({ data: suggestions, new: false });
     }
@@ -109,11 +87,41 @@ async function list(
       select: 'username profilePic',
     });
 
-    res.json({ data: populated.suggestions, new: true });
+    const suggestions = await getFollowingStatus(
+      populated.suggestions,
+      myUserId
+    );
+
+    res.json({ data: suggestions, new: true });
   } catch (error) {
     console.error(error);
     next(error);
   }
+}
+
+async function getFollowingStatus(users, myUserId): Promise<any> {
+  // find if I am now following those suggested users
+  const ids = users.map(s => s._id._id);
+  let myFollowings = await Follow.find({
+    follower: myUserId.toString(),
+    following: { $in: ids },
+  });
+  myFollowings = myFollowings.map(f => f.following.toString());
+
+  return users.map(s => {
+    s = s.toJSON();
+    s = {
+      ...s,
+      _id: {
+        ...s._id,
+        amIAFollower: false,
+      },
+    };
+    if (myFollowings.indexOf(s._id._id.toString()) > -1) {
+      s._id.amIAFollower = true;
+    }
+    return s;
+  });
 }
 
 /**
