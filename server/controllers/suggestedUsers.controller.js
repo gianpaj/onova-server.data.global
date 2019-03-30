@@ -101,7 +101,8 @@ async function list(
 
 async function getFollowingStatus(users, myUserId): Promise<any> {
   // find if I am now following those suggested users
-  const ids = users.filter(s => s._id).map(s => s._id._id);
+  users = users.filter(s => s._id);
+  const ids = users.map(s => s._id._id);
   let myFollowings = await Follow.find({
     follower: myUserId.toString(),
     following: { $in: ids },
