@@ -266,13 +266,15 @@ export async function createManyProducts(num: number, jwtToken: string) {
 export function beforeAllTests(done: () => void) {
   const collections = [
     Block.collection,
-    Drop.collection,
+    DefaultFollow.collection,
     DiscardedUser.collection,
+    Drop.collection,
     Follow.collection,
     Notification.collection,
-    DefaultFollow.collection,
     Order.collection,
     Product.collection,
+    Report.collection,
+    Review.collection,
     SuggestedUsers.collection,
     Tag.collection,
     User.collection,
@@ -299,10 +301,7 @@ export function clearJobs() {
     const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
       config.mongo.jobDb
     }`;
-    MongoClient.connect(
-      jobDb,
-      { useNewUrlParser: true }
-    )
+    MongoClient.connect(jobDb, { useNewUrlParser: true })
       .then(client => {
         mongoClient = client;
         const mongoDb = client.db(config.mongo.jobDb);
