@@ -196,6 +196,7 @@ function resetPage(req, res) {
     });
 }
 
+// TODO: combine this resetFormSubmit and resetPage functions
 /**
  * POST /api/auth/reset/:token - submit form
  *
@@ -235,6 +236,7 @@ function resetFormSubmit(req, res) {
       // data.paragraph = 'Hi five! Your password has been updated.';
 
       verDoc.user.password = req.body.password;
+      verDoc.user.status = 'verified';
 
       verDoc.user.save(err => {
         if (err) {
