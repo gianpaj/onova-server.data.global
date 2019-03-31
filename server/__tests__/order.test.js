@@ -787,7 +787,8 @@ describe('## Order APIs', () => {
 
   describe('# Web Payments', () => {
     let orderIdWeb1;
-    it('should create an order by a web user', () => {
+
+    test('a web user creates an order', () => {
       const price = parseFloat(productC.price);
       return request(app)
         .post('/api/orders')
@@ -808,55 +809,33 @@ describe('## Order APIs', () => {
         });
     });
 
-    test('a seller should confirm the order from the web', async done => {
+    test('a seller confirms the order from the web', async done => {
       const dealID = '9B27M6F';
 
-      const userShippingAddress = {
+      const UserWeb = {
+        emailAddress: 'gianpa+autotestwebuser@gmail.com',
+        paymentInfoPayload:
+          '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
         shippingAddress: {
           firstName: 'Джанфранко',
           lastName: 'Палумбо',
-          city: '8d5a980d-391c-11dd-90d9-001a92567626', // Київ
-          departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf', // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
+          // Київ
+          city: '8d5a980d-391c-11dd-90d9-001a92567626',
+          // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
+          departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
         },
-      };
-
-      const userPaymentInfo = {
-        paymentInfoPayload:
-          '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
       };
 
       await request(app)
         .put('/api/users-web/me')
         .set('Authorization', userWebToken)
-        .send({ ...userPaymentInfo, ...userShippingAddress })
+        .send(UserWeb)
         .expect(httpStatus.OK);
       await payOrder(orderIdWeb1, userWebToken, dealID);
 
       // FYI: we're skipping the step where the seller confirms the order
 
-      mock
-        .onPost(`/deals/${dealID}/confirmations`)
-        .reply(200, dealConfirmationResp);
-      mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
-      await request(app)
-        .put(`/api/orders/${orderIdWeb1}`)
-        .set('Authorization', anotherJwtToken)
-        .send({ status: 'confirmed' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(o.priceOfItem).toBe(productC.price);
-          expect(o.status).toBe('confirmed');
-          expect(o.transactionStatus).toBe('ua-finished');
-          expect(o.transactionId).toBe(dealID);
-          expect(o.cityRecipient).toBe('Львів');
-          expect(o.citySender).toBe('Київ');
-          expect(o.trackingNumber).toBe(
-            sellerConfirmedResponse.data.handler.waybillNumber.toString()
-          );
-          expect(o.shippingProvider).toBe('novaposhta');
-          expect(typeof o.dateConfirmed).toBe('string');
-        });
+      await confirmOrder(orderIdWeb1, anotherJwtToken, dealID);
       await request(app)
         .get(`/api/products/${anotherUserProductUuid2}`)
         .expect(httpStatus.OK)
@@ -1077,25 +1056,8 @@ describe('## Order APIs', () => {
         .onPost(`/deals/${dealID}/confirmations`)
         .reply(200, dealConfirmationResp);
       mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
-      await request(app)
-        .put(`/api/orders/${orderId3}`)
-        .set('Authorization', firstUserJwtToken)
-        .send({ status: 'confirmed' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(o.priceOfItem).toBe(productPOST2.price);
-          expect(o.status).toBe('confirmed');
-          expect(o.transactionStatus).toBe('ua-finished');
-          expect(o.transactionId).toBe(dealID);
-          expect(o.cityRecipient).toBe('Львів');
-          expect(o.citySender).toBe('Київ');
-          expect(o.trackingNumber).toBe(
-            sellerConfirmedResponse.data.handler.waybillNumber.toString()
-          );
-          expect(o.shippingProvider).toBe('novaposhta');
-          expect(typeof o.dateConfirmed).toBe('string');
-        });
+      // FIXME: erorr with axios-mock-adapter
+      await confirmOrder(orderId3, firstUserJwtToken, dealID);
       await request(app)
         .get(`/api/products/${order3ProdUUID}`)
         .expect(httpStatus.OK)
@@ -1236,5 +1198,31 @@ async function payOrder(orderId: string, buyerJWTToken, dealID) {
     .then(({ body }) => {
       expect(body.data.status).toBe('ua-finished');
       expect(body.data.rawStatus).toBe('FINISHED');
+    });
+}
+
+async function confirmOrder(
+  orderId: string,
+  sellerJwtToken,
+  dealID
+): Promise<any> {
+  mock
+    .onPost(`/deals/${dealID}/confirmations`)
+    .reply(200, dealConfirmationResp);
+  mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
+  return request(app)
+    .put(`/api/orders/${orderId}`)
+    .set('Authorization', sellerJwtToken)
+    .send({ status: 'confirmed' })
+    .expect(httpStatus.OK)
+    .then(res => {
+      const o = res.body.data;
+      expect(o.status).toBe('confirmed');
+      expect(o.transactionStatus).toBe('ua-finished');
+      expect(o.transactionId).toBe(dealID);
+      expect(o.trackingNumber).toBe(
+        sellerConfirmedResponse.data.handler.waybillNumber.toString()
+      );
+      expect(!isNaN(Date.parse(o.dateConfirmed))).toBe(true);
     });
 }

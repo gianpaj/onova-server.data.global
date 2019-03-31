@@ -3,9 +3,9 @@
 import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 
-import { User, UserDoc, Verification, UserWeb } from '../models';
+import { User, UserDoc, Verification, UserWeb, OrderDoc } from '../models';
 import config from '../config/config';
-import { prepareMessage } from '../helpers/job';
+import { getOrderUpdateMessage } from '../helpers/job';
 
 const mailjetClient = mailjet.connect(
   config.mailjet.apikeyPublic,
@@ -174,15 +174,25 @@ function sendResetEmail(emailTo: string, user: Object): void {
 /**
  * Send emails for an order notification / update
  */
-async function sendOrderUpdate({ notifI18n, targetUser, data, actionMsg }) {
+async function sendOrderUpdate({
+  actionMsg,
+  order,
+  notifI18n,
+  targetUser,
+}: {
+  actionMsg: string,
+  notifI18n: string,
+  order: OrderDoc,
+  targetUser: UserDoc,
+}) {
   const SandboxMode = config.env === 'test';
   let user,
     text = notifI18n;
 
-  const isWebUser = data.buyerType === 'UserWeb';
+  const isWebUser = order.buyerType === 'UserWeb';
 
   // if we're emailing the buyer
-  if (targetUser == data.buyer._id && isWebUser) {
+  if (targetUser == order.buyer._id && isWebUser) {
     user = await UserWeb.findById(targetUser);
   } else {
     user = await User.findById(targetUser);
@@ -192,8 +202,8 @@ async function sendOrderUpdate({ notifI18n, targetUser, data, actionMsg }) {
     throw new Error('sendOrderUpdate: no user found for ' + targetUser);
   }
 
-  if (data.shippingStatus)
-    text = prepareMessage(data.shippingStatus, data.trackingNumber);
+  if (order.trackingNumber)
+    text = getOrderUpdateMessage(order.shippingStatus, order.trackingNumber);
 
   const vars = {
     displayName: user.displayName || user.username,

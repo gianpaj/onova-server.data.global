@@ -409,6 +409,7 @@ async function payOrder(orderId: string, buyerJWTToken, dealID) {
     });
 }
 
+// FIXME: import from order.test.js
 async function confirmOrder(
   orderId: string,
   sellerJwtToken,
