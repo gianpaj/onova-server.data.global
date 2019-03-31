@@ -319,22 +319,18 @@ function update(
       // mongoose changes the email to lowercase
       user.emailAddress = emailAddress;
       Promises.push(
-        new Promise((resolve, reject) =>
-          User.findOne({ emailAddress }).then(existingUser => {
-            if (existingUser) {
-              const APIerr = new APIError(
-                'An account with the same email address exists.',
-                httpStatus.BAD_REQUEST
-              );
-              return reject(APIerr);
-            }
-            mailCtrl.resendVerificationEmail(user.emailAddress, user);
-            user.accountStatus = 'notverified';
-            debug(`account ${user._id} is awaiting for email verification`);
-            // save user with new email address only if there is no duplicate key error
-            resolve();
-          })
-        )
+        User.findOne({ emailAddress }).then(existingUser => {
+          if (existingUser)
+            throw new APIError(
+              'An account with the same email address exists.',
+              httpStatus.BAD_REQUEST
+            );
+
+          mailCtrl.resendVerificationEmail(user.emailAddress, user);
+          user.accountStatus = 'notverified';
+          debug(`account ${user._id} is awaiting for email verification`);
+          // save user with new email address only if there is no duplicate key error
+        })
       );
     }
   }
@@ -343,53 +339,39 @@ function update(
   if (body.username && user.username != body.username) {
     user.username = body.username;
     Promises.push(
-      new Promise((resolve, reject) => {
-        User.findOne({ username: body.username }).then(existingUser => {
-          if (existingUser) {
-            const APIerr = new APIError(
-              'An account with the same username exists.',
-              httpStatus.BAD_REQUEST
-            );
-            return reject(APIerr);
-          }
-          resolve();
-        });
+      User.findOne({ username: body.username }).then(existingUser => {
+        if (existingUser)
+          throw new APIError(
+            'An account with the same username exists.',
+            httpStatus.BAD_REQUEST
+          );
       })
     );
   }
 
   if (req.file) {
     Promises.push(
-      new Promise((resolve, reject) => {
-        photos
-          .uploadProfilePic(req.user, req.file)
-          .then(async cloudStoragePublicUrl => {
-            const doc = await User.findByIdAndUpdate(req.user._id, {
-              $set: { profilePic: cloudStoragePublicUrl },
-            });
-            if (doc) {
-              debug('profilePic updated for user:', doc._id);
-              if (config.env === 'production') {
-                try {
-                  await ckInst.updateUser({
-                    id: doc._id,
-                    avatarURL: cloudStoragePublicUrl,
-                  });
-                  console.log('chatkit user updated');
-                } catch (err) {
-                  console.error(err);
-                  return reject(err);
-                }
-              }
-              return resolve(doc);
-            }
-            reject('error updating profilePic');
+      photos
+        .uploadProfilePic(req.user, req.file)
+        .then(cloudStoragePublicUrl =>
+          User.findByIdAndUpdate(req.user._id, {
+            $set: { profilePic: cloudStoragePublicUrl },
           })
-          .catch(err => {
-            debug('Error saving user profilePic', err);
-            reject(err);
-          });
-      })
+        )
+        .then(doc => {
+          if (!doc) throw new Error('Error updating profilePic');
+          debug('profilePic updated for user:', doc._id);
+          if (config.env === 'production') {
+            return ckInst.updateUser({
+              id: doc._id,
+              avatarURL: cloudStoragePublicUrl,
+            });
+          }
+        })
+        .catch(err => {
+          debug('Error saving user profilePic', err);
+          throw err;
+        })
     );
   }
 
