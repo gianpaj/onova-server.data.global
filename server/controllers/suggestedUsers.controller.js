@@ -39,7 +39,7 @@ async function list(
       path: 'suggestions._id',
       select: 'username profilePic',
     });
-    // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
+    // if suggested users are "fresh" (already stored in DB; generated in the last 72 hours)
     if (found) {
       if (!found.suggestions.length) return res.json({ data: [], new: false });
 
