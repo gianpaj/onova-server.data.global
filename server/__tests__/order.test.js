@@ -106,10 +106,10 @@ describe('## Order APIs', () => {
     nonActiveUserJwtToken,
     forthJwtToken,
     userWebToken;
-  let ordersByFirstUser = 0;
-  let ordersToFirstUser = 0;
-  let ordersByAnotherUser = 0;
-  let ordersToAnotherUser = 0;
+  let ordersByFirstUser = 0,
+    ordersToFirstUser = 0,
+    ordersByAnotherUser = 0,
+    ordersToAnotherUser = 0;
 
   // create 3 users. 1 not activated. 1 web user
   beforeAll(async () => {
@@ -323,26 +323,6 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('You cannot buy your own items');
-        });
-    });
-
-    it('should create an order by a web user', () => {
-      const price = parseFloat(productC.price);
-      return request(app)
-        .post('/api/orders')
-        .set('Authorization', userWebToken)
-        .send({ product: anotherUserProductUuid2 })
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields);
-          expect(o.status).toBe('pending');
-          expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((price * 0.085).toString()); // 8.5 %
-          expect(o.total).toBe(price.toString()); // for buyer
-          expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
-          expect(o.priceOfItem).toBe(productC.price);
-          ordersToAnotherUser++;
         });
     });
   });
@@ -722,7 +702,7 @@ describe('## Order APIs', () => {
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
             expect(o.priceOfItem).toBe(productPOST2.price);
-            orderPOST4ProdUUID = product.uuid;
+            // orderPOST4ProdUUID = product.uuid;
             orderPOST4 = o.id;
           }
         )
@@ -802,6 +782,101 @@ describe('## Order APIs', () => {
           );
           expect(res.body.ok).toBe(false);
         });
+    });
+  });
+
+  describe('# Web Payments', () => {
+    let orderIdWeb1;
+    it('should create an order by a web user', () => {
+      const price = parseFloat(productC.price);
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', userWebToken)
+        .send({ product: anotherUserProductUuid2 })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields);
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((price * 0.085).toString()); // 8.5 %
+          expect(o.total).toBe(price.toString()); // for buyer
+          expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
+          expect(o.priceOfItem).toBe(productC.price);
+          orderIdWeb1 = o.id;
+          ordersToAnotherUser++;
+        });
+    });
+
+    test('a seller should confirm the order from the web', async done => {
+      const dealID = '9B27M6F';
+
+      const userShippingAddress = {
+        shippingAddress: {
+          firstName: 'Джанфранко',
+          lastName: 'Палумбо',
+          city: '8d5a980d-391c-11dd-90d9-001a92567626', // Київ
+          departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf', // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
+        },
+      };
+
+      const userPaymentInfo = {
+        paymentInfoPayload:
+          '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
+      };
+
+      await request(app)
+        .put('/api/users-web/me')
+        .set('Authorization', userWebToken)
+        .send({ ...userPaymentInfo, ...userShippingAddress })
+        .expect(httpStatus.OK);
+      await payOrder(orderIdWeb1, userWebToken, dealID);
+
+      // FYI: we're skipping the step where the seller confirms the order
+
+      mock
+        .onPost(`/deals/${dealID}/confirmations`)
+        .reply(200, dealConfirmationResp);
+      mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
+      await request(app)
+        .put(`/api/orders/${orderIdWeb1}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'confirmed' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.priceOfItem).toBe(productC.price);
+          expect(o.status).toBe('confirmed');
+          expect(o.transactionStatus).toBe('ua-finished');
+          expect(o.transactionId).toBe(dealID);
+          expect(o.cityRecipient).toBe('Львів');
+          expect(o.citySender).toBe('Київ');
+          expect(o.trackingNumber).toBe(
+            sellerConfirmedResponse.data.handler.waybillNumber.toString()
+          );
+          expect(o.shippingProvider).toBe('novaposhta');
+          expect(typeof o.dateConfirmed).toBe('string');
+        });
+      await request(app)
+        .get(`/api/products/${anotherUserProductUuid2}`)
+        .expect(httpStatus.OK)
+        .then(res => expect(res.body.data.status).toBe('sold'));
+
+      // order confirmation should schedule a System message
+      setTimeout(() => {
+        agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+          if (err) return done(err);
+          expect(jobs).toHaveLength(1);
+          const { data } = jobs.map(j => j.attrs)[0];
+          expect(data.order._id.toString()).toBe(orderIdWeb1);
+          expect(data.order.shippingProvider).toBe('novaposhta');
+          expect(data.order.trackingNumber).toBe(
+            sellerConfirmedResponse.data.handler.waybillNumber.toString()
+          );
+          expect(data.message).toContain(i18n.orderConfirmed.slice(0, 30));
+          done();
+        });
+      }, 10);
     });
   });
 
@@ -1024,10 +1099,7 @@ describe('## Order APIs', () => {
       await request(app)
         .get(`/api/products/${order3ProdUUID}`)
         .expect(httpStatus.OK)
-        .then(res => {
-          const p = res.body.data;
-          expect(p.status).toBe('sold');
-        });
+        .then(res => expect(res.body.data.status).toBe('sold'));
 
       // order confirmation should schedule a System message
       setTimeout(() => {

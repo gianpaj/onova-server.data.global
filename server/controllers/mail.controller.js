@@ -181,10 +181,15 @@ async function sendOrderUpdate({ notifI18n, targetUser, data, actionMsg }) {
 
   const isWebUser = data.buyerType === 'UserWeb';
 
-  if (isWebUser) {
+  // if we're emailing the buyer
+  if (targetUser == data.buyer._id && isWebUser) {
     user = await UserWeb.findById(targetUser);
   } else {
     user = await User.findById(targetUser);
+  }
+
+  if (!user) {
+    throw new Error('sendOrderUpdate: no user found for ' + targetUser);
   }
 
   if (data.shippingStatus)

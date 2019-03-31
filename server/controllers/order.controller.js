@@ -38,7 +38,7 @@ const axiosConfig = {
 };
 
 // TODO: move function to User model
-function canUserTransact(user) {
+function useCanTransact(user) {
   const { paymentInfo, shippingAddress } = user;
   return (
     paymentInfo.card_token &&
@@ -214,7 +214,7 @@ function create(
 
       const seller = await User.findById(product.seller._id);
 
-      if (!canUserTransact(seller))
+      if (!useCanTransact(seller))
         throw new Error('Seller is missing payment or shipping info');
 
       const blocking = await Block.countDocuments({
@@ -570,10 +570,10 @@ function createPaymentUAPAY(
       }
       const seller = await User.findById(order.seller);
 
-      if (!canUserTransact(seller))
+      if (!useCanTransact(seller))
         throw new Error('Seller is missing payment or shipping info');
 
-      if (!canUserTransact(buyer))
+      if (!useCanTransact(buyer))
         throw new Error('Buyer is missing payment or shipping info');
 
       const { shippingAddress: Bship } = buyer;
