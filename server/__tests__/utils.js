@@ -22,6 +22,8 @@ import {
   UserDoc,
   UserWeb,
   Verification,
+  Report,
+  Review,
 } from '../models';
 
 import app from '../index';
