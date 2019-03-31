@@ -7,10 +7,25 @@ import { User, UserDoc, Verification, UserWeb, OrderDoc } from '../models';
 import config from '../config/config';
 import { getOrderUpdateMessage } from '../helpers/job';
 
+const SandboxMode = config.env === 'test';
+
 const mailjetClient = mailjet.connect(
   config.mailjet.apikeyPublic,
   config.mailjet.apikeyPrivate
 );
+
+const mailjetOptions = {
+  From: {
+    Email: 'noreply@onova.co',
+    Name: 'Onova',
+  },
+  TemplateLanguage: true,
+  TemplateErrorDeliver: true,
+  TemplateErrorReporting: {
+    Email: 'gianfranco@onova.co',
+    Name: 'gianfranco',
+  },
+};
 
 /**
  * Send email via Mailjet to verify the account
@@ -31,8 +46,6 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
     resetToken: token,
   })
     .then(() => {
-      if (config.env === 'test') return;
-
       const vars = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
         displayName: user.username,
@@ -41,26 +54,20 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
       const request = mailjetClient.post('send', { version: 'v3.1' }).request({
         Messages: [
           {
-            From: {
-              Email: 'noreply@onova.co',
-              Name: 'Onova',
-            },
             To: [{ Email: emailTo }],
             Variables: vars,
             TemplateID: 343433,
-            TemplateLanguage: true,
             Subject: subject,
+            ...mailjetOptions,
           },
         ],
+        SandboxMode,
       });
 
-      request
-        // .then(res => {
-        // console.log(res.body);
-        // })
-        .catch(err => {
-          console.error(err.ErrorMessage);
-        });
+      return request.catch(err => {
+        console.error(err.ErrorMessage);
+        throw err;
+      });
     })
     .catch(e => console.error(e));
 }
@@ -80,8 +87,6 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
     resetToken: token,
   })
     .then(() => {
-      if (config.env === 'test') return;
-
       const vars = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
         displayName: user.username,
@@ -90,29 +95,21 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
       const request = mailjetClient.post('send', { version: 'v3.1' }).request({
         Messages: [
           {
-            From: {
-              Email: 'noreply@onova.co',
-              Name: 'Onova',
-            },
             To: [{ Email: emailTo }],
             Variables: vars,
             Subject: subject,
-            TemplateLanguage: true,
             TextPart:
               'Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers, The Onova Team.',
             HTMLPart:
               'Hi {{var:displayName}},<p>Please verify your new email address.</p><p>Click here to confirm it: {{var:confirmation_link}}</p><p>Cheers, The Onova Team.</p>',
+            ...mailjetOptions,
           },
         ],
+        SandboxMode,
       });
-
-      request
-        .then(res => {
-          console.log(res.body);
-        })
-        .catch(err => {
-          console.error(err.ErrorMessage);
-        });
+      return request.catch(err => {
+        console.error(err.ErrorMessage);
+      });
     })
     .catch(e => console.error(e));
 }
@@ -132,8 +129,6 @@ function sendResetEmail(emailTo: string, user: Object): void {
     resetToken: token,
   })
     .then(() => {
-      if (config.env === 'test') return;
-
       const vars = {
         reset_link: `https://onova.co/api/auth/reset/${token}`,
         displayName: user.username,
@@ -142,31 +137,19 @@ function sendResetEmail(emailTo: string, user: Object): void {
       const request = mailjetClient.post('send', { version: 'v3.1' }).request({
         Messages: [
           {
-            From: {
-              Email: 'noreply@onova.co',
-              Name: 'Onova',
-            },
             To: [{ Email: emailTo }],
             Variables: vars,
             Subject: subject,
             TemplateID: 345696,
-            TemplateLanguage: true,
-            TemplateErrorDeliver: true,
-            TemplateErrorReporting: {
-              Email: 'gianfranco@onova.co',
-              Name: 'gianfranco',
-            },
+            ...mailjetClient,
           },
         ],
+        SandboxMode,
       });
 
-      request
-        .then(res => {
-          console.log(res.body);
-        })
-        .catch(err => {
-          console.error(err.ErrorMessage);
-        });
+      return request.catch(err => {
+        console.error(err.ErrorMessage);
+      });
     })
     .catch(e => console.error(e));
 }
@@ -185,7 +168,6 @@ async function sendOrderUpdate({
   order: OrderDoc,
   targetUser: UserDoc,
 }) {
-  const SandboxMode = config.env === 'test';
   let user,
     text = notifI18n;
 
@@ -211,27 +193,23 @@ async function sendOrderUpdate({
     ...(actionMsg ? { actionMsg } : {}),
   };
 
-  return mailjetClient.post('send', { version: 'v3.1' }).request({
-    Messages: [
-      {
-        From: {
-          Email: 'noreply@onova.co',
-          Name: 'Onova',
+  try {
+    await mailjetClient.post('send', { version: 'v3.1' }).request({
+      Messages: [
+        {
+          To: [{ Email: user.emailAddress }],
+          Variables: vars,
+          Subject: text,
+          TemplateID: 670839,
+          ...mailjetOptions,
         },
-        To: [{ Email: user.emailAddress }],
-        Variables: vars,
-        Subject: text,
-        TemplateID: 670839,
-        TemplateLanguage: true,
-        TemplateErrorDeliver: true,
-        TemplateErrorReporting: {
-          Email: 'gianfranco@onova.co',
-          Name: 'gianfranco',
-        },
-      },
-    ],
-    SandboxMode,
-  });
+      ],
+      SandboxMode,
+    });
+  } catch (error) {
+    console.error(err.ErrorMessage);
+    throw error;
+  }
 }
 
 export default {
