@@ -437,11 +437,8 @@ async function update(
     : foundOrder.paymentMethod;
 
   if (newStatus) {
-    createOrderNotification(foundOrder, iAmTheSeller)
-      .then(() => {
-        debug('notification(s) created for order:', newStatus);
-      })
-      .catch(e => console.error(e));
+    await createOrderNotification(foundOrder, iAmTheSeller);
+    debug('notification(s) created for order:', newStatus);
   }
 
   return foundOrder.save().then(order => {
@@ -815,9 +812,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             order.shippingUpdatedAt = new Date();
             // only update first time we check
             if (!order.datePaid) order.datePaid = new Date();
-            createOrderNotification(order)
-              .then(() => debug('notification(s) created for order:', 'paid'))
-              .catch(e => console.error(e));
+            await createOrderNotification(order);
+            debug('notification(s) created for order:', 'paid');
           }
           break;
         // The bank has not been able to make debit for technical reasons

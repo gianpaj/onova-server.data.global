@@ -3,6 +3,8 @@
 import httpStatus from 'http-status';
 import path from 'path';
 import request from 'supertest';
+import superagent from 'superagent';
+import mockSuperagent from 'superagent-mock';
 
 import { agenda } from '../config/express';
 import config from '../config/config';
@@ -109,6 +111,24 @@ describe('## Order APIs', () => {
     ordersByAnotherUser = 0,
     ordersToAnotherUser = 0;
 
+  let superagentMock;
+  let mailJetParams;
+
+  const mailjetServerEndPoint = 'https://api.mailjet.com/v3';
+
+  beforeAll(() => {
+    superagentMock = mockSuperagent(superagent, [
+      {
+        pattern: `${mailjetServerEndPoint}`,
+        fixtures: (match, params) => {
+          mailJetParams = params;
+          return {};
+        },
+        post: (match, data) => ({ body: data }),
+      },
+    ]);
+  });
+
   // create 3 users. 1 not activated. 1 web user
   beforeAll(async () => {
     const { user: resUser, jwtToken: token } = await createUserAndLogin(
@@ -195,6 +215,10 @@ describe('## Order APIs', () => {
     Promise.all(Promises)
       .then(() => done())
       .catch(e => console.error(e));
+  });
+
+  afterAll(() => {
+    superagentMock.unset();
   });
 
   describe('# POST /api/orders', () => {
@@ -831,6 +855,11 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK);
       await payOrder(orderIdWeb1, userWebToken, dealID);
 
+      expect(mailJetParams.Messages[0].Subject).toBe(i18n.orderPaid);
+      expect(mailJetParams.Messages[0].To[0].Email).toBe(
+        anotherUser.emailAddress
+      );
+
       // FYI: we're skipping the step where the seller confirms the order
 
       await confirmOrder(orderIdWeb1, anotherJwtToken, dealID);
@@ -838,6 +867,11 @@ describe('## Order APIs', () => {
         .get(`/api/products/${anotherUserProductUuid2}`)
         .expect(httpStatus.OK)
         .then(res => expect(res.body.data.status).toBe('sold'));
+
+      expect(mailJetParams.Messages[0].To[0].Email).toBe(UserWeb.emailAddress);
+      expect(mailJetParams.Messages[0].Subject).toContain(
+        i18n.orderConfirmed.slice(0, -20)
+      );
 
       // order confirmation should schedule a System message
       setTimeout(() => {
