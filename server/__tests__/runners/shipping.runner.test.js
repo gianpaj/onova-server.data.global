@@ -1,8 +1,6 @@
 // @flow
 
 import httpStatus from 'http-status';
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
 import request from 'supertest';
 
 import config from '../../config/config';
@@ -17,19 +15,16 @@ import { NP } from '../../helpers/shipping';
 import {
   beforeAllTests,
   clearJobs,
+  closeDBConnection,
+  confirmOrder,
   createOrder,
   createProduct,
   createUserAndLogin,
-  closeDBConnection,
   findJobs,
+  mock,
+  payOrder,
 } from '../utils';
-import {
-  buyerNeedsToPay,
-  buyerPaidDeal,
-  dealConfirmationResp,
-  sellerConfirmedResponse,
-  novaPoshta,
-} from '../../helpers/shipping';
+import { novaPoshta } from '../../helpers/shipping';
 
 const photos = {
   photos: [
@@ -38,9 +33,6 @@ const photos = {
 };
 
 jest.setTimeout(10000);
-
-// This sets the mock adapter on the default instance
-const mock = new MockAdapter(axios);
 
 describe('## Shipping Runner', () => {
   beforeAll(beforeAllTests);
@@ -377,61 +369,3 @@ describe('## Shipping Runner', () => {
     });
   });
 });
-
-async function payOrder(orderId: string, buyerJWTToken, dealID) {
-  mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
-  mock.onPost('/deals').reply(200, { data: { id: dealID } });
-  mock.onPost(`/deals/${dealID}/payments`).reply(200);
-  mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-  mock
-    .onGet('/handlers/NovaPoshta/costs')
-    .reply(200, { data: { handlerPrice: 2500 } });
-  await request(app)
-    .post(`/api/orders/${orderId}/pay`)
-    .set('Authorization', buyerJWTToken)
-    .send({ cvc: '123' })
-    .expect(httpStatus.CREATED)
-    .then(({ body }) => {
-      expect(body.data.payment.redirectUrl).toContain(
-        '.uapay.ua/api/payments/'
-      );
-      expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
-    });
-
-  mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
-  return request(app)
-    .get(`/api/orders/${orderId}/paymentStatus`)
-    .set('Authorization', buyerJWTToken)
-    .expect(httpStatus.OK)
-    .then(({ body }) => {
-      expect(body.data.status).toBe('ua-finished');
-      expect(body.data.rawStatus).toBe('FINISHED');
-    });
-}
-
-// FIXME: import from order.test.js
-async function confirmOrder(
-  orderId: string,
-  sellerJwtToken,
-  dealID
-): Promise<any> {
-  mock
-    .onPost(`/deals/${dealID}/confirmations`)
-    .reply(200, dealConfirmationResp);
-  mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
-  return request(app)
-    .put(`/api/orders/${orderId}`)
-    .set('Authorization', sellerJwtToken)
-    .send({ status: 'confirmed' })
-    .expect(httpStatus.OK)
-    .then(res => {
-      const o = res.body.data;
-      expect(o.status).toBe('confirmed');
-      expect(o.transactionStatus).toBe('ua-finished');
-      expect(o.transactionId).toBe(dealID);
-      expect(o.trackingNumber).toBe(
-        sellerConfirmedResponse.data.handler.waybillNumber.toString()
-      );
-      expect(!isNaN(Date.parse(o.dateConfirmed))).toBe(true);
-    });
-}

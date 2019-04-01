@@ -1,34 +1,45 @@
 // @flow
 
 import httpStatus from 'http-status';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import request from 'supertest';
 import { MongoClient } from 'mongodb';
 
 import {
   Block,
-  DiscardedUser,
-  Drop,
   CommentDoc,
   DefaultFollow,
+  DiscardedUser,
+  Drop,
   Follow,
   Notification,
   Order,
   OrderDoc,
   Product,
   ProductDoc,
+  Report,
+  Review,
   SuggestedUsers,
   Tag,
   User,
   UserDoc,
   UserWeb,
   Verification,
-  Report,
-  Review,
 } from '../models';
 
 import app from '../index';
 import config from '../config/config';
 import { agenda } from '../config/express';
+import {
+  buyerNeedsToPay,
+  buyerPaidDeal,
+  dealConfirmationResp,
+  sellerConfirmedResponse,
+} from '../helpers/shipping';
+
+// This sets the mock adapter on the default instance
+export const mock = new MockAdapter(axios);
 
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
@@ -340,4 +351,65 @@ export function findJobs(name: string, extraQuery: Object = {}): Promise<any> {
       resolve(data);
     });
   });
+}
+
+export async function payOrder(
+  orderId: string,
+  buyerJWTToken: string,
+  dealID: string
+) {
+  mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
+  mock.onPost('/deals').reply(200, { data: { id: dealID } });
+  mock.onPost(`/deals/${dealID}/payments`).reply(200);
+  mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
+  mock
+    .onGet('/handlers/NovaPoshta/costs')
+    .reply(200, { data: { handlerPrice: 2500 } });
+  await request(app)
+    .post(`/api/orders/${orderId}/pay`)
+    .set('Authorization', buyerJWTToken)
+    .send({ cvc: '123' })
+    .expect(httpStatus.CREATED)
+    .then(({ body }) => {
+      expect(body.data.payment.redirectUrl).toContain(
+        '.uapay.ua/api/payments/'
+      );
+      expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+    });
+
+  mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
+  return request(app)
+    .get(`/api/orders/${orderId}/paymentStatus`)
+    .set('Authorization', buyerJWTToken)
+    .expect(httpStatus.OK)
+    .then(({ body }) => {
+      expect(body.data.status).toBe('ua-finished');
+      expect(body.data.rawStatus).toBe('FINISHED');
+    });
+}
+
+export async function confirmOrder(
+  orderId: string,
+  sellerJwtToken: string,
+  dealID: string
+): Promise<any> {
+  mock
+    .onPost(`/deals/${dealID}/confirmations`)
+    .reply(200, dealConfirmationResp);
+  mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
+  return request(app)
+    .put(`/api/orders/${orderId}`)
+    .set('Authorization', sellerJwtToken)
+    .send({ status: 'confirmed' })
+    .expect(httpStatus.OK)
+    .then(res => {
+      const o = res.body.data;
+      expect(o.status).toBe('confirmed');
+      expect(o.transactionStatus).toBe('ua-finished');
+      expect(o.transactionId).toBe(dealID);
+      expect(o.trackingNumber).toBe(
+        sellerConfirmedResponse.data.handler.waybillNumber.toString()
+      );
+      expect(!isNaN(Date.parse(o.dateConfirmed))).toBe(true);
+    });
 }

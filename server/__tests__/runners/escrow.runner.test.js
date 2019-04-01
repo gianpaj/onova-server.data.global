@@ -1,8 +1,6 @@
 // @flow
 
 import httpStatus from 'http-status';
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
 import request from 'supertest';
 
 import { agenda } from '../../config/express';
@@ -16,17 +14,17 @@ import { Order, Product } from '../../models';
 import {
   beforeAllTests,
   clearJobs,
+  closeDBConnection,
   createOrder,
   createProduct,
   createUserAndLogin,
-  closeDBConnection,
+  mock,
+  payOrder,
 } from '../utils';
 import {
   buyerNeedsToPay,
-  buyerPaidDeal,
   buyerPaymentFailure,
   sellerCancelsAPaidDeal,
-  sellerConfirmedResponse,
 } from '../../helpers/shipping';
 
 const photos = {
@@ -36,9 +34,6 @@ const photos = {
 };
 
 jest.setTimeout(10000);
-
-// This sets the mock adapter on the default instance
-const mock = new MockAdapter(axios);
 
 describe('## Escrow Manager', () => {
   beforeAll(beforeAllTests);
@@ -487,38 +482,3 @@ describe('## Escrow Manager', () => {
     });
   });
 });
-
-async function payOrder(
-  orderId: string,
-  buyerJWTToken: string,
-  dealID: string
-) {
-  mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
-  mock.onPost('/deals').reply(200, { data: { id: dealID } });
-  mock.onPost(`/deals/${dealID}/payments`).reply(200);
-  mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-  mock
-    .onGet('/handlers/NovaPoshta/costs')
-    .reply(200, { data: { handlerPrice: 2500 } });
-  await request(app)
-    .post(`/api/orders/${orderId}/pay`)
-    .set('Authorization', buyerJWTToken)
-    .send({ cvc: '123' })
-    .expect(httpStatus.CREATED)
-    .then(({ body }) => {
-      expect(body.data.payment.redirectUrl).toContain(
-        '.uapay.ua/api/payments/'
-      );
-      expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
-    });
-
-  mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
-  return request(app)
-    .get(`/api/orders/${orderId}/paymentStatus`)
-    .set('Authorization', buyerJWTToken)
-    .expect(httpStatus.OK)
-    .then(({ body }) => {
-      expect(body.data.status).toBe('ua-finished');
-      expect(body.data.rawStatus).toBe('FINISHED');
-    });
-}
