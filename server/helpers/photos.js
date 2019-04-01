@@ -126,7 +126,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
 /**
  * Upload profile image to GCS
  */
-function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
+function uploadProfilePic(user: UserDoc, image: File): Promise<string> {
   return new Promise((resolve, reject) => {
     if (config.env === 'test')
       return resolve(

@@ -917,7 +917,12 @@ describe('## User APIs', () => {
         .put(`/api/users/${anotherUserId}`)
         .set('Authorization', anotherJwtToken)
         .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
-        .expect(httpStatus.OK);
+        .expect(httpStatus.OK)
+        .then(res =>
+          expect(res.body.profilePic).toBe(
+            'https://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
+          )
+        );
     });
 
     it("should NOT update another user's details", () => {

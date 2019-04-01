@@ -352,18 +352,13 @@ function update(
   if (req.file) {
     Promises.push(
       photos
-        .uploadProfilePic(req.user, req.file)
-        .then(cloudStoragePublicUrl =>
-          User.findByIdAndUpdate(req.user._id, {
-            $set: { profilePic: cloudStoragePublicUrl },
-          })
-        )
-        .then(doc => {
-          if (!doc) throw new Error('Error updating profilePic');
-          debug('profilePic updated for user:', doc._id);
+        .uploadProfilePic(user, req.file)
+        .then(cloudStoragePublicUrl => {
+          user.profilePic = cloudStoragePublicUrl;
+          debug('profilePic updated for user:', user._id);
           if (config.env === 'production') {
             return ckInst.updateUser({
-              id: doc._id,
+              id: user._id,
               avatarURL: cloudStoragePublicUrl,
             });
           }
