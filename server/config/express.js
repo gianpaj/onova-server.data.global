@@ -18,7 +18,7 @@ import Agenda from 'agenda';
 import * as Sentry from '@sentry/node';
 require('winston-daily-rotate-file');
 
-import winstonInstance from './winston';
+import winstonInstance, { winstonDailyRotateConfig } from './winston';
 import routes from '../routes';
 import routesV2 from '../routes/indexV2';
 import config from './config';
@@ -140,12 +140,8 @@ if (config.env === 'production') {
     expressWinston.logger({
       transports: [
         new winston.transports.DailyRotateFile({
+          ...winstonDailyRotateConfig,
           filename: 'access-%DATE%.log',
-          dirname: './logs',
-          datePattern: 'YYYY-MM-DD',
-          zippedArchive: true,
-          maxSize: '20m',
-          maxFiles: '14d',
         }),
       ],
     })
@@ -194,11 +190,8 @@ if (config.env === 'development') {
     expressWinston.errorLogger({
       transports: [
         new winston.transports.DailyRotateFile({
+          ...winstonDailyRotateConfig,
           filename: 'error-%DATE%.log',
-          datePattern: 'YYYY-MM-DD',
-          zippedArchive: true,
-          maxSize: '20m',
-          maxFiles: '14d',
           json: true,
         }),
       ],
