@@ -262,19 +262,22 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
+ * @property {string=} req.body.accessToken - Facebook (TODO: remove)
  * @property {string=} req.body.bio
  * @property {string=} req.body.displayName
  * @property {string=} req.body.emailAddress
+ * @property {string=} req.body.facebook
+ * @property {boolean=} req.body.increaseShare
  * @property {string=} req.body.mobileNumber
  * @property {string=} req.body.password
+ * @property {string=} req.body.paymentInfoPayload
  * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
- * @property {string=} req.body.facebook
- * @property {string=} req.body.tokens
- * @property {string=} req.body.accessToken
- * @property {string=} req.body.username
- * @property {string=} req.body.paymentInfoPayload
  * @property {any=} req.body.shippingAddress
+ * @property {string=} req.body.tokens
+ * @property {string=} req.body.username
+ * @property {*} req.file - Express file parameter - to upload a new profilePic
+ * @property {File} req.user
  */
 function update(
   req: session$Request,
