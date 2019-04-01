@@ -376,7 +376,7 @@ async function update(
       // development
       // foundOrder.shippingStatus = NP.generated;
 
-      foundOrder.status = newStatus; // now status is 'confirmed'
+      foundOrder.status = 'confirmed';
       foundOrder.dateConfirmed = new Date();
 
       setTimeout(
@@ -800,9 +800,9 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             order.trackingNumber = handler.waybillNumber;
             order.shippingProvider = 'novaposhta';
 
-            // the following is done by newStatus when seller send API request - update()
-            // order.dateConfirmed = new Date();
-            // order.status = 'confirmed';
+            // the 'dateConfirmed' and 'status' are updated in the setTimeout() by newStatus
+            // when seller send API request - update()
+            // Also, the order notification is done there
           }
           // check needed because payment status is still PAID if deal has been confirmed
           else if (data.status === 'PAID') {
@@ -882,6 +882,7 @@ export async function createOrderNotification(
     triggeredType: 'Order',
   };
   switch (order.status) {
+    // to seller
     case 'paid':
       // check if notification already exists
       const notifExists = await Notification.findOne({
@@ -901,18 +902,18 @@ export async function createOrderNotification(
       };
       break;
 
+    // to buyer
     case 'confirmed':
       // seller can ship item. we send a system message + email to buyer
       notif = {
         ...notif,
         notifI18n: i18n.orderConfirmed,
         targetUser: order.buyer._id,
-        onlyEmail: true,
       };
       break;
 
+    // to buyer
     case 'shipped':
-      // notify the buyer
       notif = {
         ...notif,
         notifI18n: i18n.orderShipped,
@@ -921,6 +922,7 @@ export async function createOrderNotification(
       };
       break;
 
+    // to buyer
     case 'cancelled':
       if (!iAmTheSeller) return Promise.resolve();
       // cancelled by seller. there is no notification if the buyer cancels
@@ -933,6 +935,7 @@ export async function createOrderNotification(
       };
       break;
 
+    // to buyer or seller
     case 'failed_by_seller':
       if (iAmTheSeller) {
         notif = {
@@ -952,6 +955,12 @@ export async function createOrderNotification(
       }
       break;
   }
+
+  // only try to send an order email update to a buyer UserWeb
+  if (order.buyerType === 'UserWeb' && notif.targetUser == order.buyer._id) {
+    notif = { ...notif, onlyEmail: true };
+  }
+
   return notifCtrl.createNotification(notif);
 }
 
