@@ -357,7 +357,7 @@ describe('## Product APIs', () => {
           expect(Object.keys(p.seller).sort()).toMatchSnapshot(
             'product.seller'
           );
-          expect(p.seller.profilePic).toContain(
+          expect(p.seller.profilePic).toBe(
             'https://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
           );
           expect(p.seller.profilePic).toContain('.jpg');
