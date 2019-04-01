@@ -55,8 +55,9 @@ declare class express$Request extends express$Request {
 }
 
 export const i18n = {
-  // push notifications
-  orderPaid: 'Вітаємо, підтвердіть нове замовлення!',
+  orderPaidForBuyer:
+    'Ваше замовлення зареєстровано. Продавець має найближчим часом підтвердити його.',
+  orderPaidForSeller: 'Вітаємо, підтвердіть нове замовлення!',
   orderPaidReminder: 'Замовлення чекає вашого підтвердження',
   orderCancelled: 'Ваше замовлення скасовано, ваші кошти повернуться вам',
   orderNotConfirmedToBuyer: 'Шкода, продавець не підтвердив замовлення вчасно',
@@ -83,7 +84,8 @@ export const i18n = {
 };
 
 // export const i18n = {
-//   orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
+//   orderPaidForBuyer: 'Your order has been placed. The seller should confirm shortly',
+//   orderPaidForSeller: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
 //   orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
 //   orderCancelled: 'Your order has been cancelled. Your money will be returned', // 33 chars
 //   orderNotConfirmedToBuyer:
@@ -360,7 +362,7 @@ async function update(
       } catch (error) {
         if (error.response && error.response.data)
           console.error(error.response.data);
-        else console.log(error);
+        else console.error(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
@@ -418,7 +420,7 @@ async function update(
       try {
         await rejectPayment(foundOrder);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
@@ -881,8 +883,9 @@ export async function createOrderNotification(
     triggeredBy: order._id,
     triggeredType: 'Order',
   };
+  const isBuyerFromTheWeb = order.buyerType === 'UserWeb';
   switch (order.status) {
-    // to seller
+    // to seller and buyer
     case 'paid':
       // check if notification already exists
       const notifExists = await Notification.findOne({
@@ -893,13 +896,26 @@ export async function createOrderNotification(
       });
       if (notifExists) return Promise.resolve();
       // seller needs to confirm order after receiving a notification and opening the 'confirmOrder' screen on mobile app
-      notif = {
+      const Promises = [];
+      const notifForSeller = {
         ...notif,
-        notifI18n: i18n.orderPaid,
+        notifI18n: i18n.orderPaidForSeller,
         targetUser: order.seller._id,
         sourceUser: order.buyer._id,
         actionMsg: i18n.openApp,
       };
+      Promises.push(notifCtrl.createNotification(notifForSeller));
+      if (isBuyerFromTheWeb) {
+        const notifForBuyerFromTheWeb = {
+          ...notif,
+          notifI18n: i18n.orderPaidForBuyer,
+          targetUser: order.buyer._id,
+          sourceUser: order.seller._id,
+          onlyEmail: true,
+        };
+        Promises.push(notifCtrl.createNotification(notifForBuyerFromTheWeb));
+      }
+      return Promise.all(Promises);
       break;
 
     // to buyer
@@ -908,6 +924,7 @@ export async function createOrderNotification(
       notif = {
         ...notif,
         notifI18n: i18n.orderConfirmed,
+        sourceUser: order.seller._id,
         targetUser: order.buyer._id,
       };
       break;
@@ -957,7 +974,7 @@ export async function createOrderNotification(
   }
 
   // only try to send an order email update to a buyer UserWeb
-  if (order.buyerType === 'UserWeb' && notif.targetUser == order.buyer._id) {
+  if (isBuyerFromTheWeb && notif.targetUser == order.buyer._id) {
     notif = { ...notif, onlyEmail: true };
   }
 

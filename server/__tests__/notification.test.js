@@ -435,7 +435,7 @@ describe('## Notification APIs', () => {
                 expect(data.targetUser.toString()).toBe(userId);
                 expect(data.triggeredBy.toString()).toBe(orderId);
                 expect(data.triggeredType).toBe('Order');
-                expect(data.message).toContain(i18n.orderPaid);
+                expect(data.message).toContain(i18n.orderPaidForSeller);
                 expect(typeof data.random).toBe('string');
                 done();
               });
@@ -451,7 +451,7 @@ describe('## Notification APIs', () => {
           .then(res => {
             const { data } = res.body;
             expect(data[0].triggeredBy.id).toBe(orderId);
-            expect(data[0].notifI18n).toContain(i18n.orderPaid);
+            expect(data[0].notifI18n).toContain(i18n.orderPaidForSeller);
             expect(data).toHaveLength(numberOfNotifForFirstUser);
           });
       });
@@ -484,7 +484,7 @@ describe('## Notification APIs', () => {
               const notifs = data.filter(
                 n => n.notifI18n !== i18n.orderPaidReminder
               );
-              expect(notifs[0].notifI18n).toContain(i18n.orderPaid);
+              expect(notifs[0].notifI18n).toContain(i18n.orderPaidForSeller);
               expect(notifs).toHaveLength(numberOfNotifForFirstUser);
               done();
             });
