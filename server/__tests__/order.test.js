@@ -100,12 +100,14 @@ describe('## Order APIs', () => {
   let firstUserProductAUuid,
     firstUserProductBUuid2,
     anotherUserProductUuid,
-    anotherUserProductUuid2;
+    anotherUserProductUuid2,
+    anotherUserProductUuid3;
   let firstUserJwtToken,
     anotherJwtToken,
     nonActiveUserJwtToken,
     forthJwtToken,
-    userWebToken;
+    userWebToken1,
+    userWebToken2;
   let ordersByFirstUser = 0,
     ordersToFirstUser = 0,
     ordersByAnotherUser = 0,
@@ -129,7 +131,7 @@ describe('## Order APIs', () => {
     ]);
   });
 
-  // create 3 users. 1 not activated. 1 web user
+  // create 3 users. 1 not activated + 2 web users
   beforeAll(async () => {
     const { user: resUser, jwtToken: token } = await createUserAndLogin(
       firstUser
@@ -175,10 +177,16 @@ describe('## Order APIs', () => {
     } = await request(app)
       .post('/api/users-web')
       .expect(httpStatus.CREATED);
-    userWebToken = token5;
+    userWebToken1 = token5;
+    const {
+      body: { token: token6 },
+    } = await request(app)
+      .post('/api/users-web')
+      .expect(httpStatus.CREATED);
+    userWebToken2 = token6;
   });
 
-  // create 3 products and delete 1 of them
+  // create 4 products and delete 1 of them
   beforeAll(done => {
     let Promises = [];
     Promises.push(
@@ -194,6 +202,11 @@ describe('## Order APIs', () => {
     Promises.push(
       createProduct(productC, anotherJwtToken).then(p => {
         anotherUserProductUuid2 = p.uuid;
+      })
+    );
+    Promises.push(
+      createProduct(productC, anotherJwtToken).then(p => {
+        anotherUserProductUuid3 = p.uuid;
       })
     );
 
@@ -807,14 +820,28 @@ describe('## Order APIs', () => {
     });
   });
 
-  describe('# Web Payments', () => {
-    let orderIdWeb1;
+  describe.only('# Web Payments', () => {
+    let orderIdWeb1, orderIdWeb2;
+
+    const UserWeb = {
+      emailAddress: 'gianpa+autotestwebuser1@gmail.com',
+      paymentInfoPayload:
+        '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
+      shippingAddress: {
+        firstName: 'Джанфранко',
+        lastName: 'Палумбо',
+        // Київ
+        city: '8d5a980d-391c-11dd-90d9-001a92567626',
+        // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
+        departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      },
+    };
 
     test('a web user creates an order', () => {
       const price = parseFloat(productC.price);
       return request(app)
         .post('/api/orders')
-        .set('Authorization', userWebToken)
+        .set('Authorization', userWebToken1)
         .send({ product: anotherUserProductUuid2 })
         .expect(httpStatus.CREATED)
         .then(res => {
@@ -834,33 +861,17 @@ describe('## Order APIs', () => {
     test('a seller confirms the order from the web', async done => {
       const dealID = '9B27M6F';
 
-      const UserWeb = {
-        emailAddress: 'gianpa+autotestwebuser@gmail.com',
-        paymentInfoPayload:
-          '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
-        shippingAddress: {
-          firstName: 'Джанфранко',
-          lastName: 'Палумбо',
-          // Київ
-          city: '8d5a980d-391c-11dd-90d9-001a92567626',
-          // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
-          departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
-        },
-      };
-
       await request(app)
         .put('/api/users-web/me')
-        .set('Authorization', userWebToken)
+        .set('Authorization', userWebToken1)
         .send(UserWeb)
         .expect(httpStatus.OK);
-      await payOrder(orderIdWeb1, userWebToken, dealID);
+      await payOrder(orderIdWeb1, userWebToken1, dealID);
 
       expect(mailJetParams.Messages[0].Subject).toBe(i18n.orderPaid);
       expect(mailJetParams.Messages[0].To[0].Email).toBe(
         anotherUser.emailAddress
       );
-
-      // FYI: we're skipping the step where the seller confirms the order
 
       await confirmOrder(orderIdWeb1, anotherJwtToken, dealID);
       await request(app)
@@ -888,6 +899,60 @@ describe('## Order APIs', () => {
           done();
         });
       }, 10);
+    });
+
+    test('a seller cancels the order from the web', async () => {
+      const dealID = '7B27M6A';
+
+      const UserWeb2 = {
+        ...UserWeb,
+        emailAddress: 'gianpa+autotestwebuser2@gmail.com',
+      };
+
+      await request(app)
+        .post('/api/orders')
+        .set('Authorization', userWebToken2)
+        .send({ product: anotherUserProductUuid3 })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.status).toBe('pending');
+          expect(o.priceOfItem).toBe(productC.price);
+          orderIdWeb2 = o.id;
+          ordersToAnotherUser++;
+        });
+
+      await request(app)
+        .put('/api/users-web/me')
+        .set('Authorization', userWebToken2)
+        .send(UserWeb2)
+        .expect(httpStatus.OK);
+      await payOrder(orderIdWeb2, userWebToken2, dealID);
+
+      expect(mailJetParams.Messages[0].Subject).toBe(i18n.orderPaid);
+      expect(mailJetParams.Messages[0].To[0].Email).toBe(
+        anotherUser.emailAddress
+      );
+
+      mock
+        .onPost(`/deals/${dealID}/rejections`)
+        .reply(200, sellerCancelsAPaidDeal);
+      await request(app)
+        .put(`/api/orders/${orderIdWeb2}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'cancelled', reason: 'already sold on the dark web' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.status).toBe('cancelled');
+          expect(o.transactionStatus).toBe('ua-finished');
+          expect(o.transactionId).toBe(dealID);
+          expect(typeof o.dateCancelled).toBe('string');
+          expect(o.reason).toBe('already sold on the dark web');
+        });
+
+      expect(mailJetParams.Messages[0].To[0].Email).toBe(UserWeb2.emailAddress);
+      expect(mailJetParams.Messages[0].Subject).toContain(i18n.orderCancelled);
     });
   });
 
