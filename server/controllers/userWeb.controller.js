@@ -64,11 +64,6 @@ async function update(
 ) {
   const { body, user: authUser } = req;
 
-  if (req.params.userId !== 'me') {
-    const err = new APIError('Bad Request');
-    return next(err);
-  }
-
   try {
     const user = await UserWeb.findById(authUser._id);
     if (!user) throw new APIError('Error getting your UserWeb');

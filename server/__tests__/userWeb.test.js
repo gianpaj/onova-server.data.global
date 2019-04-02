@@ -26,7 +26,7 @@ describe('## UserWeb APIs', () => {
   let user1token;
 
   describe('# Create Web user', () => {
-    describe('# POST & GET /api/users-web', () => {
+    describe('# POST, PUT & GET /api/users-web', () => {
       let user1Id;
       it('should create a new web user', done => {
         request(app)
@@ -80,6 +80,31 @@ describe('## UserWeb APIs', () => {
             expect(body.data._id).toHaveLength(24);
             expect(Object.keys(body.data).sort()).toMatchSnapshot();
           });
+      });
+
+      it('should update my user info', () => {
+        return request(app)
+          .put('/api/users-web/me')
+          .set('Authorization', user1token)
+          .send({ emailAddress: 'hello@example.com' })
+          .expect(httpStatus.OK)
+          .then(({ body }) => {
+            expect(typeof body._id).toBe('string');
+            expect(body._id).toHaveLength(24);
+            expect(body.emailAddress).toBe('hello@example.com');
+            expect(Object.keys(body).sort()).toMatchSnapshot();
+          });
+      });
+
+      it('should NOT update another user info', () => {
+        return request(app)
+          .put('/api/users-web/5c935290d006f476bacd072f')
+          .set('Authorization', user1token)
+          .send({ emailAddress: 'hello@example.com' })
+          .expect(httpStatus.BAD_REQUEST)
+          .then(({ body }) =>
+            expect(body.message).toBe('"userId" must be one of [me]')
+          );
       });
 
       // reduce the expiresIn to 2 seconds

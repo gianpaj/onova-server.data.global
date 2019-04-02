@@ -46,7 +46,7 @@ export default {
     },
   },
 
-  // UPDATE /api/users/:userId
+  // PUT /api/users/:userId
   updateUser: {
     body: {
       bio: Joi.string()
@@ -88,7 +88,7 @@ export default {
     },
   },
 
-  // UPDATE /api/users-web/me
+  // PUT /api/users-web/me
   updateUserWeb: {
     body: {
       mobileNumber: myCustomJoi
@@ -105,6 +105,11 @@ export default {
         city: Joi.string(),
         departmentNovaposhta: Joi.string(),
       },
+    },
+    params: {
+      userId: Joi.string()
+        .valid('me')
+        .required(),
     },
   },
 
