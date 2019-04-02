@@ -1,15 +1,15 @@
 {
   "name": "onova.server.data",
-  "version": "0.0.0",
-  "description": "API Data server for the mobile app",
+  "version": "1.0.0",
+  "description": "API Data server",
   "author": "Onova Team <hello@onova.co>",
+  "main": "lib/index.js",
   "scripts": {
     "start": "yarn prod:build && yarn prod:start",
     "dev:start": "nodemon --ignore lib --exec babel-node server",
     "debug:start": "cross-env DEBUG=server-data:* yarn start",
     "prod:build": "rimraf lib && babel server -d lib --ignore .test.js",
-    "prod:start": "node lib/index.js",
-    "lint": "esw *.js server config --color",
+    "prod:start": "node .",
     "test": "jest --runInBand",
     "test:watch": "yarn test --watch",
     "test:coverage": "yarn jest --coverage"
@@ -78,7 +78,6 @@
     "eslint-plugin-flowtype": "^3.2.0",
     "eslint-plugin-import": "^2.15.0",
     "eslint-plugin-prettier": "^3.0.0",
-    "eslint-watch": "^4.0.2",
     "flow-bin": "^0.82.0",
     "jest": "^23.5.0",
     "jest-circus": "23.6.0",
