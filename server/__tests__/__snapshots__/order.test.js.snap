@@ -126,25 +126,6 @@ Array [
 ]
 `;
 
-exports[`## Order APIs # PUT /api/orders should change the paymentMethod to \`paypal\` 1`] = `
-Array [
-  "buyer",
-  "createdAt",
-  "currency",
-  "datePending",
-  "id",
-  "onovaFee",
-  "paymentMethod",
-  "priceOfItem",
-  "product",
-  "seller",
-  "status",
-  "total",
-  "transactionFee",
-  "updatedAt",
-]
-`;
-
 exports[`## Order APIs # PUT /api/orders/:orderId/pay should create a payment for an order 1`] = `
 Array [
   "PaReq",

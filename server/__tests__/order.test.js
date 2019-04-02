@@ -643,19 +643,19 @@ describe('## Order APIs', () => {
         });
     });
 
-    it.skip('should change the paymentMethod to `paypal`', () => {
-      return request(app)
-        .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', firstUserJwtToken)
-        .send({ paymentMethod: 'paypal' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toMatchSnapshot();
-          expect(o.priceOfItem).toBe(productPOST1.price);
-          expect(o.paymentMethod).toBe('paypal');
-        });
-    });
+    // it('should change the paymentMethod to `paypal`', () => {
+    //   return request(app)
+    //     .put(`/api/orders/${orderPOST1}`)
+    //     .set('Authorization', firstUserJwtToken)
+    //     .send({ paymentMethod: 'paypal' })
+    //     .expect(httpStatus.OK)
+    //     .then(res => {
+    //       const o = res.body.data;
+    //       expect(Object.keys(o).sort()).toMatchSnapshot();
+    //       expect(o.priceOfItem).toBe(productPOST1.price);
+    //       expect(o.paymentMethod).toBe('paypal');
+    //     });
+    // });
 
     it('should NOT change the paymentMethod if invalid', () => {
       return request(app)
@@ -873,7 +873,7 @@ describe('## Order APIs', () => {
         anotherUser.emailAddress
       );
 
-      // FIXME:
+      // FIXME: email to the buyer
       // setTimeout(() => {
       //   expect(mailJetParams.Messages[0].Subject).toBe(i18n.orderPaidForBuyer);
       //   expect(mailJetParams.Messages[0].To[0].Email).toBe(
