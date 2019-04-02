@@ -99,7 +99,6 @@
     "type": "git",
     "url": "https://bitbucket.org/onova/server.data.git"
   },
-  "license": "MIT",
   "jest": {
     "testEnvironment": "node",
     "testRunner": "jest-circus/runner",
