@@ -14,6 +14,8 @@ const mailjetClient = mailjet.connect(
   config.mailjet.apikeyPrivate
 );
 
+const mailjetVersionObj = { version: 'v3.1' };
+
 const mailjetOptions = {
   From: {
     Email: 'noreply@onova.co',
@@ -51,7 +53,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
         displayName: user.username,
       };
 
-      const request = mailjetClient.post('send', { version: 'v3.1' }).request({
+      const request = mailjetClient.post('send', mailjetVersionObj).request({
         Messages: [
           {
             To: [{ Email: emailTo }],
@@ -92,7 +94,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
         displayName: user.username,
       };
 
-      const request = mailjetClient.post('send', { version: 'v3.1' }).request({
+      const request = mailjetClient.post('send', mailjetVersionObj).request({
         Messages: [
           {
             To: [{ Email: emailTo }],
@@ -134,7 +136,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
         displayName: user.username,
       };
 
-      const request = mailjetClient.post('send', { version: 'v3.1' }).request({
+      const request = mailjetClient.post('send', mailjetVersionObj).request({
         Messages: [
           {
             To: [{ Email: emailTo }],
@@ -194,7 +196,7 @@ async function sendOrderUpdate({
   };
 
   try {
-    await mailjetClient.post('send', { version: 'v3.1' }).request({
+    await mailjetClient.post('send', mailjetVersionObj).request({
       Messages: [
         {
           To: [{ Email: user.emailAddress }],
@@ -207,7 +209,7 @@ async function sendOrderUpdate({
       SandboxMode,
     });
   } catch (error) {
-    console.error(err.ErrorMessage);
+    console.error(error.ErrorMessage);
     throw error;
   }
 }

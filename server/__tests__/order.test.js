@@ -116,12 +116,12 @@ describe('## Order APIs', () => {
   let superagentMock;
   let mailJetParams;
 
-  const mailjetServerEndPoint = 'https://api.mailjet.com/v3';
+  const mailjetServerEndPoint = 'https://api.mailjet.com/v3.1';
 
   beforeAll(() => {
     superagentMock = mockSuperagent(superagent, [
       {
-        pattern: `${mailjetServerEndPoint}`,
+        pattern: mailjetServerEndPoint,
         fixtures: (match, params) => {
           mailJetParams = params;
           return {};
