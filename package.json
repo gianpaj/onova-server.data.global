@@ -11,6 +11,7 @@
     "prod:build": "rimraf lib && babel server -d lib --ignore .test.js",
     "prod:start": "node .",
     "test": "jest --runInBand",
+    "test:one": "NODE_ENV=test jest --bail --watch --verbose false",
     "test:watch": "yarn test --watch",
     "test:coverage": "yarn jest --coverage"
   },

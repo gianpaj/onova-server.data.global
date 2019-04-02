@@ -92,7 +92,10 @@ yarn test:coverage
 yarn test:watch
 
 # Run individual test files
-DEBUG=server-data:* NODE_ENV=test npx jest server/__tests__/order.test.js --forceExit --watch --bail
+npm run test:one server/__tests__/order.test.js
+
+# Enable debug() output
+DEBUG=server-data:* npm run test:one server/__tests__/order.test.js
 
 # Run tests that require the job scheduler (like drop.test.js)
 cd ../server.push
