@@ -99,6 +99,7 @@ const userShippingAddress = {
 const userPaymentInfo = {
   paymentInfoPayload:
     '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
+  short: true,
 };
 
 /**

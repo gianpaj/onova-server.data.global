@@ -104,6 +104,7 @@ const UserSchema = new Schema(
       card_token: String,
       first_four: String,
       last_four: String,
+      short: Boolean,
     },
     profilePic: String,
     pushToken: String,

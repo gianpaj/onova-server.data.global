@@ -311,6 +311,7 @@ function update(
     user.paymentInfo.last_four = payload.panMasked.slice(-4);
     user.paymentInfo.card_token = payload.id;
     user.paymentInfo.method = 'uapay';
+    user.paymentInfo.short = body.short;
   }
 
   let Promises = [];

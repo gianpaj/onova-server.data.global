@@ -35,6 +35,7 @@ const UserWebSchema = new Schema(
       card_token: String,
       first_four: String,
       last_four: String,
+      short: Boolean,
     },
     shippingAddress: {
       firstName: String,

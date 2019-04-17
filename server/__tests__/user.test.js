@@ -48,6 +48,7 @@ describe('## User APIs', () => {
   const userPaymentInfo = {
     paymentInfoPayload:
       '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
+    short: true,
   };
 
   // $FlowFixMe
@@ -437,6 +438,7 @@ describe('## User APIs', () => {
         emailAddress: 'hello@onova.co',
         mobileNumber: validPhoneNumber,
         ...userPaymentInfo,
+        short: false,
         ...userShippingAddress,
       };
       return request(app)
@@ -450,6 +452,7 @@ describe('## User APIs', () => {
           expect(body.mobileNumber).toBe(validPhoneNumber);
           expect(typeof body.paymentInfo.first_four).toBe('string');
           expect(typeof body.paymentInfo.last_four).toBe('string');
+          expect(body.paymentInfo.short).toBe(false);
           expect(body.paymentInfo.method).toBe('uapay');
           expect(body.displayName).toBe(
             `${shipInfo.firstName} ${shipInfo.lastName}`
@@ -469,8 +472,7 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send({ password: 'express123' })
         .expect(httpStatus.OK)
-        .then(res => {
-          const { body } = res;
+        .then(({ body }) => {
           expect(body.emailAddress).toBe(user.emailAddress);
           expect(body.mobileNumber).toBe(user.mobileNumber);
           expect(body.username).toBe(user.username);
@@ -515,8 +517,7 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send(tempuser)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { body } = res;
+        .then(({ body }) => {
           const { shippingAddress } = userShippingAddress;
           const shipInfo = body.shippingAddress;
           expect(body.emailAddress).toBe(tempuser.emailAddress);
@@ -541,13 +542,13 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send(tempuser)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { body } = res;
+        .then(({ body }) => {
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
           expect(typeof body.paymentInfo.first_four).toBe('string');
           expect(typeof body.paymentInfo.last_four).toBe('string');
+          expect(body.paymentInfo.short).toBe(true);
           expect(body.paymentInfo.method).toBe('uapay');
         });
     });
@@ -562,13 +563,13 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send({ pushToken: tempuser.pushToken })
         .expect(httpStatus.OK)
-        .then(res => {
-          const { body } = res;
+        .then(({ body }) => {
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
           expect(typeof body.paymentInfo.first_four).toBe('string');
           expect(typeof body.paymentInfo.last_four).toBe('string');
+          expect(body.paymentInfo.short).toBe(true);
           expect(body.paymentInfo.method).toBe('uapay');
           expect(body.pushToken).toEqual(tempuser.pushToken);
         });
@@ -623,7 +624,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should update the Card token and masked card number (in base58)', () => {
+    it('should update the Card token (short) and masked card number (in base58)', () => {
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
@@ -632,8 +633,36 @@ describe('## User APIs', () => {
         .then(({ body }) => {
           expect(typeof body.paymentInfo.first_four).toBe('string');
           expect(typeof body.paymentInfo.last_four).toBe('string');
+          expect(body.paymentInfo.short).toBe(true);
           expect(body.paymentInfo.method).toBe('uapay');
         });
+    });
+
+    it('should update the Card token (full) and masked card number (in base58)', () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ ...userPaymentInfo, short: false })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(typeof body.paymentInfo.first_four).toBe('string');
+          expect(typeof body.paymentInfo.last_four).toBe('string');
+          expect(body.paymentInfo.short).toBe(false);
+          expect(body.paymentInfo.method).toBe('uapay');
+        });
+    });
+
+    it('should NOT update the Card token without determining it being short or not', () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ paymentInfoPayload: userPaymentInfo.paymentInfoPayload })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain(
+            '"paymentInfoPayload" missing required peer "short"'
+          )
+        );
     });
   });
 
@@ -805,8 +834,7 @@ describe('## User APIs', () => {
         .delete(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { body } = res;
+        .then(({ body }) => {
           expect(body.emailAddress).toBe(user.emailAddress);
           expect(body.mobileNumber).toBe(user.mobileNumber);
           expect(body.username).toBe(user.username);
