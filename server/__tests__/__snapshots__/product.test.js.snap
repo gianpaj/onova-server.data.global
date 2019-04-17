@@ -11,6 +11,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -26,6 +27,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -41,6 +43,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -56,6 +59,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -67,6 +71,7 @@ Array [
   "displayName",
   "profilePic",
   "shippingAddress",
+  "types",
   "username",
 ]
 `;
@@ -98,6 +103,7 @@ Array [
   "displayName",
   "profilePic",
   "shippingAddress",
+  "types",
   "username",
 ]
 `;

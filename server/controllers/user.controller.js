@@ -484,6 +484,7 @@ function _prepareUserJson(user: UserDoc): Object {
     reviewsCount: user.reviewsCount,
     sharedCount: user.sharedCount,
     tokens: user.tokens,
+    types: user.types,
     username: user.username,
   };
 }

@@ -126,24 +126,24 @@ export function createUserAndLogin(
 
       return { resUser: body.data, jwtToken: body.token };
     })
-    .then(({ resUser, jwtToken }) => {
+    .then(({ resUser, jwtToken }) =>
       // flow-disable-next-line
-      return Verification.findOne({ user: resUser._id }).then(verDoc => {
+      Verification.findOne({ user: resUser._id }).then(verDoc => {
         if (!verDoc) {
           throw Error('no verification token found');
         }
         return { resetToken: verDoc.resetToken, resUser, jwtToken };
-      });
-    })
-    .then(({ resetToken, resUser, jwtToken }) => {
-      return request(app)
+      })
+    )
+    .then(({ resetToken, resUser, jwtToken }) =>
+      request(app)
         .get(`/api/auth/activate/${resetToken}`)
         .expect(httpStatus.OK)
         .then(({ text }) => {
           expect(text).toContain('Профіль активовано');
           return { user: resUser, jwtToken };
-        });
-    })
+        })
+    )
     .catch(e => {
       console.error(e);
       throw e;
@@ -166,10 +166,10 @@ export function createProduct(
     .set('Authorization', jwToken)
     .send(product)
     .expect(httpStatus.CREATED)
-    .then(res => {
-      if (!res.body.data) console.error(res.body);
-      expect(typeof res.body.data).toBe('object');
-      return res.body.data;
+    .then(({ body }) => {
+      if (!body.data) console.error(body);
+      expect(typeof body.data).toBe('object');
+      return body.data;
     });
 }
 
@@ -191,9 +191,9 @@ export function createComment(
     .set('Authorization', jwToken)
     .send(comment)
     .expect(httpStatus.CREATED)
-    .then(res => {
-      expect(res.body.data.uuid).toBe(productUuid);
-      return res.body.data;
+    .then(({ body }) => {
+      expect(body.data.uuid).toBe(productUuid);
+      return body.data;
     });
 }
 

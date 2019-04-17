@@ -341,8 +341,12 @@ async function list(
 
     query = { ...query, _id: { $lt: lastId } };
   }
+
+  let sellerTypes;
+  if (req.user && req.user.type) sellerTypes = req.user.type;
+
   // use static method from ProductSchema
-  Product.list({ query, projection, limit })
+  Product.list({ query, projection, limit, sellerTypes })
     .then(data => res.json({ data }))
     .catch(e => next(e));
 }

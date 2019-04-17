@@ -199,11 +199,13 @@ ProductSchema.statics = {
     query = {},
     projection = {},
     limit = 50,
+    sellerTypes = 'designer',
   }): Promise<ProductDoc[] | APIError> {
     return this.find(query, projection)
       .populate({
         path: 'seller',
         select: userPopulateFields,
+        match: { types: sellerTypes },
       })
       .sort({ createdAt: -1 })
       .limit(+limit)

@@ -138,6 +138,11 @@ const UserSchema = new Schema(
       trim: true,
       lowercase: true,
     },
+    types: {
+      type: [{ type: String, enum: ['designer', 'admin', 'reseller'] }],
+      default: ['designer'],
+      // required: true,
+    },
     deletedAt: Date,
   },
   // assigns 'createdAt' and 'updatedAt' fields to your schema
@@ -168,6 +173,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   tokens: Array<any>;
   updatedAt: Date;
   username: string;
+  types: Array<string>;
 }
 
 UserSchema.loadClass(UserDoc);
