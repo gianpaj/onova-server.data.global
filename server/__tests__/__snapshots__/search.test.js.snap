@@ -11,6 +11,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -26,6 +27,23 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
+  "username",
+]
+`;
+
+exports[` 3`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
   "username",
 ]
 `;

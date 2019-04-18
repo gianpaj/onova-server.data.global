@@ -5,7 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import { Tag, Product } from '../models';
+import { Tag, Product, User } from '../models';
 import {
   beforeAllTests,
   createManyProducts,
@@ -60,6 +60,12 @@ let anotherUser = {
   password: 'express2',
 };
 
+let user5 = {
+  username: 'fifthperson',
+  emailAddress: 'gianpa+test5@gmail.com',
+  password: 'express5',
+};
+
 const notForSaleProduct = {
   categoryIds: [2],
   typeIds: [1, 3],
@@ -75,6 +81,7 @@ let userId;
 let anotherUserId;
 let firstJwtToken;
 let anotherJwtToken;
+let jwtToken5;
 
 describe('## Search APIs', () => {
   // TODO: reset the collections beforeEach
@@ -92,16 +99,22 @@ describe('## Search APIs', () => {
         const { user, jwtToken } = await createUserAndLogin(anotherUser);
         anotherUserId = user._id;
         anotherJwtToken = jwtToken;
-      })
-      .then(async () => {
+
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
-      })
-      .then(async () => {
+
         const p2 = await createProduct(anotherProduct, anotherJwtToken);
         expect(p2.description).toBe(anotherProduct.description);
-      })
-      .then(async () => {
+
+        const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
+          user5
+        );
+        user5._id = resUser5._id;
+        jwtToken5 = token5;
+        await User.updateOne(
+          { _id: user5._id },
+          { $set: { types: ['reseller'] } }
+        );
         const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
         expect(p3.description).toBe(notForSaleProduct.description);
         request(app)
@@ -282,6 +295,17 @@ describe('## Search APIs', () => {
       return request(app)
         .get('/api/search?tag=freezing')
         .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(0);
+        });
+    });
+
+    test('reseller should not find products from designers', () => {
+      return request(app)
+        .get('/api/search?tag=warm')
+        .set('Authorization', jwtToken5)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;

@@ -1,10 +1,10 @@
 // @flow
 
 import httpStatus from 'http-status';
-// import stream from 'getstream-node';
+import mongoose from 'mongoose';
 
 import APIError from '../helpers/APIError';
-import { Block, UserDoc, userPopulateFields, Product } from '../models';
+import { Block, UserDoc, Product } from '../models';
 import config from '../config/config';
 
 declare class session$Request extends express$Request {
@@ -78,7 +78,7 @@ async function get(
 
   // for pagination - results are excluding the lastId
   if (lastId) {
-    query = { ...query, _id: { $lt: lastId } };
+    query = { ...query, _id: { $lt: new mongoose.Types.ObjectId(lastId) } };
 
     const product = await Product.findById(lastId);
     if (!product) {
@@ -86,14 +86,10 @@ async function get(
       return next(APIerr);
     }
   }
+
+  const sellerTypes = req.user.types;
   // using static method from ProductSchema
-  Product.find(query, projection)
-    .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-    .populate({
-      path: 'seller',
-      select: userPopulateFields,
-    })
-    .limit(+limit)
+  Product.list({ query, projection, limit, sellerTypes })
     .then(data => res.json({ data }))
     .catch(e => next(e));
 }
