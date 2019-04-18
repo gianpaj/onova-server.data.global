@@ -48,45 +48,44 @@ export default {
 
   // PUT /api/users/:userId
   updateUser: {
-    body: Joi.object()
-      .keys({
-        bio: Joi.string()
-          .empty('')
-          .max(300),
-        displayName: Joi.string()
-          .empty('')
-          .max(30),
-        username: validation.username,
-        mobileNumber: myCustomJoi
-          .string()
-          .empty('')
-          .phoneNumber(),
-        emailAddress: Joi.string().email(),
-        password: Joi.string()
-          .min(8)
-          .max(50),
-        pushToken: Joi.string(),
-        platform: Joi.string().valid(['android', 'ios']),
-        // temp - we are not validating month is valid, etc.
-        paymentInfoPayload: Joi.string()
-          .min(90)
-          .alphanum(),
-        short: Joi.bool(),
-        shippingAddress: {
-          firstName: Joi.string(),
-          lastName: Joi.string(),
-          city: Joi.string(),
-          departmentNovaposhta: Joi.string(),
-        },
-        facebook: Joi.string(),
-        increaseShare: Joi.boolean(),
-        accessToken: Joi.string().when('facebook', {
-          is: Joi.exist(),
-          then: Joi.required(),
-        }),
-      })
-      // when paymentInfoPayload is provided, short is required
-      .with('paymentInfoPayload', ['short']),
+    body: Joi.object().keys({
+      bio: Joi.string()
+        .empty('')
+        .max(300),
+      displayName: Joi.string()
+        .empty('')
+        .max(30),
+      username: validation.username,
+      mobileNumber: myCustomJoi
+        .string()
+        .empty('')
+        .phoneNumber(),
+      emailAddress: Joi.string().email(),
+      password: Joi.string()
+        .min(8)
+        .max(50),
+      pushToken: Joi.string(),
+      platform: Joi.string().valid(['android', 'ios']),
+      // temp - we are not validating month is valid, etc.
+      paymentInfoPayload: Joi.string()
+        .min(90)
+        .alphanum(),
+      short: Joi.bool(),
+      shippingAddress: {
+        firstName: Joi.string(),
+        lastName: Joi.string(),
+        city: Joi.string(),
+        departmentNovaposhta: Joi.string(),
+      },
+      facebook: Joi.string(),
+      increaseShare: Joi.boolean(),
+      accessToken: Joi.string().when('facebook', {
+        is: Joi.exist(),
+        then: Joi.required(),
+      }),
+    }),
+    // when paymentInfoPayload is provided, short is required
+    // .with('paymentInfoPayload', ['short']),
     params: {
       userId: validation.objectId.required(),
     },

@@ -307,8 +307,8 @@ function update(
   if (body.paymentInfoPayload) {
     const bytes = bs58.decode(body.paymentInfoPayload);
     const payload = JSON.parse(bytes.toString());
-    let key = 'full';
-    if (body.short) key = 'short';
+    let key = 'short';
+    if (!body.short) key = 'full';
     user.paymentInfo[key] = {
       first_four: payload.panMasked.slice(0, 4),
       last_four: payload.panMasked.slice(-4),
