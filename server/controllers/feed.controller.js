@@ -92,7 +92,10 @@ function flat(
         }
       }
 
-      const sellerTypes = req.user.types;
+      let sellerTypes = req.user.types;
+      if (req.user.types.includes('admin')) {
+        sellerTypes = ['reseller', 'designer'];
+      }
 
       const products = await Promise.all([
         Product.list({ query: DBqueryInclusive, limit, sellerTypes }),

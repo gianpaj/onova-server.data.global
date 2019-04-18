@@ -347,7 +347,12 @@ async function list(
   }
 
   let sellerTypes;
-  if (req.user && req.user.types) sellerTypes = req.user.types;
+  if (req.user && req.user.types) {
+    sellerTypes = req.user.types;
+    if (req.user.types.includes('admin')) {
+      sellerTypes = ['reseller', 'designer'];
+    }
+  }
 
   // use static method from ProductSchema
   Product.list({ query, projection, limit, sellerTypes })
