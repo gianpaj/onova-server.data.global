@@ -314,7 +314,9 @@ async function list(
         targetUser: userid,
       });
 
-      const idsB = usersIamBlocking.map(u => u.targetUser.toString());
+      const idsB = usersIamBlocking.map(
+        u => new mongoose.Types.ObjectId(u.targetUser)
+      );
 
       // limit by seller and exclude those blocked
       query = {
@@ -343,7 +345,7 @@ async function list(
       return next(APIerr);
     }
 
-    query = { ...query, _id: { $lt: lastId } };
+    query = { ...query, _id: { $lt: new mongoose.Types.ObjectId(lastId) } };
   }
 
   let sellerTypes;

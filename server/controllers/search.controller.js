@@ -87,7 +87,11 @@ async function get(
     }
   }
 
-  const sellerTypes = req.user.types;
+  let sellerTypes = req.user.types;
+  if (req.user.types.includes('admin')) {
+    sellerTypes = ['reseller', 'designer'];
+  }
+
   // using static method from ProductSchema
   Product.list({ query, projection, limit, sellerTypes })
     .then(data => res.json({ data }))
