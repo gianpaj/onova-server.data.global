@@ -2,6 +2,8 @@
 
 import shortid from 'shortid';
 import httpStatus from 'http-status';
+import path from 'path';
+import mongoose from 'mongoose';
 
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
@@ -17,7 +19,6 @@ import {
 } from '../models';
 import config from '../config/config';
 import Analytics from '../config/analytics';
-import path from 'path';
 
 const { minPrice } = config.settings;
 
@@ -316,9 +317,12 @@ async function list(
       const idsB = usersIamBlocking.map(u => u.targetUser.toString());
 
       // limit by seller and exclude those blocked
-      query = { ...query, seller: { $nin: idsB, $in: [userid] } };
+      query = {
+        ...query,
+        seller: { $nin: idsB, $in: [new mongoose.Types.ObjectId(userid)] },
+      };
     } else {
-      query = { ...query, seller: userid };
+      query = { ...query, seller: new mongoose.Types.ObjectId(userid) };
     }
   } else if (username) {
     // search products by seller's username (no pagination[lastId] yet allowed)
@@ -328,7 +332,7 @@ async function list(
       return next(APIerr);
     }
 
-    query = { ...query, seller: user._id };
+    query = { ...query, seller: new mongoose.Types.ObjectId(user._id) };
   }
 
   // for pagination - results are excluding the lastId
@@ -343,7 +347,7 @@ async function list(
   }
 
   let sellerTypes;
-  if (req.user && req.user.type) sellerTypes = req.user.type;
+  if (req.user && req.user.types) sellerTypes = req.user.types;
 
   // use static method from ProductSchema
   Product.list({ query, projection, limit, sellerTypes })

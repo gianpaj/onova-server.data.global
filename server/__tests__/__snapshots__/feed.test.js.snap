@@ -11,6 +11,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -26,6 +27,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -41,6 +43,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -56,6 +59,39 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
+  "username",
+]
+`;
+
+exports[`## Feed APIs # GET /api/feed/flat should not get my feed if i am not authenticated 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
+  "username",
+]
+`;
+
+exports[`## Feed APIs # GET /api/feed/flat should not get my feed if i am not authenticated 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
   "username",
 ]
 `;

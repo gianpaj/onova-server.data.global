@@ -7,7 +7,7 @@ import shortid from 'shortid';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import { userPopulateFields } from './';
+import { userPopulateFields, userPopulateFieldsObj } from './';
 
 const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;
@@ -64,11 +64,6 @@ export const ProductSchema = new Schema(
     },
     dropId: {
       type: Schema.Types.ObjectId,
-    },
-    // not being used
-    likes: {
-      type: [Schema.Types.ObjectId],
-      ref: 'User',
     },
     photoURIs: {
       type: [String],
@@ -128,7 +123,6 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   currency: string;
   description: string;
   dropId: MongoId;
-  likes: Array<MongoId>;
   photoURIs: Array<string>;
   location: {
     type: string,
@@ -199,25 +193,56 @@ ProductSchema.statics = {
     query = {},
     projection = {},
     limit = 50,
-    sellerTypes = 'designer',
+    sellerTypes = ['designer'],
   }): Promise<ProductDoc[] | APIError> {
-    return this.find(query, projection)
-      .populate({
-        path: 'seller',
-        select: userPopulateFields,
-        match: { types: sellerTypes },
-      })
-      .sort({ createdAt: -1 })
-      .limit(+limit)
-      .then((products: ProductDoc[]) => products)
-      .catch(error => {
-        console.error(error);
-        const err = new APIError(
-          'Error getting products',
-          httpStatus.INTERNAL_SERVER_ERROR
-        );
-        return Promise.reject(err);
-      });
+    console.log(query);
+    return this.aggregate([
+      { $match: query },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'seller',
+          foreignField: '_id',
+          as: 'references',
+        },
+      },
+      { $match: { 'references.types': { $in: sellerTypes } } },
+      {
+        $project: { ...projection, __v: 0 },
+      },
+      {
+        $project: {
+          categoryIds: 1,
+          createdAt: 1,
+          currency: 1,
+          description: 1,
+          photoURIs: 1,
+          price: 1,
+          status: 1,
+          seller: { $arrayElemAt: ['$references', 0] },
+          tags: 1,
+          typeIds: 1,
+          updatedAt: 1,
+          uuid: 1,
+          weight: 1,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $limit: limit },
+    ]).then((products: ProductDoc[]) =>
+      // eslint-disable-next-line no-unused-vars
+      products.map(p => ({
+        ...p,
+        seller: {
+          _id: p.seller._id,
+          accountStatus: p.seller.accountStatus,
+          profilePic: p.seller.profilePic,
+          shippingAddress: p.seller.shippingAddress,
+          types: p.seller.types,
+          username: p.seller.username,
+        },
+      }))
+    );
   },
 };
 

@@ -9,10 +9,10 @@ import app from '../index';
 import { Product, User } from '../models';
 import {
   beforeAllTests,
+  createOrder,
   createProduct,
   createUserAndLogin,
   productFields,
-  createOrder,
 } from './utils';
 
 describe('## Product APIs', () => {
@@ -30,18 +30,22 @@ describe('## Product APIs', () => {
     password: 'express2',
   };
 
-  // $FlowFixMe
   let user3: UserDoc = {
     username: 'thirdperson',
     emailAddress: 'gianpa+test3@gmail.com',
     password: 'express3',
   };
 
-  // $FlowFixMe
   let user4: UserDoc = {
     username: 'forthperson',
     emailAddress: 'gianpa+test4@gmail.com',
     password: 'express4',
+  };
+
+  let user5: UserDoc = {
+    username: 'fifthperson',
+    emailAddress: 'gianpa+test5@gmail.com',
+    password: 'express5',
   };
 
   let product = {
@@ -89,14 +93,15 @@ describe('## Product APIs', () => {
   };
 
   let productUuid;
-  let jwtToken1, jwtToken2, jwtToken3, jwtToken4;
+  let jwtToken1, jwtToken2, jwtToken3, jwtToken4, jwtToken5;
   let productUser2Uuid;
   let thirdProdUuid;
   let prodUuidWithLocality;
 
-  let productsCounter = 0;
+  let productsCount = 0;
+  let productsResellerCount = 0;
 
-  // create 3 users/sellers + Tag and upload profile pic of a seller
+  // create 4 users/sellers (of them reseller) + Tag and upload profile pic of a seller
   // 1 user doesn't have the shippingAddress
   beforeAll(async () => {
     const { user: resUser, jwtToken: token } = await createUserAndLogin(user1);
@@ -122,12 +127,18 @@ describe('## Product APIs', () => {
     );
     user4._id = resUser4._id;
     jwtToken4 = token4;
+    const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
+      user5
+    );
+    user5._id = resUser5._id;
+    jwtToken5 = token5;
     await request(app)
       .put(`/api/users/${user3._id}`)
       .set('Authorization', jwtToken3)
       .send({ shippingAddress: {} })
       .expect(httpStatus.OK);
     await User.updateOne({ _id: user4._id }, { $unset: { paymentInfo: '' } });
+    await User.updateOne({ _id: user5._id }, { $set: { types: ['reseller'] } });
   });
 
   describe('# POST /api/products', () => {
@@ -188,8 +199,6 @@ describe('## Product APIs', () => {
           expect(p.comments).toHaveLength(0);
           expect(p.currency).toBe('UAH');
           expect(p.description).toBe(product.description);
-          expect(Array.isArray(p.likes));
-          expect(p.likes).toHaveLength(0);
           expect(p.photoURIs[0]).not.toContain('thumb');
           expect(p.photoURIs[0]).toContain('/products/');
           expect(p.price).toBe(product.price);
@@ -203,7 +212,7 @@ describe('## Product APIs', () => {
             [...productFields, 'comments'].sort()
           );
           productUuid = p.uuid;
-          productsCounter++;
+          productsCount++;
         });
     });
 
@@ -218,7 +227,21 @@ describe('## Product APIs', () => {
         [...productFields, 'comments', 'locality'].sort()
       );
       prodUuidWithLocality = p.uuid;
-      productsCounter++;
+      productsCount++;
+      return p;
+    });
+
+    test('the reseller creates a product', async () => {
+      const p = await createProduct(
+        { ...productUser2, longitude: 23.9573617, latitude: 49.8134431 },
+        jwtToken5
+      );
+      expect(p.locality).toBe('Lviv');
+      expect(p.description).toBe(productUser2.description);
+      expect(Object.keys(p).sort()).toEqual(
+        [...productFields, 'comments', 'locality'].sort()
+      );
+      productsResellerCount++;
       return p;
     });
 
@@ -293,7 +316,7 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken1)
         .send({ ...product, tags: ['111pony'] })
         .expect(httpStatus.CREATED)
-        .then(() => void productsCounter++);
+        .then(() => void productsCount++);
     });
 
     it('should create product with a valid price (once decimal point)', () => {
@@ -304,7 +327,7 @@ describe('## Product APIs', () => {
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           expect(body.data.price).toBe('211.10');
-          productsCounter++;
+          productsCount++;
         });
     });
 
@@ -314,7 +337,7 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken1)
         .send({ ...product, tags: ['плнаше'] })
         .expect(httpStatus.CREATED)
-        .then(() => void productsCounter++);
+        .then(() => void productsCount++);
     });
 
     it('should NOT create product without a proper price', () => {
@@ -364,8 +387,6 @@ describe('## Product APIs', () => {
           expect(p.status).toBe('forsale');
           expect(p.price).toBe(product.price);
           expect(p.currency).toBe('UAH');
-          expect(Array.isArray(p.likes));
-          expect(p.likes).toHaveLength(0);
           expect(Array.isArray(p.comments));
           // expect(p.comments).toHaveLength(0);
           expect(Array.isArray(p.tags));
@@ -403,11 +424,11 @@ describe('## Product APIs', () => {
       expect(p2.tags).toEqual(expect.arrayContaining(thirdProduct.tags));
       expect(p2.tags).toHaveLength(1);
       expect(typeof p2).toBe('object');
-      productsCounter++;
-      productsCounter++;
+      productsCount++;
+      productsCount++;
     });
 
-    it('should get all products', () => {
+    it('should get all products (default from designers)', () => {
       return request(app)
         .get('/api/products/')
         .expect(httpStatus.OK)
@@ -415,7 +436,20 @@ describe('## Product APIs', () => {
           const p = res.body.data;
           expect(Array.isArray(p));
           expect(Object.keys(p[0].seller).sort()).toMatchSnapshot();
-          expect(p).toHaveLength(productsCounter);
+          expect(p).toHaveLength(productsCount);
+          expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
+        });
+    });
+
+    it('should get all products (from reseller)', () => {
+      return request(app)
+        .get('/api/products/')
+        .set('Authorization', jwtToken5)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(Array.isArray(p));
+          expect(p).toHaveLength(productsResellerCount);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -439,7 +473,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p).toHaveLength(productsCounter);
+          expect(p).toHaveLength(productsCount);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -451,7 +485,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(Array.isArray(data));
-          expect(data).toHaveLength(productsCounter);
+          expect(data).toHaveLength(productsCount);
           expect(Object.keys(data[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -554,7 +588,7 @@ describe('## Product APIs', () => {
         .expect(httpStatus.NO_CONTENT)
         .then(({ body }) => {
           expect(body).toMatchObject({});
-          productsCounter--;
+          productsCount--;
         });
     });
 
@@ -565,7 +599,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p).toHaveLength(productsCounter);
+          expect(p).toHaveLength(productsCount);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });

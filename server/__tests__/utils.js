@@ -75,7 +75,6 @@ export const productFields = [
   'createdAt',
   'currency',
   'description',
-  'likes',
   'photoURIs',
   'price',
   'seller',

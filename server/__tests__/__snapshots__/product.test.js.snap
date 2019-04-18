@@ -64,11 +64,26 @@ Array [
 ]
 `;
 
-exports[`## Product APIs # GET /api/products/ should get all products 1`] = `
+exports[` 5`] = `
 Array [
   "_id",
   "accountStatus",
-  "displayName",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
+  "username",
+]
+`;
+
+exports[`## Product APIs # GET /api/products/ should get all products (default from designers) 1`] = `
+Array [
+  "_id",
+  "accountStatus",
   "profilePic",
   "shippingAddress",
   "types",
@@ -83,7 +98,6 @@ Array [
   "createdAt",
   "currency",
   "description",
-  "likes",
   "photoURIs",
   "price",
   "seller",
