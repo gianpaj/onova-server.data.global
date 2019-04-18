@@ -195,7 +195,6 @@ ProductSchema.statics = {
     limit = 50,
     sellerTypes = ['designer'],
   }): Promise<ProductDoc[] | APIError> {
-    console.log(query);
     return this.aggregate([
       { $match: query },
       {
@@ -227,8 +226,8 @@ ProductSchema.statics = {
           weight: 1,
         },
       },
-      { $sort: { createdAt: -1 } },
-      { $limit: limit },
+      { $sort: { _id: -1 } },
+      { $limit: +limit },
     ]).then((products: ProductDoc[]) =>
       // eslint-disable-next-line no-unused-vars
       products.map(p => ({

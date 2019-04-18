@@ -5,7 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import { Tag, Product, UserDoc } from '../models';
+import { Tag, Product, User, UserDoc } from '../models';
 import {
   beforeAllTests,
   createProduct,
@@ -28,21 +28,19 @@ afterAll(done => {
 // GET /api/feed/ should only return these fields
 const feedFields = [
   '_id',
-  'categoryIds',
-  'comments',
-  'createdAt',
-  'currency',
-  'description',
-  'likes',
+  'categoryIds', // TODO: remove
+  'createdAt', // TODO: remove
+  'currency', // TODO: remove
+  'description', // TODO: remove
   'photoURIs',
-  'price',
+  'price', // TODO: remove
   'seller',
-  'status',
-  'tags',
-  'typeIds',
-  'updatedAt',
+  'status', // TODO: remove
+  'tags', // TODO: remove
+  'typeIds', // TODO: remove
+  'updatedAt', // TODO: remove
   'uuid',
-  'weight',
+  'weight', // TODO: remove
 ];
 
 const product = {
@@ -67,14 +65,12 @@ let anotherProduct = {
   ],
 };
 
-// $FlowFixMe
 let user: UserDoc = {
   username: 'firstperson',
   emailAddress: 'gianpa+test@gmail.com',
   password: 'expressos',
 };
 
-// $FlowFixMe
 let anotherUser: UserDoc = {
   username: 'anotherperson',
   emailAddress: 'gianpa+test2@gmail.com',
@@ -91,6 +87,18 @@ let user4: UserDoc = {
   username: 'fourthperson',
   emailAddress: 'gianpa+test4@gmail.com',
   password: 'express4',
+};
+
+let user5: UserDoc = {
+  username: 'fifthperson',
+  emailAddress: 'gianpa+test5@gmail.com',
+  password: 'express5',
+};
+
+let user6: UserDoc = {
+  username: 'sixthperson',
+  emailAddress: 'gianpa+test6@gmail.com',
+  password: 'express6',
 };
 
 const notForSaleProduct = {
@@ -110,6 +118,7 @@ let productUuid;
 let anotherProductUuid;
 let firstJwtToken;
 let anotherJwtToken;
+let jwtToken5, jwtToken6;
 let user3_id;
 let user3_jwtToken;
 let user4_jwtToken;
@@ -119,7 +128,7 @@ describe('## Feed APIs', () => {
   beforeAll(beforeAllTests);
 
   // TODO: refactor to async/await
-  // create 4 users/sellers + 23 products (1 deleted)
+  // create 6 users/sellers (2 resellers) + 24 products (1 deleted, 1 from a reseller)
   beforeAll(done => {
     createUserAndLogin(user)
       .then(({ user, jwtToken }) => {
@@ -145,6 +154,29 @@ describe('## Feed APIs', () => {
         })
       )
       .then(async () => {
+        const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
+          user5
+        );
+        user5._id = resUser5._id;
+        jwtToken5 = token5;
+        await User.updateOne(
+          { _id: user5._id },
+          { $set: { types: ['reseller'] } }
+        );
+        const { user: resUser6, jwtToken: token6 } = await createUserAndLogin(
+          user6
+        );
+        user6._id = resUser6._id;
+        jwtToken6 = token6;
+        await User.updateOne(
+          { _id: user6._id },
+          { $set: { types: ['reseller'] } }
+        );
+
+        const p6 = await createProduct(product, jwtToken6);
+        expect(p6.description).toBe(product.description);
+        productUuid = p6.uuid;
+
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
         productUuid = p1.uuid;
@@ -169,17 +201,17 @@ describe('## Feed APIs', () => {
       });
   });
 
-  // both accounts follow each other
   beforeAll(() =>
     Promise.all([
       followUser(firstJwtToken, anotherUserId),
       followUser(anotherJwtToken, userId),
       followUser(user4_jwtToken, user3_id),
+      followUser(jwtToken5, user6._id),
     ])
   );
 
   describe('# GET /api/feed/flat', () => {
-    it('should get the first user`s feed with 2 products', () => {
+    it('should get the first user` product feed', () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', firstJwtToken)

@@ -1,16 +1,10 @@
 // @flow
 
 import httpStatus from 'http-status';
-// import stream from 'getstream-node';
+import mongoose from 'mongoose';
 
 import APIError from '../helpers/APIError';
-import {
-  Follow,
-  FollowDoc,
-  Product,
-  UserDoc,
-  userPopulateFields,
-} from '../models';
+import { Follow, FollowDoc, Product, UserDoc } from '../models';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -83,8 +77,14 @@ function flat(
 
       // for pagination - results are excluding the lastId
       if (lastId) {
-        DBqueryInclusive = { ...DBqueryInclusive, _id: { $lt: lastId } };
-        DBqueryExclusive = { ...DBqueryExclusive, _id: { $lt: lastId } };
+        DBqueryInclusive = {
+          ...DBqueryInclusive,
+          _id: { $lt: new mongoose.Types.ObjectId(lastId) },
+        };
+        DBqueryExclusive = {
+          ...DBqueryExclusive,
+          _id: { $lt: new mongoose.Types.ObjectId(lastId) },
+        };
 
         const lastIdProd = await Product.findById(lastId);
         if (!lastIdProd) {
@@ -92,21 +92,11 @@ function flat(
         }
       }
 
+      const sellerTypes = req.user.types;
+
       const products = await Promise.all([
-        Product.find(DBqueryInclusive)
-          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-          .populate({
-            path: 'seller',
-            select: userPopulateFields,
-          })
-          .limit(+limit),
-        Product.find(DBqueryExclusive)
-          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-          .populate({
-            path: 'seller',
-            select: userPopulateFields,
-          })
-          .limit(+limit),
+        Product.list({ query: DBqueryInclusive, limit, sellerTypes }),
+        Product.list({ query: DBqueryExclusive, limit, sellerTypes }),
       ]);
 
       return res.json({
