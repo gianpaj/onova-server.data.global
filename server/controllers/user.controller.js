@@ -230,7 +230,10 @@ async function create(
 /**
  * A new user follows the number of users
  */
-function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
+function followDefaultUsers(
+  newUser: UserDoc,
+  sellerTypes = ['designer']
+): Promise<null | Error | number> {
   return (
     DefaultFollow.find({}, { user: 1 })
       // .then(users => {
@@ -241,9 +244,16 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
       //   }
       //   return users;
       // })
+      .then(follows => follows.map(f => f.user))
       .then(follows =>
+        User.find({
+          _id: { $in: follows },
+          types: { $in: sellerTypes },
+        })
+      )
+      .then(users =>
         Promise.all(
-          follows.map(f => followController.internalFollow(newUser, f.user))
+          users.map(u => followController.internalFollow(newUser, u._id))
         )
       )
       .then(follows => follows.length)
