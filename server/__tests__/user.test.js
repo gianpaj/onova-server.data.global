@@ -450,10 +450,8 @@ describe('## User APIs', () => {
           const shipInfo = body.shippingAddress;
           expect(body.emailAddress).toBe('hello@onova.co');
           expect(body.mobileNumber).toBe(validPhoneNumber);
-          expect(typeof body.paymentInfo.first_four).toBe('string');
-          expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(body.paymentInfo.short).toBe(false);
-          expect(body.paymentInfo.method).toBe('uapay');
+          expect(body.paymentInfo.full.first_four).toBe('5168');
+          expect(body.paymentInfo.full.last_four).toBe('6327');
           expect(body.displayName).toBe(
             `${shipInfo.firstName} ${shipInfo.lastName}`
           );
@@ -546,10 +544,8 @@ describe('## User APIs', () => {
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
-          expect(typeof body.paymentInfo.first_four).toBe('string');
-          expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(body.paymentInfo.short).toBe(true);
-          expect(body.paymentInfo.method).toBe('uapay');
+          expect(body.paymentInfo.short.first_four).toBe('5168');
+          expect(body.paymentInfo.short.last_four).toBe('6327');
         });
     });
 
@@ -567,10 +563,8 @@ describe('## User APIs', () => {
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
-          expect(typeof body.paymentInfo.first_four).toBe('string');
-          expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(body.paymentInfo.short).toBe(true);
-          expect(body.paymentInfo.method).toBe('uapay');
+          expect(body.paymentInfo.short.first_four).toBe('5168');
+          expect(body.paymentInfo.short.last_four).toBe('6327');
           expect(body.pushToken).toEqual(tempuser.pushToken);
         });
     });
@@ -631,10 +625,9 @@ describe('## User APIs', () => {
         .send({ ...userPaymentInfo })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(typeof body.paymentInfo.first_four).toBe('string');
-          expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(body.paymentInfo.short).toBe(true);
-          expect(body.paymentInfo.method).toBe('uapay');
+          expect(body.paymentInfo.short.first_four).toBe('5168');
+          expect(body.paymentInfo.short.last_four).toBe('6327');
+          expect(body.paymentInfo.full).toBeUndefined();
         });
     });
 
@@ -645,10 +638,10 @@ describe('## User APIs', () => {
         .send({ ...userPaymentInfo, short: false })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(typeof body.paymentInfo.first_four).toBe('string');
-          expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(body.paymentInfo.short).toBe(false);
-          expect(body.paymentInfo.method).toBe('uapay');
+          expect(body.paymentInfo.short.first_four).toBe('5168');
+          expect(body.paymentInfo.short.last_four).toBe('6327');
+          expect(body.paymentInfo.full.first_four).toBe('5168');
+          expect(body.paymentInfo.full.last_four).toBe('6327');
         });
     });
 
@@ -680,9 +673,8 @@ describe('## User APIs', () => {
           expect(Object.keys(body.paymentInfo).sort()).toMatchSnapshot(
             'paymentInfo'
           );
-          expect(typeof body.paymentInfo.first_four).toBe('string');
-          expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(body.paymentInfo.method).toBe('uapay');
+          expect(body.paymentInfo.short.first_four).toBe('5168');
+          expect(body.paymentInfo.short.last_four).toBe('6327');
           expect(shipInfo.firstName).toBe(shippingAddress.firstName);
           expect(shipInfo.lastName).toBe(shippingAddress.lastName);
           expect(shipInfo.city).toBe(shippingAddress.city);

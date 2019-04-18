@@ -28,14 +28,11 @@ const UserWebSchema = new Schema(
       trim: true,
     },
     paymentInfo: {
-      method: {
-        type: String,
-        enum: ['paypal', 'uapay'],
+      full: {
+        card_token: String,
+        first_four: String,
+        last_four: String,
       },
-      card_token: String,
-      first_four: String,
-      last_four: String,
-      short: Boolean,
     },
     shippingAddress: {
       firstName: String,

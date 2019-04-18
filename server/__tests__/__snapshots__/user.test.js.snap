@@ -122,10 +122,7 @@ Array [
 
 exports[`## User APIs # GET /api/users/ should get personal info: paymentInfo 1`] = `
 Array [
-  "card_token",
-  "first_four",
-  "last_four",
-  "method",
+  "full",
   "short",
 ]
 `;

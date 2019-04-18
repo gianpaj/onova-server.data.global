@@ -307,11 +307,13 @@ function update(
   if (body.paymentInfoPayload) {
     const bytes = bs58.decode(body.paymentInfoPayload);
     const payload = JSON.parse(bytes.toString());
-    user.paymentInfo.first_four = payload.panMasked.slice(0, 4);
-    user.paymentInfo.last_four = payload.panMasked.slice(-4);
-    user.paymentInfo.card_token = payload.id;
-    user.paymentInfo.method = 'uapay';
-    user.paymentInfo.short = body.short;
+    let key = 'full';
+    if (body.short) key = 'short';
+    user.paymentInfo[key] = {
+      first_four: payload.panMasked.slice(0, 4),
+      last_four: payload.panMasked.slice(-4),
+      card_token: payload.id,
+    };
   }
 
   let Promises = [];
