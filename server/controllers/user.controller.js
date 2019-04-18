@@ -241,17 +241,12 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
       //   }
       //   return users;
       // })
-      .then(async follows => {
-        const promises = follows.map(f =>
-          followController.internalFollow(newUser, f.user)
-        );
-        try {
-          await Promise.all(promises);
-        } catch (err) {
-          console.error(err);
-        }
-        return follows.length;
-      })
+      .then(follows =>
+        Promise.all(
+          follows.map(f => followController.internalFollow(newUser, f.user))
+        )
+      )
+      .then(follows => follows.length)
   );
 }
 
@@ -393,7 +388,7 @@ function escapeRegex(text) {
  * @property {*} req.query - Express query parameters
  * @property {number} req.query.limit Limit number of users to be returned.
  * @property {string} req.query.username
- * @property {string} req.query.u
+ * @property {string} req.query.u regex username search
  */
 function list(
   req: session$Request,
@@ -406,9 +401,7 @@ function list(
     // flow-disable-next-line
     return User.findOne({ username })
       .then((user: UserDoc) => {
-        if (!user) {
-          return Promise.reject();
-        }
+        if (!user) return Promise.reject();
         return user;
       })
       .then(user => res.json(_prepareUserJson(user)))
@@ -418,27 +411,31 @@ function list(
       });
   }
 
-  if (!u) {
-    // use static method from UserSchema
-    // flow-disable-next-line
-    return User.list({ limit })
-      .then(users => res.json(users.map(_prepareUserJson)))
-      .catch(e => next(e));
+  if (u) {
+    const regex = new RegExp(escapeRegex(u), 'gi');
+    User.find({
+      username: regex,
+      accountStatus: { $nin: ['deleted', 'banned'] },
+    })
+      .select('_id accountStatus displayName username profilePic bio')
+      .then(users => {
+        if (!users) {
+          return res.json({});
+        }
+        return res.json(users);
+      })
+      .catch(e => {
+        const APIerr = new APIError(e, httpStatus.INTERNAL_SERVER_ERROR);
+        next(APIerr);
+      });
+    return;
   }
 
-  const regex = new RegExp(escapeRegex(u), 'gi');
-  User.find({ username: regex, accountStatus: { $nin: ['deleted', 'banned'] } })
-    .select('_id accountStatus displayName username profilePic bio')
-    .then(users => {
-      if (!users) {
-        return res.json({});
-      }
-      return res.json(users);
-    })
-    .catch(e => {
-      const APIerr = new APIError(e, httpStatus.INTERNAL_SERVER_ERROR);
-      next(APIerr);
-    });
+  // use static method from UserSchema
+  // flow-disable-next-line
+  return User.list({ limit })
+    .then(users => res.json(users.map(_prepareUserJson)))
+    .catch(e => next(e));
 }
 
 /**
