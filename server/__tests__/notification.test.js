@@ -110,22 +110,19 @@ describe('## Notification APIs', () => {
         userId = user._id;
         firstJwtToken = jwtToken;
       })
-      .then(() => {
-        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
-      })
-      .then(() => {
-        return createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
+      .then(() =>
+        createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
           anotherUserId = user._id;
           anotherJwtToken = jwtToken;
-        });
-      })
+        })
+      )
       .then(async () => {
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
         productUuid = p1.uuid;
         productId = p1._id;
-      })
-      .then(async () => {
+
         const p2 = await createProduct(anotherProduct, anotherJwtToken);
         expect(p2.description).toBe(anotherProduct.description);
         anotherProductUuid = p2.uuid;
@@ -214,9 +211,9 @@ describe('## Notification APIs', () => {
         .get(`/api/users/notifications?lastId=5ff8ef0e9147a8bd32ea35f6`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.NOT_FOUND)
-        .then(res => {
-          expect(res.body.message).toContain('Notification not found');
-        });
+        .then(res =>
+          expect(res.body.message).toContain('Notification not found')
+        );
     });
 
     it('should not get notifications without authorization', () => {

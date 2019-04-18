@@ -23,13 +23,11 @@ describe('## Photo Upload APIs', () => {
   beforeAll(beforeAllTests);
 
   // create 1 user
-  beforeAll(() => {
-    return createUserAndLogin(user).then(
-      ({ user: resUser, jwtToken: token }) => {
-        jwtToken = token;
-      }
-    );
-  });
+  beforeAll(() =>
+    createUserAndLogin(user).then(({ user: resUser, jwtToken: token }) => {
+      jwtToken = token;
+    })
+  );
 
   describe('# POST /api/photos/upload', () => {
     beforeAll(done =>
