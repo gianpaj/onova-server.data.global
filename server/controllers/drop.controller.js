@@ -297,7 +297,7 @@ async function create(
     const geodata = await geocoder.reverse(body.latitude, body.longitude);
     const locality = geodata.admin1.name;
 
-    // if the date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
+    // if the drop date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
     // but for testing only is not further thatn 3 seconds in the future
     const secondsDiff = config.env === 'test' ? 2 : 30;
     const posted =

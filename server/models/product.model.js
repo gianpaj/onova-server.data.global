@@ -7,7 +7,7 @@ import shortid from 'shortid';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import { userPopulateFields, userPopulateFieldsObj } from './';
+import { userPopulateFields } from './';
 
 const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;
@@ -99,14 +99,14 @@ export const ProductSchema = new Schema(
       type: [Number],
       required: true,
     },
+    uuid: {
+      type: String,
+      unique: true, // Unique index
+    },
     weight: {
       type: Number,
       default: 5000, // 5kg
       required: true,
-    },
-    uuid: {
-      type: String,
-      unique: true, // Unique index
     },
   },
   {
@@ -123,7 +123,6 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   currency: string;
   description: string;
   dropId: MongoId;
-  photoURIs: Array<string>;
   location: {
     type: string,
     coordinates: {
@@ -132,14 +131,16 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
     },
   };
   locality: string;
+  photoURIs: Array<string>;
   price: number;
   reservedDate: Date;
   seller: string;
   status: string;
   tags: ?Array<string>;
   typeIds: Array<Number>;
-  weight: Number;
+  updatedAt: Date;
   uuid: string;
+  weight: Number;
 }
 
 export class CommentDoc /*:: extends Mongoose$Document */ {
@@ -215,10 +216,14 @@ ProductSchema.statics = {
           createdAt: 1,
           currency: 1,
           description: 1,
+          dropId: 1,
+          location: 1,
+          locality: 1,
           photoURIs: 1,
           price: 1,
-          status: 1,
+          reservedDate: 1,
           seller: { $arrayElemAt: ['$references', 0] },
+          status: 1,
           tags: 1,
           typeIds: 1,
           updatedAt: 1,
