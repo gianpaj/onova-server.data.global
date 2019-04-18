@@ -565,7 +565,10 @@ function validateSeller(seller) {
       httpStatus.BAD_REQUEST
     );
   }
-  if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
+  if (
+    !seller.paymentInfo.short.card_token &&
+    !seller.paymentInfo.full.card_token
+  ) {
     throw new APIError(
       'Please enter your payment info before creating a drop',
       httpStatus.BAD_REQUEST

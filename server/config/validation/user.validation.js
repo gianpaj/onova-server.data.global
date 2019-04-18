@@ -48,7 +48,7 @@ export default {
 
   // PUT /api/users/:userId
   updateUser: {
-    body: {
+    body: Joi.object().keys({
       bio: Joi.string()
         .empty('')
         .max(300),
@@ -70,6 +70,7 @@ export default {
       paymentInfoPayload: Joi.string()
         .min(90)
         .alphanum(),
+      short: Joi.bool(),
       shippingAddress: {
         firstName: Joi.string(),
         lastName: Joi.string(),
@@ -82,7 +83,9 @@ export default {
         is: Joi.exist(),
         then: Joi.required(),
       }),
-    },
+    }),
+    // when paymentInfoPayload is provided, short is required
+    // .with('paymentInfoPayload', ['short']),
     params: {
       userId: validation.objectId.required(),
     },
@@ -90,22 +93,26 @@ export default {
 
   // PUT /api/users-web/me
   updateUserWeb: {
-    body: {
-      mobileNumber: myCustomJoi
-        .string()
-        .empty('')
-        .phoneNumber(),
-      emailAddress: Joi.string().email(),
-      paymentInfoPayload: Joi.string()
-        .min(90)
-        .alphanum(),
-      shippingAddress: {
-        firstName: Joi.string(),
-        lastName: Joi.string(),
-        city: Joi.string(),
-        departmentNovaposhta: Joi.string(),
-      },
-    },
+    body: Joi.object()
+      .keys({
+        mobileNumber: myCustomJoi
+          .string()
+          .empty('')
+          .phoneNumber(),
+        emailAddress: Joi.string().email(),
+        paymentInfoPayload: Joi.string()
+          .min(90)
+          .alphanum(),
+        short: Joi.bool(),
+        shippingAddress: {
+          firstName: Joi.string(),
+          lastName: Joi.string(),
+          city: Joi.string(),
+          departmentNovaposhta: Joi.string(),
+        },
+      })
+      // when paymentInfoPayload is provided, short is required
+      .with('paymentInfoPayload', ['short']),
     params: {
       userId: Joi.string()
         .valid('me')

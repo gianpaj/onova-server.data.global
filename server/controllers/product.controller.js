@@ -190,7 +190,10 @@ async function create(
           httpStatus.BAD_REQUEST
         );
       }
-      if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
+      if (
+        !seller.paymentInfo.short.card_token &&
+        !seller.paymentInfo.full.card_token
+      ) {
         throw new APIError(
           'Please enter your payment info info before listing an item',
           httpStatus.BAD_REQUEST

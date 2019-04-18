@@ -827,6 +827,7 @@ describe('## Order APIs', () => {
       emailAddress: 'gianpa+autotestwebuser1@gmail.com',
       paymentInfoPayload:
         '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
+      short: false,
       shippingAddress: {
         firstName: 'Джанфранко',
         lastName: 'Палумбо',
