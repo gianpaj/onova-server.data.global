@@ -355,7 +355,7 @@ async function list(
   if (req.user && req.user.types) {
     sellerTypes = req.user.types;
     if (req.user.types.includes('admin')) {
-      sellerTypes = ['reseller', 'designer'];
+      sellerTypes = ['reseller', 'designer', 'admin'];
     }
   }
 
