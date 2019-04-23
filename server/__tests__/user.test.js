@@ -417,18 +417,18 @@ describe('## User APIs', () => {
     });
 
     it("should update user's bio", () => {
-      const bio = 'born to make a profit';
+      const bio = 'born to make a make pretty clothes';
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send({ ...user, bio })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.bio).toBe(bio);
-          expect(res.body.mobileNumber).toBe(user.mobileNumber);
-          expect(res.body.username).toBe(user.username);
-          expect(res.body.accountStatus).toBe('verified');
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.bio).toBe(bio);
+          expect(body.mobileNumber).toBe(user.mobileNumber);
+          expect(body.username).toBe(user.username);
+          expect(body.accountStatus).toBe('verified');
         });
     });
 
@@ -643,19 +643,6 @@ describe('## User APIs', () => {
           expect(body.paymentInfo.full.first_four).toBe('5168');
           expect(body.paymentInfo.full.last_four).toBe('6327');
         });
-    });
-
-    it('should NOT update the Card token without determining it being short or not', () => {
-      return request(app)
-        .put(`/api/users/${userId}`)
-        .set('Authorization', jwtToken)
-        .send({ paymentInfoPayload: userPaymentInfo.paymentInfoPayload })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain(
-            '"paymentInfoPayload" missing required peer "short"'
-          )
-        );
     });
   });
 
@@ -924,14 +911,18 @@ describe('## User APIs', () => {
           password: anotherUser.password,
         })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body).toHaveProperty('token');
-          anotherJwtToken = res.body.token;
+        .then(({ body }) => {
+          expect(body).toHaveProperty('token');
+          anotherJwtToken = body.token;
         });
     });
   });
 
   describe('# PUT /api/users/:userId', () => {
+    const bio =
+      'Авторський крій, геометричні форми, апелювання до японських дизайнерів.';
+    const socials = ' www.instagram.com/ga.eva.wear www.facebook.com/gaevawear';
+
     it("should upload the user's profile pic", () => {
       return request(app)
         .put(`/api/users/${anotherUserId}`)
@@ -962,9 +953,9 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send(anotherUser)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.shippingAddress.departmentNovaposhta).toBe('#25');
-        });
+        .then(res =>
+          expect(res.body.shippingAddress.departmentNovaposhta).toBe('#25')
+        );
     });
 
     it("should allow to delete the bio and displayName user's details", () => {
@@ -973,9 +964,35 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send({ ...anotherUser, bio: '', displayName: '' })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.bio).toBe('');
-          expect(res.body.displayName).toBe('');
+        .then(({ body }) => {
+          expect(body.bio).toBe('');
+          expect(body.displayName).toBe('');
+        });
+    });
+
+    it("should save the bio and socials user's details", () => {
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ bio: bio + socials })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.bio).toBe(bio);
+          expect(body.socials.facebook).toBe('www.facebook.com/gaevawear');
+          expect(body.socials.instagram).toBe('www.instagram.com/ga.eva.wear');
+        });
+    });
+
+    it('should update to only one social', () => {
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ bio: bio + ' www.facebook.com/gaevawear' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.bio).toBe(bio);
+          expect(body.socials.facebook).toBe('www.facebook.com/gaevawear');
+          expect(body.socials.instagram).toBeUndefined();
         });
     });
 
@@ -985,9 +1002,10 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send({ ...anotherUser, bio: 'a', displayName: 'b' })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.bio).toBe('a');
-          expect(res.body.displayName).toBe('b');
+        .then(({ body }) => {
+          expect(body.bio).toBe('a');
+          expect(body.socials).toBeUndefined();
+          expect(body.displayName).toBe('b');
         });
     });
 
@@ -997,9 +1015,9 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send({ ...anotherUser })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.bio).toBe('a');
-          expect(res.body.displayName).toBe('b');
+        .then(({ body }) => {
+          expect(body.bio).toBe('a');
+          expect(body.displayName).toBe('b');
         });
     });
   });

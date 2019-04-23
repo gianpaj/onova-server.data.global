@@ -136,6 +136,10 @@ const UserSchema = new Schema(
       city: String,
       departmentNovaposhta: String,
     },
+    socials: {
+      type: Map,
+      of: String,
+    },
     username: {
       type: String,
       unique: true,

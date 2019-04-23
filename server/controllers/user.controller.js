@@ -291,7 +291,23 @@ function update(
 ) {
   const { body, user } = req;
 
-  if (typeof body.bio === 'string') user.bio = body.bio;
+  if (typeof body.bio === 'string') {
+    const socials = getSocials(body.bio);
+    if (socials) {
+      const foundSocials = Object.keys(socials);
+      for (let s in socials) {
+        user.set(`socials.${s}`, socials[s]);
+      }
+      const notFound = ['facebook', 'instagram'].filter(
+        s => !foundSocials.includes(s)
+      );
+      notFound.forEach(s => user.socials.delete(s));
+    } else {
+      user.socials = undefined;
+    }
+    user.bio = body.bio.replace(uri_pattern, '').trim();
+  }
+
   if (typeof body.displayName === 'string') user.displayName = body.displayName;
   if (typeof body.mobileNumber === 'string')
     user.mobileNumber = body.mobileNumber.replace('+380', '0');
@@ -390,6 +406,25 @@ function update(
 
 function escapeRegex(text) {
   return text.replace(/[^A-Za-z0-9_]/g, '\\$&');
+}
+
+// 'gruber revised' http://rodneyrehm.de/t/url-regex.html
+const uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi;
+
+function getSocials(bio: string) {
+  if (!uri_pattern.test(bio)) return null;
+
+  let socials = {};
+  if (bio.includes('facebook.com'))
+    socials = {
+      facebook: bio.match(uri_pattern).find(uri => uri.includes('facebook')),
+    };
+  if (bio.includes('instagram.com'))
+    socials = {
+      ...socials,
+      instagram: bio.match(uri_pattern).find(uri => uri.includes('instagram')),
+    };
+  return socials;
 }
 
 /**
@@ -493,6 +528,7 @@ function _prepareUserJson(user: UserDoc): Object {
     ratingsTotal: user.ratingsTotal,
     reviewsCount: user.reviewsCount,
     sharedCount: user.sharedCount,
+    socials: user.socials,
     tokens: user.tokens,
     types: user.types,
     username: user.username,
