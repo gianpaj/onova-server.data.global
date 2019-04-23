@@ -294,6 +294,7 @@ async function list(
   const { categoryIds, lastId, limit = 50, tags, userid, username } = req.query;
   const projection = { comments: 0 };
   let query = { status: 'forsale' };
+  let sellerTypes;
 
   if (config.env !== 'test') {
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
@@ -329,6 +330,7 @@ async function list(
     } else {
       query = { ...query, seller: new mongoose.Types.ObjectId(userid) };
     }
+    sellerTypes = ['reseller', 'designer', 'admin'];
   } else if (username) {
     // search products by seller's username (no pagination[lastId] yet allowed)
     const user = await User.findOne({ username });
@@ -338,6 +340,7 @@ async function list(
     }
 
     query = { ...query, seller: new mongoose.Types.ObjectId(user._id) };
+    sellerTypes = ['reseller', 'designer', 'admin'];
   }
 
   // for pagination - results are excluding the lastId
@@ -351,7 +354,6 @@ async function list(
     query = { ...query, _id: { $lt: new mongoose.Types.ObjectId(lastId) } };
   }
 
-  let sellerTypes;
   if (req.user && req.user.types) {
     sellerTypes = req.user.types;
     if (req.user.types.includes('admin')) {
