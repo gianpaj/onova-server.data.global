@@ -977,7 +977,7 @@ describe('## User APIs', () => {
         .send({ bio: bio + socials })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.bio).toBe(bio);
+          expect(body.bio).toBe(bio + socials);
           expect(body.socials.facebook).toBe('www.facebook.com/gaevawear');
           expect(body.socials.instagram).toBe('www.instagram.com/ga.eva.wear');
         });
@@ -990,7 +990,7 @@ describe('## User APIs', () => {
         .send({ bio: bio + ' www.facebook.com/gaevawear' })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.bio).toBe(bio);
+          expect(body.bio).toBe(bio + ' www.facebook.com/gaevawear');
           expect(body.socials.facebook).toBe('www.facebook.com/gaevawear');
           expect(body.socials.instagram).toBeUndefined();
         });

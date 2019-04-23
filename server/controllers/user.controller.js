@@ -305,7 +305,7 @@ function update(
     } else {
       user.socials = undefined;
     }
-    user.bio = body.bio.replace(uri_pattern, '').trim();
+    user.bio = body.bio;
   }
 
   if (typeof body.displayName === 'string') user.displayName = body.displayName;
