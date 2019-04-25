@@ -620,7 +620,9 @@ function createPaymentUAPAY(
           lg: 'uk',
           payment: {
             type: 'P2P_ONOVA',
-            cardToId: seller.paymentInfo.card_token,
+            cardToId:
+              seller.paymentInfo.short.card_token ||
+              seller.paymentInfo.full.card_token,
           },
           handler: {
             type: 'NovaPoshta',
@@ -652,7 +654,7 @@ function createPaymentUAPAY(
         {
           remoteIP,
           card: {
-            id: buyer.paymentInfo.card_token,
+            id: buyer.paymentInfo.full.card_token,
             securityCode: cvc,
           },
         },
