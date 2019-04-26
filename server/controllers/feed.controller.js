@@ -94,7 +94,7 @@ function flat(
 
       let sellerTypes = req.user.types;
       if (req.user.types.includes('admin')) {
-        sellerTypes = ['reseller', 'designer'];
+        sellerTypes = ['reseller', 'designer', 'admin'];
       }
 
       const products = await Promise.all([

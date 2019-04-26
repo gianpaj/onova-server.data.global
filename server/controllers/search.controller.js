@@ -89,7 +89,7 @@ async function get(
 
   let sellerTypes = req.user.types;
   if (req.user.types.includes('admin')) {
-    sellerTypes = ['reseller', 'designer'];
+    sellerTypes = ['reseller', 'designer', 'admin'];
   }
 
   // using static method from ProductSchema
