@@ -415,15 +415,25 @@ function getSocials(bio: string) {
   if (!uri_pattern.test(bio)) return null;
 
   let socials = {};
-  if (bio.includes('facebook.com'))
+  if (bio.includes('facebook.com')) {
+    let facebook = bio.match(uri_pattern).find(uri => uri.includes('facebook'));
+    if (!/^https?:\/\//i.test(facebook)) {
+      facebook = `https://${facebook}`;
+    }
     socials = {
-      facebook: bio.match(uri_pattern).find(uri => uri.includes('facebook')),
+      facebook,
     };
-  if (bio.includes('instagram.com'))
+  }
+  if (bio.includes('instagram.com')) {
+    let instagram = bio
+      .match(uri_pattern)
+      .find(uri => uri.includes('instagram'));
+    if (!/^https?:\/\//i.test(instagram)) instagram = `https://${instagram}`;
     socials = {
       ...socials,
-      instagram: bio.match(uri_pattern).find(uri => uri.includes('instagram')),
+      instagram,
     };
+  }
   return socials;
 }
 

@@ -978,12 +978,16 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.bio).toBe(bio + socials);
-          expect(body.socials.facebook).toBe('www.facebook.com/gaevawear');
-          expect(body.socials.instagram).toBe('www.instagram.com/ga.eva.wear');
+          expect(body.socials.facebook).toBe(
+            'https://www.facebook.com/gaevawear'
+          );
+          expect(body.socials.instagram).toBe(
+            'https://www.instagram.com/ga.eva.wear'
+          );
         });
     });
 
-    it('should update to only one social', () => {
+    it('should update to only one social URL v1', () => {
       return request(app)
         .put(`/api/users/${anotherUserId}`)
         .set('Authorization', anotherJwtToken)
@@ -991,7 +995,37 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.bio).toBe(bio + ' www.facebook.com/gaevawear');
-          expect(body.socials.facebook).toBe('www.facebook.com/gaevawear');
+          expect(body.socials.facebook).toBe(
+            'https://www.facebook.com/gaevawear'
+          );
+          expect(body.socials.instagram).toBeUndefined();
+        });
+    });
+
+    it('should update to only one social URL v2', () => {
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ bio: bio + ' https://www.facebook.com/updated' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.bio).toBe(bio + ' https://www.facebook.com/updated');
+          expect(body.socials.facebook).toBe(
+            'https://www.facebook.com/updated'
+          );
+          expect(body.socials.instagram).toBeUndefined();
+        });
+    });
+
+    it('should update to only one social URL v3', () => {
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ bio: bio + ' facebook.com/updated' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.bio).toBe(bio + ' facebook.com/updated');
+          expect(body.socials.facebook).toBe('https://facebook.com/updated');
           expect(body.socials.instagram).toBeUndefined();
         });
     });
