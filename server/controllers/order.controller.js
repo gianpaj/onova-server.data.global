@@ -960,7 +960,9 @@ export async function createOrderNotification(
         notifI18n: i18n.orderCancelled,
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
-        actionMsg: order.reason,
+        actionMsg: `Причина скасування замовлення продавцем ${
+          order.seller.username
+        }: ${order.reason}`,
       };
       break;
 
