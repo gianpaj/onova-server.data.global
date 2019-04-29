@@ -175,7 +175,9 @@ mongoimport -d onova-data -c cities cities.json --jsonArray --drop
 2018-10-11T12:33:15.356+0300	imported 1181 documents
 ```
 
-1. Load the departments for every city, and delete the cities without any departments
+3. Enter Auth details in `loadDepartments.js`
+
+4. Load the departments for every city, and delete the cities without any departments
 
 ```
 node loadDepartments.js
@@ -204,7 +206,7 @@ citiesToDelete: 7
 
 NOTE: there are 155 cities that do not have any Nova Poshta departments
 
-4. Add these collections (cities, departments) to `onova-data-test` db as well
+5. Add these collections (cities, departments) to `onova-data-test`
 
 ```
 mongodump --host localhost -d onova-data -c cities
@@ -214,7 +216,9 @@ mongodump --host localhost -d onova-data -c cities
 mongodump --host localhost -d onova-data -c departments
 2018-10-11T13:00:57.975+0300 writing onova-data.departments to
 2018-10-11T13:00:57.989+0300 done dumping onova-data.departments (2118 documents)
+```
 
+```
 mongorestore dump/onova-data -d onova-data-test --drop
 2018-10-11T13:09:25.706+0300 the --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead
 2018-10-11T13:09:25.706+0300 building a list of collections to restore from dump/onova-data dir
@@ -229,7 +233,7 @@ mongorestore dump/onova-data -d onova-data-test --drop
 2018-10-11T13:09:25.960+0300 done
 ```
 
-5. Add these collections to production as well
+6. Add these collections to production as well
 
 ```
 mongorestore --host localhost --port 9999 -d onova-data -c cities dump/onova-data/cities.bson --drop
@@ -256,6 +260,10 @@ mongorestore --host localhost --port 9999 -d onova-data -c departments dump/onov
 6.  Compare with `diff` or a GUI tool like Beyond Compare
 
         diff dep-before-sorted.json dep-today-sorted.json
+
+7.  Get the number of new departments
+
+        diff -u dep-before-sorted.json dep-today-sorted.json | grep -E "^\+" | wc -l
 
 ## Logging
 

@@ -60,9 +60,11 @@ async function main() {
   console.log('citiesToLoad:', citiesToLoad.length);
   // await Department.collection.deleteMany({}, { safe: true });
 
+  let i = 0;
   const promises = citiesToLoad.map(
     throat(5, async city => {
       let data;
+      i++;
       try {
         const res = await http.get(
           `/handlers/NovaPoshta/cities/${city.id}/offices`
@@ -75,7 +77,7 @@ async function main() {
         data = res.data.data;
         const departmentsOnCity = await Department.findOne({ cityID: city.id });
         if (departmentsOnCity) return;
-        console.log(city.uk);
+        console.log(`${i}/${citiesToLoad.length}`, city.uk);
       } catch (error) {
         console.error(error);
         return Promise.resolve();
@@ -114,17 +116,12 @@ const options = {
   useNewUrlParser: true,
 };
 
-mongoose
-  .connect(
-    mongoURI,
-    options
-  )
-  .then(
-    () => {
-      console.log(`connected to ${mongoURI}`);
-      main();
-    },
-    err => {
-      throw new Error(`unable to connect to: ${mongoURI} - ${err}`);
-    }
-  );
+mongoose.connect(mongoURI, options).then(
+  () => {
+    console.log(`connected to ${mongoURI}`);
+    main();
+  },
+  err => {
+    throw new Error(`unable to connect to: ${mongoURI} - ${err}`);
+  }
+);
