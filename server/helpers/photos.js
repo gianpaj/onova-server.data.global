@@ -15,6 +15,7 @@ import config from '../config/config';
 
 // const THUMB_MAX_WIDTH = 350;
 // const THUMB_MAX_HEIGHT = 350;
+const JPEG_COMPRESSION = { progressive: true, chromaSubsampling: '4:2:0' };
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
@@ -228,6 +229,7 @@ function uploadThumbnailToGCS(
 
     sharp(file.buffer)
       .resize(width, height)
+      .jpeg(JPEG_COMPRESSION)
       .crop(sharp.strategy.entropy)
       .pipe(thumbnailUploadStream);
 

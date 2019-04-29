@@ -19,9 +19,10 @@ const MIN_WIDTH = 1440;
 const MIN_HEIGHT = 1440;
 const MIN_WIDTH_AP = (MIN_WIDTH / 3) * 4;
 const MIN_HEIGHT_AP = (MIN_WIDTH / 3) * 4;
-const THUMB_WIDTH = 350;
-const THUMB_HEIGHT = 350;
+const THUMB_WIDTH = 280;
+const THUMB_HEIGHT = 280;
 const TEMP_PATH = '/tmp';
+const JPEG_COMPRESSION = { progressive: true, chromaSubsampling: '4:2:0' };
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
@@ -73,6 +74,7 @@ async function tempUploadProductImage(
     pipeline
       .resize(THUMB_WIDTH, THUMB_HEIGHT)
       .crop(sharp.strategy.entropy)
+      .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
       })
@@ -91,6 +93,7 @@ async function tempUploadProductImage(
     pipeline
       .resize(THUMB_WIDTH * 2, THUMB_HEIGHT * 2)
       .crop(sharp.strategy.entropy)
+      .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
       })
@@ -111,6 +114,7 @@ async function tempUploadProductImage(
     pipeline
       .resize(width, height)
       .crop(sharp.strategy.entropy)
+      .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error cropping', err);
       })
@@ -158,6 +162,7 @@ async function tempUploadProductImage(
 
     sharp(file.buffer)
       .resize(width, height)
+      .jpeg(JPEG_COMPRESSION)
       .crop(sharp.strategy.entropy)
       .pipe(stream);
 
