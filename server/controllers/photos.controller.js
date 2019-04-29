@@ -128,56 +128,71 @@ async function tempUploadProductImage(
         console.error(err);
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
       });
-  } else {
-    // generate 2 square thumbnails
-    const gcsname = `${uploadDate}.jpg`;
-    photos.uploadThumbnailToGCS(
-      THUMB_WIDTH,
-      THUMB_HEIGHT,
-      file,
-      gcsname.replace('.jpg', '-thumb.jpg'),
-      tempBucket
-    );
-    photos.uploadThumbnailToGCS(
-      THUMB_WIDTH * 2,
-      THUMB_HEIGHT * 2,
-      file,
-      gcsname.replace('.jpg', '-thumb@2x.jpg'),
-      tempBucket
-    );
+    return;
+  }
+  // generate 2 square thumbnails
+  const gcsname = `${uploadDate}.jpg`;
+  photos.uploadThumbnailToGCS(
+    THUMB_WIDTH,
+    THUMB_HEIGHT,
+    file,
+    gcsname.replace('.jpg', '-thumb.jpg'),
+    tempBucket
+  );
+  photos.uploadThumbnailToGCS(
+    THUMB_WIDTH * 2,
+    THUMB_HEIGHT * 2,
+    file,
+    gcsname.replace('.jpg', '-thumb@2x.jpg'),
+    tempBucket
+  );
 
-    // upload temp image
-    const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
-    const gcsFile = tempBucket.file(gcsname);
-    const stream = gcsFile.createWriteStream({
-      metadata: {
-        contentType: file.mimetype,
-      },
-    });
-    stream.on('error', err => {
-      console.log('Error uploading image');
-      console.error(err);
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
-    });
+  // upload temp image
+  const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
+  const gcsFile = tempBucket.file(gcsname);
+  const stream = gcsFile.createWriteStream({
+    metadata: {
+      contentType: file.mimetype,
+    },
+  });
+  stream.on('error', err => {
+    console.log('Error uploading image');
+    console.error(err);
+    const APIerr = new APIError(
+      'Error uploading image',
+      httpStatus.INTERNAL_SERVER_ERROR
+    );
+    next(APIerr);
+  });
 
+  try {
     sharp(file.buffer)
       .resize(width, height)
       .jpeg(JPEG_COMPRESSION)
       .crop(sharp.strategy.entropy)
       .pipe(stream);
-
-    stream.on('finish', () => {
-      gcsFile
-        .makePublic()
-        .then(() => {
-          debug('temp product image uploaded to:', cloudStoragePublicUrl);
-          res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
-        })
-        .catch(err => {
-          console.log('Error makePublic product image', err);
-        });
-    });
+  } catch (error) {
+    console.log('Error resize, compression or cropping image');
+    console.error(error);
+    const APIerr = new APIError(
+      'Error uploading image',
+      httpStatus.INTERNAL_SERVER_ERROR
+    );
+    next(APIerr);
+    return;
   }
+
+  stream.on('finish', () => {
+    gcsFile
+      .makePublic()
+      .then(() => {
+        debug('temp product image uploaded to:', cloudStoragePublicUrl);
+        res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
+      })
+      .catch(err => {
+        console.log('Error makePublic product image', err);
+      });
+  });
 }
 
 const storageForChatImages = gcsSharp({

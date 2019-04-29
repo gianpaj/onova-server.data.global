@@ -391,7 +391,7 @@ function update(
           }
         })
         .catch(err => {
-          debug('Error saving user profilePic', err);
+          console.error('Error saving user profilePic', err);
           throw err;
         })
     );
