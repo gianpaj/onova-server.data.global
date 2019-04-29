@@ -218,7 +218,7 @@ const storageForChatImages = gcsSharp({
     },
   ],
   // crop: 16, // sharp.strategy.entropy
-  toFormat: 'jpeg',
+  toFormat: { type: 'jpeg', options: JPEG_COMPRESSION },
   withoutEnlargement: true,
 });
 const uploadChatImage = multer({ storage: storageForChatImages });
