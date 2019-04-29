@@ -161,7 +161,7 @@ describe('## Photo Upload APIs', () => {
     });
   });
 
-  describe('# POST /api/photos/upload-to-vk', () => {
+  describe.skip('# POST /api/photos/upload-to-vk', () => {
     it('should upload multiple product image when scheduling a post to VK', () => {
       return request(app)
         .post('/api/photos/upload-to-vk')
