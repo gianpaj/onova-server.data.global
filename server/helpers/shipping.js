@@ -39,23 +39,31 @@ export default class Shipping {
             return resolve(false);
           }
 
-          // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
-          const trackingNumberDate = new Date(
-            result.ScheduledDeliveryDate.replace(
-              /(\d{2})-(\d{2})-(\d{4})/,
-              '$2/$1/$3'
-            )
-          );
+          try {
+            // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
+            const trackingNumberDate = new Date(
+              result.ScheduledDeliveryDate.replace(
+                /(\d{2})-(\d{2})-(\d{4})/,
+                '$2/$1/$3'
+              )
+            );
 
-          return resolve({
-            raw: result,
-            scheduledDeliveryDate: trackingNumberDate,
-            status: this.getInternalStatus(result.StatusCode),
-            statusCode: result.StatusCode,
-            statusMessage: result.Status,
-          });
+            return resolve({
+              raw: result,
+              scheduledDeliveryDate: trackingNumberDate,
+              status: this.getInternalStatus(result.StatusCode),
+              statusCode: result.StatusCode,
+              statusMessage: result.Status,
+            });
+          } catch (error) {
+            console.error(result);
+            reject(error);
+          }
         })
-        .catch(error => reject(error));
+        .catch(error => {
+          console.error(result);
+          reject(error);
+        });
     });
   }
 
