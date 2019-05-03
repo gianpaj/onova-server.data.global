@@ -65,7 +65,10 @@ describe('## Shipping Runner', () => {
       const { user: u1, jwtToken: j1 } = await createUserAndLogin(user1);
       user1JwtToken = j1;
       user1._id = u1._id;
-      const { user: u2, jwtToken: j2 } = await createUserAndLogin(user2);
+      const { user: u2, jwtToken: j2 } = await createUserAndLogin(
+        user2,
+        'buyer'
+      );
       user2JwtToken = j2;
       user2._id = u2._id;
     } catch (error) {
@@ -143,6 +146,7 @@ describe('## Shipping Runner', () => {
         }, interval);
       } catch (error) {
         console.error(error);
+        done(error);
       }
     });
 
@@ -198,6 +202,7 @@ describe('## Shipping Runner', () => {
         }, interval);
       } catch (error) {
         console.error(error);
+        done(error);
       }
     });
 
@@ -252,6 +257,7 @@ describe('## Shipping Runner', () => {
           }
         }, interval);
       } catch (error) {
+        console.error(error);
         done(error);
       }
     });
@@ -309,6 +315,7 @@ describe('## Shipping Runner', () => {
         }, interval);
       } catch (error) {
         console.error(error);
+        done(error);
       }
     });
 
@@ -365,6 +372,7 @@ describe('## Shipping Runner', () => {
         }, interval);
       } catch (error) {
         console.error(error);
+        done(error);
       }
     });
   });

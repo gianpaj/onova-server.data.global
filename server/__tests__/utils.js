@@ -95,10 +95,15 @@ const userShippingAddress = {
   },
 };
 
-const userPaymentInfo = {
+const sellerPaymentInfo = {
   paymentInfoPayload:
     '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
   short: true,
+};
+
+const buyerPaymentInfo = {
+  ...sellerPaymentInfo,
+  short: false,
 };
 
 /**
@@ -106,7 +111,8 @@ const userPaymentInfo = {
  */
 // TODO: return a tuple so it's shorter to rename
 export function createUserAndLogin(
-  user: UserDoc
+  user: UserDoc,
+  paymentInfoAs: 'buyer' | 'seller' = 'buyer'
 ): Promise<{ user: UserDoc, jwtToken: string }> {
   return request(app)
     .post('/api/users')
@@ -118,10 +124,13 @@ export function createUserAndLogin(
       }
       expect(Object.keys(body.data).sort()).toMatchSnapshot();
 
+      const paymentInfo =
+        paymentInfoAs === 'buyer' ? buyerPaymentInfo : sellerPaymentInfo;
+
       await request(app)
         .put(`/api/users/${body.data._id}`)
         .set('Authorization', body.token)
-        .send({ ...userPaymentInfo, ...userShippingAddress })
+        .send({ ...paymentInfo, ...userShippingAddress })
         .expect(httpStatus.OK);
 
       return { resUser: body.data, jwtToken: body.token };
