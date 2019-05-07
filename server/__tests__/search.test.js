@@ -415,6 +415,14 @@ describe('## Search APIs', () => {
         });
     });
 
+    it('should not find products by tag & categoryIds (from designers)', () => {
+      return request(app)
+        .get('/api/search?tag=summer&categoryIds=2')
+        .set('Authorization', jwtToken5)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data).toHaveLength(0));
+    });
+
     it('should not find products by tag & categoryIds (no match)', () => {
       return request(app)
         .get('/api/search?tag=summer&categoryIds=1')
