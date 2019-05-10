@@ -66,11 +66,17 @@ describe('## User APIs', () => {
     password: 'express3',
   };
 
-  // $FlowFixMe
   let forthUser: UserDoc = {
     username: 'forthuser',
     emailAddress: 'gianpa+forthuser@gmail.com',
-    password: 'express3',
+    password: 'express4',
+  };
+
+  const fifthUser = {
+    username: 'fifthuser',
+    emailAddress: 'gianpa+fifthuser@gmail.com',
+    password: 'express5',
+    type: 'reseller',
   };
 
   // $FlowFixMe
@@ -90,7 +96,7 @@ describe('## User APIs', () => {
 
   describe('# Create user and verify email address', () => {
     describe('# POST /api/users - ', () => {
-      it('should create a new user', () => {
+      it('should create a new user (designer - by default)', () => {
         return request(app)
           .post('/api/users')
           .send(user)
@@ -105,10 +111,32 @@ describe('## User APIs', () => {
             expect(data.ratingsTotal).toBe(0);
             expect(data.reviewsCount).toBe(0);
             expect(data.username).toBe(user.username);
+            expect(data.types).toEqual(['designer']);
             expect(typeof res.body.token).toBe('string');
             expect(Object.keys(data).sort()).toMatchSnapshot();
 
             userId = data._id;
+          });
+      });
+
+      it('should create a new user (reseller)', () => {
+        return request(app)
+          .post('/api/users')
+          .send(fifthUser)
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            const { data } = res.body;
+            expect(typeof data._id).toBe('string');
+            expect(data.accountStatus).toBe('notverified');
+            expect(data.emailAddress).toBe(fifthUser.emailAddress);
+            expect(data.followersCount).toBe(0);
+            expect(data.followingCount).toBe(0);
+            expect(data.ratingsTotal).toBe(0);
+            expect(data.reviewsCount).toBe(0);
+            expect(data.username).toBe(fifthUser.username);
+            expect(data.types).toEqual(['reseller']);
+            expect(typeof res.body.token).toBe('string');
+            expect(Object.keys(data).sort()).toMatchSnapshot();
           });
       });
 
@@ -678,7 +706,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(5);
+          expect(res.body.length).toBe(6);
           expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
         });
     });

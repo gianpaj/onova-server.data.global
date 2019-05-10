@@ -43,6 +43,9 @@ export default {
         .required(),
       pushToken: Joi.string(),
       platform: Joi.string().valid(['android', 'ios']),
+      type: Joi.string()
+        .valid(['reseller', 'designer'])
+        .default('designer'),
     },
   },
 

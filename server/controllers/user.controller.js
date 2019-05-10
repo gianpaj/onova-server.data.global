@@ -145,6 +145,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
  * @property {string} req.body.password (it's salted and hashed)
  * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
+ * @property {string=} req.body.type ('designer' by default)
  */
 async function create(
   req: session$Request,
@@ -153,78 +154,75 @@ async function create(
 ) {
   const { body } = req;
 
-  User.findOne({
+  const existingUser = await User.findOne({
     $or: [
       // mongoose changes the email to lowercase
       { emailAddress: body.emailAddress.toLowerCase() },
       { username: body.username },
     ],
-  })
-    .then((existingUser: UserDoc) => {
-      if (existingUser) {
-        const APIerr = new APIError(
-          'An account with the same email address or username exists.',
-          httpStatus.BAD_REQUEST
-        );
-        throw APIerr;
+  });
+  try {
+    if (existingUser) {
+      const APIerr = new APIError(
+        'An account with the same email address or username exists.',
+        httpStatus.BAD_REQUEST
+      );
+      throw APIerr;
+    }
+
+    const user = new User({
+      username: body.username,
+      emailAddress: body.emailAddress,
+      password: body.password,
+      types: [body.type],
+    });
+
+    if (body.mobileNumber)
+      user.mobileNumber = body.mobileNumber.replace('+380', '0');
+    if (body.platform) user.platform = body.platform;
+    if (body.pushToken) user.pushToken = body.pushToken;
+
+    if (body.emailAddress.startsWith('onovaapp')) {
+      user.accountStatus = 'verified';
+    }
+
+    const savedUser = await user.save();
+    // if we should Auto Follow certain users by default
+    if (config.DEFAULT_FOLLOW) {
+      followDefaultUsers(savedUser)
+        .then(num => {
+          if (typeof num == 'number') debug(`followed ${num} default users`);
+        })
+        .catch(e => console.error(e));
+    }
+
+    if (config.env !== 'production') {
+      debug('skipping pusher createUser()');
+    } else {
+      try {
+        await ckInst.createUser({
+          id: savedUser._id,
+          name: savedUser.username,
+        });
+        console.log('chatkit user created');
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
+    }
 
-      const user = new User({
-        username: body.username,
-        emailAddress: body.emailAddress,
-        password: body.password,
-      });
-
-      if (body.mobileNumber)
-        user.mobileNumber = body.mobileNumber.replace('+380', '0');
-      if (body.platform) user.platform = body.platform;
-      if (body.pushToken) user.pushToken = body.pushToken;
-
-      if (body.emailAddress.startsWith('onovaapp')) {
-        user.accountStatus = 'verified';
-      }
-
-      return user.save();
-    })
-    .then(async (savedUser: UserDoc) => {
-      // if we should Auto Follow certain users by default
-      if (config.DEFAULT_FOLLOW) {
-        followDefaultUsers(savedUser)
-          .then(num => {
-            if (typeof num == 'number') debug(`followed ${num} default users`);
-          })
-          .catch(e => console.error(e));
-      }
-
-      if (config.env !== 'production') {
-        debug('skipping pusher createUser()');
-      } else {
-        try {
-          await ckInst.createUser({
-            id: savedUser._id,
-            name: savedUser.username,
-          });
-          console.log('chatkit user created');
-        } catch (err) {
-          console.error(err);
-          throw err;
-        }
-      }
-
-      // do not send verification email
-      if (body.emailAddress.startsWith('onovaapp')) return savedUser;
-
+    // do not send verification email
+    if (!body.emailAddress.startsWith('onovaapp'))
       await mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
-      return savedUser;
-    })
-    .then(savedUser => {
-      const payload = _prepareUserJson(savedUser);
-      return res.status(httpStatus.CREATED).json({
-        data: payload,
-        token: `JWT ${authCtrl.generateToken(payload)}`,
-      });
-    })
-    .catch(e => next(e));
+
+    const payload = _prepareUserJson(savedUser);
+    return res.status(httpStatus.CREATED).json({
+      data: payload,
+      token: `JWT ${authCtrl.generateToken(payload)}`,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 /**
