@@ -34,7 +34,7 @@ apps:
     name: webapp-onova
     autorestart: true
     wait_ready: true
-    listen_timeout: 3000
+    listen_timeout: 3001
     env:
       NODE_ENV: production
   - script: ./server.js
@@ -42,6 +42,6 @@ apps:
     name: webapp-drop
     autorestart: true
     wait_ready: true
-    listen_timeout: 3000
+    listen_timeout: 3002
     env:
       NODE_ENV: production
