@@ -30,8 +30,16 @@ apps:
     env    :
       NODE_ENV: production
   - script : ./server.js
-    cwd: ./webapp
-    name   : webapp
+    cwd: ./webapp-onova
+    name   : webapp-onova
+    autorestart: true
+    wait_ready: true
+    listen_timeout: 3000
+    env    :
+      NODE_ENV: production
+  - script : ./server.js
+    cwd: ./webapp-drop
+    name   : webapp-drop
     autorestart: true
     wait_ready: true
     listen_timeout: 3000
