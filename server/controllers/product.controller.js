@@ -308,6 +308,8 @@ async function list(
       const regexTag = new RegExp(escapeRegex(tags), 'i');
       query = { ...query, tags: regexTag };
     }
+    // to display from the web
+    sellerTypes = ['reseller', 'designer', 'admin'];
   }
   if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
 
