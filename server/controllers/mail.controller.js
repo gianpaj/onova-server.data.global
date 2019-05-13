@@ -219,6 +219,26 @@ async function sendOrderUpdate({
     throw new Error('sendOrderUpdate: no user found for ' + targetUser);
   }
 
+  let TemplateID = 670839;
+  mailjetOptions = {
+    ...mailjetOptions,
+    From: {
+      Email: 'noreply@onova.co',
+      Name: 'Onova',
+    },
+  };
+
+  if (order.seller.types.includes('reseller')) {
+    TemplateID = 832563;
+    mailjetOptions = {
+      ...mailjetOptions,
+      From: {
+        Email: 'noreply@drop.uno',
+        Name: 'Drop',
+      },
+    };
+  }
+
   if (order.trackingNumber)
     text = getOrderUpdateMessage(order.shippingStatus, order.trackingNumber);
 
@@ -235,7 +255,7 @@ async function sendOrderUpdate({
           To: [{ Email: user.emailAddress }],
           Variables: vars,
           Subject: text,
-          TemplateID: 670839,
+          TemplateID,
           ...mailjetOptions,
         },
       ],

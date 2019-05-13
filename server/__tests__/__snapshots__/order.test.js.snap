@@ -48,6 +48,22 @@ Array [
 ]
 `;
 
+exports[` 4`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
+  "username",
+]
+`;
+
 exports[`## Order APIs # GET /api/orders should get my orders (as seller and buyer) 1`] = `
 Array [
   "_id",

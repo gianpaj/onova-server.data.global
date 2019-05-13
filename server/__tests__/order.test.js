@@ -42,14 +42,14 @@ const photos = {
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
 
-  let firstUser = {
+  const firstUser = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
     mobileNumber: '380677929197',
   };
 
-  let anotherUser = {
+  const anotherUser = {
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
     password: 'express2',
@@ -58,16 +58,23 @@ describe('## Order APIs', () => {
     mobileNumber: '380977414301',
   };
 
-  let nonActiveUser = {
+  const nonActiveUser = {
     username: 'thirdperson',
     emailAddress: 'gianpa+test3@gmail.com',
     password: 'expressos',
   };
 
-  let forthUser = {
+  const forthUser = {
     username: 'forthperson',
     emailAddress: 'gianpa+test4@gmail.com',
     password: 'expressos4',
+  };
+
+  const fifthUser = {
+    username: 'fifthuser',
+    emailAddress: 'gianpa+fifthuser@gmail.com',
+    password: 'express5',
+    type: 'reseller',
   };
 
   let productA = {
@@ -101,11 +108,13 @@ describe('## Order APIs', () => {
     firstUserProductBUuid2,
     anotherUserProductUuid,
     anotherUserProductUuid2,
-    anotherUserProductUuid3;
+    anotherUserProductUuid3,
+    fifthUserProductUuid;
   let firstUserJwtToken,
     anotherJwtToken,
     nonActiveUserJwtToken,
     forthJwtToken,
+    fifthJwtToken,
     userWebToken1,
     userWebToken2;
   let ordersByFirstUser = 0,
@@ -156,6 +165,11 @@ describe('## Order APIs', () => {
     );
     forthUser._id = resUser4._id;
     forthJwtToken = token4;
+    const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
+      fifthUser
+    );
+    fifthUser._id = resUser5._id;
+    fifthJwtToken = token5;
     await request(app)
       .post('/api/users')
       .send(nonActiveUser)
@@ -173,41 +187,46 @@ describe('## Order APIs', () => {
         nonActiveUser._id = resUser._id;
       });
     const {
-      body: { token: token5 },
-    } = await request(app)
-      .post('/api/users-web')
-      .expect(httpStatus.CREATED);
-    userWebToken1 = token5;
-    const {
       body: { token: token6 },
     } = await request(app)
       .post('/api/users-web')
       .expect(httpStatus.CREATED);
-    userWebToken2 = token6;
+    userWebToken1 = token6;
+    const {
+      body: { token: token7 },
+    } = await request(app)
+      .post('/api/users-web')
+      .expect(httpStatus.CREATED);
+    userWebToken2 = token7;
   });
 
   // create 4 products and delete 1 of them
   beforeAll(done => {
     let Promises = [];
     Promises.push(
-      createProduct(productA, firstUserJwtToken).then(p => {
-        firstUserProductAUuid = p.uuid;
-      })
+      createProduct(productA, firstUserJwtToken).then(
+        p => (firstUserProductAUuid = p.uuid)
+      )
     );
     Promises.push(
-      createProduct(productC, anotherJwtToken).then(p => {
-        anotherUserProductUuid = p.uuid;
-      })
+      createProduct({ ...productC, price: '200.50' }, anotherJwtToken).then(
+        p => (anotherUserProductUuid = p.uuid)
+      )
     );
     Promises.push(
-      createProduct(productC, anotherJwtToken).then(p => {
-        anotherUserProductUuid2 = p.uuid;
-      })
+      createProduct({ ...productC, price: '300.00' }, anotherJwtToken).then(
+        p => (anotherUserProductUuid2 = p.uuid)
+      )
     );
     Promises.push(
-      createProduct(productC, anotherJwtToken).then(p => {
-        anotherUserProductUuid3 = p.uuid;
-      })
+      createProduct({ ...productC, price: '400.00' }, anotherJwtToken).then(
+        p => (anotherUserProductUuid3 = p.uuid)
+      )
+    );
+    Promises.push(
+      createProduct({ ...productC, price: '9000.00' }, fifthJwtToken).then(
+        p => (fifthUserProductUuid = p.uuid)
+      )
     );
 
     // create product and delete it
@@ -820,8 +839,8 @@ describe('## Order APIs', () => {
     });
   });
 
-  describe.skip('# Web Payments', () => {
-    let orderIdWeb1, orderIdWeb2;
+  describe('# Web Payments', () => {
+    let orderIdWeb1, orderIdWeb2, orderIdWeb3;
 
     const UserWeb = {
       emailAddress: 'gianpa+autotestwebuser1@gmail.com',
@@ -838,8 +857,8 @@ describe('## Order APIs', () => {
       },
     };
 
-    test('a web user creates an order', () => {
-      const price = parseFloat(productC.price);
+    test('a web user creates an order from a designer', () => {
+      const price = parseFloat('300.00');
       return request(app)
         .post('/api/orders')
         .set('Authorization', userWebToken1)
@@ -853,13 +872,13 @@ describe('## Order APIs', () => {
           expect(o.onovaFee).toBe((price * 0.085).toString()); // 8.5 %
           expect(o.total).toBe(price.toString()); // for buyer
           expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
-          expect(o.priceOfItem).toBe(productC.price);
+          expect(o.priceOfItem).toBe('300.00');
           orderIdWeb1 = o.id;
           ordersToAnotherUser++;
         });
     });
 
-    test('a seller confirms the order from the web', async done => {
+    test('a seller confirms the order from the web (designer)', async done => {
       const dealID = '9B27M6F';
 
       await request(app)
@@ -869,10 +888,10 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK);
       await payOrder(orderIdWeb1, userWebToken1, dealID);
 
-      expect(mailJetParams.Messages[0].Subject).toBe(i18n.orderPaidForSeller);
-      expect(mailJetParams.Messages[0].To[0].Email).toBe(
-        anotherUser.emailAddress
-      );
+      const emailMsg = mailJetParams.Messages[0];
+      expect(emailMsg.Subject).toBe(i18n.orderPaidForSeller);
+      expect(emailMsg.To[0].Email).toBe(anotherUser.emailAddress);
+      expect(emailMsg.From.Email).toBe('noreply@onova.co');
 
       // FIXME: email to the buyer
       // setTimeout(() => {
@@ -888,10 +907,9 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => expect(res.body.data.status).toBe('sold'));
 
-      expect(mailJetParams.Messages[0].To[0].Email).toBe(UserWeb.emailAddress);
-      expect(mailJetParams.Messages[0].Subject).toContain(
-        i18n.orderConfirmed.slice(0, -20)
-      );
+      const emailMsg2 = mailJetParams.Messages[0];
+      expect(emailMsg2.To[0].Email).toBe(UserWeb.emailAddress);
+      expect(emailMsg2.Subject).toContain(i18n.orderConfirmed.slice(0, -20));
 
       // order confirmation should schedule a System message
       setTimeout(() => {
@@ -900,6 +918,68 @@ describe('## Order APIs', () => {
           expect(jobs).toHaveLength(1);
           const { data } = jobs.map(j => j.attrs)[0];
           expect(data.order._id.toString()).toBe(orderIdWeb1);
+          expect(data.order.shippingProvider).toBe('novaposhta');
+          expect(data.order.trackingNumber).toBe(
+            sellerConfirmedResponse.data.handler.waybillNumber.toString()
+          );
+          expect(data.message).toContain(i18n.orderConfirmed.slice(0, 30));
+          done();
+        });
+      }, 10);
+    });
+
+    test('a web user creates an order from a reseller', () => {
+      const price = parseFloat('9000.00');
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', userWebToken1)
+        .send({ product: fifthUserProductUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields);
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((price * 0.035).toString()); // 3.5 %
+          expect(o.total).toBe(price.toString()); // for buyer
+          expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
+          expect(o.priceOfItem).toBe('9000.00');
+          orderIdWeb3 = o.id;
+        });
+    });
+
+    test('a seller confirms the order from the web (reseller)', async done => {
+      const dealID = '9B27M6G';
+
+      await request(app)
+        .put('/api/users-web/me')
+        .set('Authorization', userWebToken1)
+        .send(UserWeb)
+        .expect(httpStatus.OK);
+      await payOrder(orderIdWeb3, userWebToken1, dealID);
+
+      const emailMsg = mailJetParams.Messages[0];
+      expect(emailMsg.Subject).toBe(i18n.orderPaidForSeller);
+      expect(emailMsg.To[0].Email).toBe(fifthUser.emailAddress);
+      expect(emailMsg.From.Email).toBe('noreply@drop.uno');
+
+      await confirmOrder(orderIdWeb3, fifthJwtToken, dealID);
+      await request(app)
+        .get(`/api/products/${fifthUserProductUuid}`)
+        .expect(httpStatus.OK)
+        .then(res => expect(res.body.data.status).toBe('sold'));
+
+      const emailMsg2 = mailJetParams.Messages[0];
+      expect(emailMsg2.To[0].Email).toBe(UserWeb.emailAddress);
+      expect(emailMsg2.Subject).toContain(i18n.orderConfirmed.slice(0, -20));
+
+      // order confirmation should schedule a System message
+      setTimeout(() => {
+        agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+          if (err) return done(err);
+          expect(jobs).toHaveLength(1);
+          const { data } = jobs.map(j => j.attrs)[0];
+          expect(data.order._id.toString()).toBe(orderIdWeb3);
           expect(data.order.shippingProvider).toBe('novaposhta');
           expect(data.order.trackingNumber).toBe(
             sellerConfirmedResponse.data.handler.waybillNumber.toString()
@@ -926,7 +1006,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(o.status).toBe('pending');
-          expect(o.priceOfItem).toBe(productC.price);
+          expect(o.priceOfItem).toBe('400.00');
           orderIdWeb2 = o.id;
           ordersToAnotherUser++;
         });
@@ -938,10 +1018,9 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK);
       await payOrder(orderIdWeb2, userWebToken2, dealID);
 
-      expect(mailJetParams.Messages[0].Subject).toBe(i18n.orderPaidForSeller);
-      expect(mailJetParams.Messages[0].To[0].Email).toBe(
-        anotherUser.emailAddress
-      );
+      const emailMsg = mailJetParams.Messages[0];
+      expect(emailMsg.Subject).toBe(i18n.orderPaidForSeller);
+      expect(emailMsg.To[0].Email).toBe(anotherUser.emailAddress);
 
       mock
         .onPost(`/deals/${dealID}/rejections`)
@@ -960,8 +1039,9 @@ describe('## Order APIs', () => {
           expect(o.reason).toBe('already sold on the dark web');
         });
 
-      expect(mailJetParams.Messages[0].To[0].Email).toBe(UserWeb2.emailAddress);
-      expect(mailJetParams.Messages[0].Subject).toContain(i18n.orderCancelled);
+      const emailMsg2 = mailJetParams.Messages[0];
+      expect(emailMsg2.To[0].Email).toBe(UserWeb2.emailAddress);
+      expect(emailMsg2.Subject).toContain(i18n.orderCancelled);
     });
   });
 
