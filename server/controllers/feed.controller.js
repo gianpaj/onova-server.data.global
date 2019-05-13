@@ -36,16 +36,32 @@ function flat(
   })
     .limit(1000)
     .then(async (following: Array<FollowDoc>) => {
-      if (!following.length) return res.json({ data: [] });
-
-      const followingIDs = following.map(f => f.following);
-
-      let blockedByIDs = [];
+      let sellerTypes = req.user.types;
+      if (req.user.types.includes('admin')) {
+        sellerTypes = ['reseller', 'designer', 'admin'];
+      }
       const blockedBy = await Follow.find({
         follower: req.user._id,
         status: -1,
       });
+      let blockedByIDs = [];
+
       if (blockedBy) blockedByIDs = blockedBy.map(f => f.following);
+      if (!following.length) {
+        const DBqueryExclusive = {
+          status: 'forsale',
+          seller: { $nin: blockedByIDs },
+        };
+        const products = await Product.list({
+          query: DBqueryExclusive,
+          limit,
+          sellerTypes,
+        });
+
+        return res.json({ data: products });
+      }
+
+      const followingIDs = following.map(f => f.following);
 
       let DBqueryInclusive = {
         status: 'forsale',
@@ -90,11 +106,6 @@ function flat(
         if (!lastIdProd) {
           throw new APIError('Product not found.', httpStatus.NOT_FOUND);
         }
-      }
-
-      let sellerTypes = req.user.types;
-      if (req.user.types.includes('admin')) {
-        sellerTypes = ['reseller', 'designer', 'admin'];
       }
 
       const products = await Promise.all([

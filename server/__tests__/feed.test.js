@@ -65,40 +65,46 @@ let anotherProduct = {
   ],
 };
 
-let user: UserDoc = {
+const user: UserDoc = {
   username: 'firstperson',
   emailAddress: 'gianpa+test@gmail.com',
   password: 'expressos',
 };
 
-let anotherUser: UserDoc = {
+const anotherUser: UserDoc = {
   username: 'anotherperson',
   emailAddress: 'gianpa+test2@gmail.com',
   password: 'express2',
 };
 
-let user3: UserDoc = {
+const user3: UserDoc = {
   username: 'thirdperson',
   emailAddress: 'gianpa+test3@gmail.com',
   password: 'express3',
 };
 
-let user4: UserDoc = {
+const user4: UserDoc = {
   username: 'fourthperson',
   emailAddress: 'gianpa+test4@gmail.com',
   password: 'express4',
 };
 
-let user5: UserDoc = {
+const user5: UserDoc = {
   username: 'fifthperson',
   emailAddress: 'gianpa+test5@gmail.com',
   password: 'express5',
 };
 
-let user6: UserDoc = {
+const user6: UserDoc = {
   username: 'sixthperson',
   emailAddress: 'gianpa+test6@gmail.com',
   password: 'express6',
+};
+
+const user7 = {
+  username: 'seventhperson',
+  emailAddress: 'gianpa+test7@gmail.com',
+  password: 'express7',
 };
 
 const notForSaleProduct = {
@@ -118,7 +124,7 @@ let productUuid;
 let anotherProductUuid;
 let firstJwtToken;
 let anotherJwtToken;
-let jwtToken5, jwtToken6;
+let jwtToken5, jwtToken6, jwtToken7;
 let user3_id;
 let user3_jwtToken;
 let user4_jwtToken;
@@ -167,15 +173,20 @@ describe('## Feed APIs', () => {
           user6
         );
         user6._id = resUser6._id;
-        jwtToken6 = token6;
+        // jwtToken6 = token6;
         await User.updateOne(
           { _id: user6._id },
           { $set: { types: ['reseller'] } }
         );
+        const { user: resUser7, jwtToken: token7 } = await createUserAndLogin(
+          user7
+        );
+        user7._id = resUser7._id;
+        jwtToken7 = token7;
 
-        const p6 = await createProduct(product, jwtToken6);
-        expect(p6.description).toBe(product.description);
-        productUuid = p6.uuid;
+        // const p6 = await createProduct(product, jwtToken6);
+        // expect(p6.description).toBe(product.description);
+        // productUuid = p6.uuid;
 
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
@@ -248,6 +259,14 @@ describe('## Feed APIs', () => {
           expect(body.data[body.data.length - 1].uuid).toBe(anotherProductUuid);
           expect(body.data).toHaveLength(22);
         });
+    });
+
+    it("should get user`s feed that doesn't follow anybody", () => {
+      return request(app)
+        .get('/api/feed/flat')
+        .set('Authorization', jwtToken7)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data).toHaveLength(22));
     });
 
     it('should not get my feed if i am not authenticated', () => {
