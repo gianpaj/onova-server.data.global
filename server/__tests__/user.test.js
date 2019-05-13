@@ -1148,13 +1148,21 @@ describe('## User APIs', () => {
   });
 
   describe('Password reset', () => {
-    it('# POST /api/auth/reset - should request a password reset via email', () => {
-      return request(app)
+    it('# POST /api/auth/reset - should request a password reset via email', done => {
+      request(app)
         .post('/api/auth/reset')
         .send({ emailAddress: anotherUser.emailAddress })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.message).toBe('Password reset email sent.');
+          setTimeout(() => {
+            const emailMsg = mailJetParams.Messages[0];
+            expect(emailMsg.Subject).toBe('Відновлення пароля');
+            expect(emailMsg.To[0].Email).toBe(anotherUser.emailAddress);
+            expect(emailMsg.From.Email).toBe('noreply@onova.co');
+            expect(emailMsg.TemplateID).toBe(345696);
+            done();
+          }, 1000);
         });
     });
 

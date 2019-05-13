@@ -17,10 +17,6 @@ const mailjetClient = mailjet.connect(
 const mailjetVersionObj = { version: 'v3.1' };
 
 let mailjetOptions = {
-  From: {
-    Email: 'noreply@onova.co',
-    Name: 'Onova',
-  },
   TemplateLanguage: true,
   TemplateErrorDeliver: true,
   TemplateErrorReporting: {
@@ -39,6 +35,13 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
   let subject =
     'Підтвердження профілю - Welcome to Onova, verify your email address';
   let TemplateID = 343433;
+  mailjetOptions = {
+    ...mailjetOptions,
+    From: {
+      Email: 'noreply@onova.co',
+      Name: 'Onova',
+    },
+  };
   if (user.types.includes('reseller')) {
     subject =
       'Підтвердження профілю - Welcome to Drop, verify your email address';
@@ -130,13 +133,33 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
 }
 
 /**
- * Send email via Mailjet to reset the account's password
+ * Send email via Mailjet to reset the password
  */
 function sendResetEmail(emailTo: string, user: Object): void {
   const subject = 'Відновлення пароля';
 
   // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
+
+  let TemplateID = 345696;
+  mailjetOptions = {
+    ...mailjetOptions,
+    From: {
+      Email: 'noreply@onova.co',
+      Name: 'Onova',
+    },
+  };
+
+  if (user.types.includes('reseller')) {
+    TemplateID = 832656;
+    mailjetOptions = {
+      ...mailjetOptions,
+      From: {
+        Email: 'noreply@drop.uno',
+        Name: 'Drop',
+      },
+    };
+  }
 
   // generate link
   Verification.create({
@@ -155,8 +178,8 @@ function sendResetEmail(emailTo: string, user: Object): void {
             To: [{ Email: emailTo }],
             Variables: vars,
             Subject: subject,
-            TemplateID: 345696,
-            ...mailjetClient,
+            TemplateID,
+            ...mailjetOptions,
           },
         ],
         SandboxMode,
