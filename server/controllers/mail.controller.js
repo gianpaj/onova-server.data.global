@@ -94,7 +94,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
  * Send email via Mailjet to re-verify the account
  */
 function resendVerificationEmail(emailTo: string, user: Object): void {
-  const subject = 'Verify your new email address';
+  const Subject = 'Verify your new email address';
 
   // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
@@ -105,28 +105,25 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
     resetToken: token,
   })
     .then(() => {
-      const vars = {
+      const Variables = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
         displayName: user.username,
       };
 
-      const request = mailjetClient.post('send', mailjetVersionObj).request({
+      return mailjetClient.post('send', mailjetVersionObj).request({
         Messages: [
           {
             To: [{ Email: emailTo }],
-            Variables: vars,
-            Subject: subject,
+            Variables,
+            Subject,
             TextPart:
-              'Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers, The Onova Team.',
+              'Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers.',
             HTMLPart:
-              'Hi {{var:displayName}},<p>Please verify your new email address.</p><p>Click here to confirm it: {{var:confirmation_link}}</p><p>Cheers, The Onova Team.</p>',
+              'Hi {{var:displayName}},<p>Please verify your new email address.</p><p>Click here to confirm it: {{var:confirmation_link}}</p><p>Cheers.</p>',
             ...mailjetOptions,
           },
         ],
         SandboxMode,
-      });
-      return request.catch(err => {
-        console.error(err.ErrorMessage);
       });
     })
     .catch(e => console.error(e));

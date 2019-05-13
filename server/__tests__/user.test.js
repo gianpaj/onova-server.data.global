@@ -546,8 +546,8 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should update user email and unverify it', () => {
-      return request(app)
+    it('should update user email and unverify it', done => {
+      request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send({ emailAddress: 'express123@gmail.com' })
@@ -558,6 +558,14 @@ describe('## User APIs', () => {
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('notverified');
+
+          const emailMsg = mailJetParams.Messages[0];
+
+          setTimeout(() => {
+            expect(emailMsg.Subject).toBe('Verify your new email address');
+            expect(emailMsg.To[0].Email).toBe(user.emailAddress);
+            done();
+          }, 500);
         });
     });
 
