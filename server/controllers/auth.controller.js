@@ -133,8 +133,13 @@ function activate(req, res) {
         //   'There was something wrong with the link you received. Note that it expires after 72 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
         data.paragraph =
           'Щось не так з посиланням котре ви отримали. Воно стає недійсне через 72 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на<a href="mailto:hello@onova.co">hello@onova.co</a>';
+        // TODO: update email if link is for Drop
       } else if (verDoc.user.accountStatus == 'notverified') {
-        const { username } = verDoc.user;
+        const { username, types } = verDoc.user;
+
+        if (types.includes('reseller')) {
+          data.title = 'Drop - Email confirmation';
+        }
         data.heading = 'Профіль активовано!';
         data.paragraph = `${username}, Можеш користуватись додатком на повну (${
           verDoc.user.emailAddress
@@ -191,6 +196,8 @@ function resetPage(req, res) {
         data.paragraph =
           'Щось не так з посиланням котре ви отримали. Воно стає недійсне через 72 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на<a href="mailto:hello@onova.co">hello@onova.co</a>';
         data.show_form = false;
+      } else if (verDoc.user.types.includes('reseller')) {
+        data.title = 'Drop - Заміна паролю';
       }
       return res.render('pass-reset', data);
     });
@@ -205,7 +212,7 @@ function resetPage(req, res) {
  * @returns {*}
  */
 function resetFormSubmit(req, res) {
-  let data = {
+  const data = {
     // title: 'Onova - Password reset',
     title: 'Онова - Заміна паролю',
     // heading: 'Enter your new password',
@@ -231,6 +238,9 @@ function resetFormSubmit(req, res) {
         data.heading = 'Виникла проблема при зміні паролю';
         return res.status(httpStatus.BAD_REQUEST).render('pass-reset', data);
       }
+      if (verDoc.user.types.includes('reseller')) {
+        data.title = 'Drop - Заміна паролю';
+      }
       data.heading = '';
       data.paragraph = 'Ваш пароль оновлено.';
       // data.paragraph = 'Hi five! Your password has been updated.';
@@ -255,9 +265,7 @@ function resetFormSubmit(req, res) {
  */
 function requestPassReset(req, res) {
   User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
-    if (err) {
-      return next(err);
-    }
+    if (err) return next(err);
     if (!existingUser) {
       console.log(
         "attempted to reset a user's password with no results:",
