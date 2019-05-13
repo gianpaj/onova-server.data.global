@@ -297,24 +297,24 @@ describe('## User APIs', () => {
         return request(app)
           .get(`/api/auth/activate/${activationToken}`)
           .expect(httpStatus.OK)
-          .then(res => {
+          .then(res =>
             expect(res.text).toContain(
               'Виникла проблема при активації вашого профілю'
               // 'something wrong with the link you received'
-            );
-          });
+            )
+          );
       });
 
       it('an expired link should not work', () => {
         return request(app)
           .get(`/api/auth/activate/e700760eb3d6fc65`)
           .expect(httpStatus.OK)
-          .then(res => {
+          .then(res =>
             expect(res.text).toContain(
               'Виникла проблема при активації вашого профілю'
               // 'something wrong with the link you received'
-            );
-          });
+            )
+          );
       });
     });
   });
@@ -325,9 +325,7 @@ describe('## User APIs', () => {
         .post('/api/auth/login')
         .send(invalidUserCredentials)
         .expect(httpStatus.UNAUTHORIZED)
-        .then(res => {
-          expect(res.body.message).toBe('invalid email');
-        });
+        .then(res => expect(res.body.message).toBe('invalid email'));
     });
 
     it('should NOT match the password', () => {
@@ -338,9 +336,7 @@ describe('## User APIs', () => {
           password: 'blahblah',
         })
         .expect(httpStatus.UNAUTHORIZED)
-        .then(res => {
-          expect(res.body.message).toBe('invalid password');
-        });
+        .then(res => expect(res.body.message).toBe('invalid password'));
     });
 
     it('should get valid JWT token', done => {
@@ -385,9 +381,7 @@ describe('## User APIs', () => {
       return request(app)
         .get('/api/users/56c787ccc67fc16ccc1a5e92')
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Invalid user');
-        });
+        .then(res => expect(res.body.message).toBe('Invalid user'));
     });
   });
 
@@ -409,9 +403,7 @@ describe('## User APIs', () => {
       return request(app)
         .get('/api/users/?username=bananaz')
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Invalid user');
-        });
+        .then(res => expect(res.body.message).toBe('Invalid user'));
     });
   });
 
@@ -752,9 +744,7 @@ describe('## User APIs', () => {
         .get('/api/users')
         .query({ limit: 10 })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(Array.isArray(res.body)).toBe(true);
-        });
+        .then(res => expect(Array.isArray(res.body)).toBe(true));
     });
   });
 
@@ -859,9 +849,7 @@ describe('## User APIs', () => {
       return request(app)
         .get('/api/users?u=maria')
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.length).toBe(0);
-        });
+        .then(res => expect(res.body.length).toBe(0));
     });
   });
 
@@ -928,11 +916,11 @@ describe('## User APIs', () => {
         .set('Authorization', forthJwtToken)
         .send({ ...forthUser, emailAddress: anotherUser.emailAddress })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
+        .then(res =>
           expect(res.body.message).toBe(
             'An account with the same email address exists.'
-          );
-        });
+          )
+        );
     });
 
     it('should NOT update an user`s upper case email (existing)', () => {
@@ -941,11 +929,11 @@ describe('## User APIs', () => {
         .set('Authorization', forthJwtToken)
         .send({ ...forthUser, emailAddress: 'Gianpa+test2@gmail.com' })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
+        .then(res =>
           expect(res.body.message).toBe(
             'An account with the same email address exists.'
-          );
-        });
+          )
+        );
     });
 
     it("should NOT update an user's username to an existing one", () => {
@@ -1139,9 +1127,7 @@ describe('## User APIs', () => {
         .get('/api/auth/random-number')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(typeof res.body.num).toBe('number');
-        });
+        .then(res => expect(typeof res.body.num).toBe('number'));
     });
   });
 
@@ -1206,12 +1192,12 @@ describe('## User APIs', () => {
           .post(`/api/auth/reset/${resetToken}`)
           .send({ password: 'americano', passwordagain: 'americano' })
           .expect(httpStatus.BAD_REQUEST)
-          .then(res => {
+          .then(res =>
             expect(res.text).toContain(
               'Виникла проблема при зміні паролю'
               // 'There was an issue resetting your password'
-            );
-          });
+            )
+          );
       });
 
       it('should NOT reset the user`s password with an invalid reset token', () => {
@@ -1219,11 +1205,11 @@ describe('## User APIs', () => {
           .post(`/api/auth/reset/12343375d1`)
           .send({ password: 'americano', passwordagain: 'americano' })
           .expect(httpStatus.BAD_REQUEST)
-          .then(res => {
+          .then(res =>
             expect(res.body.message).toBe(
               '"token" length must be 16 characters long'
-            );
-          });
+            )
+          );
       });
     });
 
@@ -1235,9 +1221,7 @@ describe('## User APIs', () => {
           password: anotherUser.password,
         })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body).toHaveProperty('token');
-        });
+        .then(res => expect(res.body).toHaveProperty('token'));
     });
   });
 });
