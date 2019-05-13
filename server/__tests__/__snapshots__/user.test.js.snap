@@ -64,6 +64,22 @@ Array [
 ]
 `;
 
+exports[`## User APIs # DELETE /api/users/:userId should get error when deleting invalid user 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
+  "username",
+]
+`;
+
 exports[`## User APIs # GET /api/users/ should get all users (with limit) 1`] = `
 Array [
   "_id",
@@ -192,6 +208,22 @@ Array [
 `;
 
 exports[`## User APIs # GET /api/users/?u=<username> should NOT find deleted users 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/?u=<username> should NOT find deleted users 2`] = `
 Array [
   "_id",
   "accountStatus",

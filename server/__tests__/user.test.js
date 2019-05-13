@@ -5,6 +5,8 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
 import jwt from 'jsonwebtoken';
+import superagent from 'superagent';
+import mockSuperagent from 'superagent-mock';
 
 import app from '../index';
 import config from '../config/config';
@@ -24,9 +26,25 @@ afterAll(done => {
 
 const validPhoneNumber = '0977414301';
 const validPhoneNumber2 = '0977414302';
+const mailjetServerEndPoint = 'https://api.mailjet.com/v3.1';
+let superagentMock;
+let mailJetParams;
 
 describe('## User APIs', () => {
   beforeAll(beforeAllTests);
+
+  beforeAll(() => {
+    superagentMock = mockSuperagent(superagent, [
+      {
+        pattern: mailjetServerEndPoint,
+        fixtures: (match, params) => {
+          mailJetParams = params;
+          return {};
+        },
+        post: (match, data) => ({ body: data }),
+      },
+    ]);
+  });
 
   // $FlowFixMe
   let user: UserDoc = {
@@ -94,6 +112,10 @@ describe('## User APIs', () => {
   let activationToken;
   let resetToken;
 
+  afterAll(() => {
+    superagentMock.unset();
+  });
+
   describe('# Create user and verify email address', () => {
     describe('# POST /api/users - ', () => {
       it('should create a new user (designer - by default)', () => {
@@ -114,6 +136,13 @@ describe('## User APIs', () => {
             expect(data.types).toEqual(['designer']);
             expect(typeof res.body.token).toBe('string');
             expect(Object.keys(data).sort()).toMatchSnapshot();
+
+            const emailMsg = mailJetParams.Messages[0];
+            expect(emailMsg.Subject).toBe(
+              'Підтвердження профілю - Welcome to Onova, verify your email address'
+            );
+            expect(emailMsg.To[0].Email).toBe(user.emailAddress);
+            expect(emailMsg.From.Email).toBe('noreply@onova.co');
 
             userId = data._id;
           });
@@ -137,6 +166,13 @@ describe('## User APIs', () => {
             expect(data.types).toEqual(['reseller']);
             expect(typeof res.body.token).toBe('string');
             expect(Object.keys(data).sort()).toMatchSnapshot();
+
+            const emailMsg = mailJetParams.Messages[0];
+            expect(emailMsg.Subject).toBe(
+              'Підтвердження профілю - Welcome to Drop, verify your email address'
+            );
+            expect(emailMsg.To[0].Email).toBe(fifthUser.emailAddress);
+            expect(emailMsg.From.Email).toBe('noreply@drop.uno');
           });
       });
 

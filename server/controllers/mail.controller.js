@@ -16,7 +16,7 @@ const mailjetClient = mailjet.connect(
 
 const mailjetVersionObj = { version: 'v3.1' };
 
-const mailjetOptions = {
+let mailjetOptions = {
   From: {
     Email: 'noreply@onova.co',
     Name: 'Onova',
@@ -36,8 +36,21 @@ const mailjetOptions = {
  * @param {User} user
  */
 function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
-  const subject =
+  let subject =
     'Підтвердження профілю - Welcome to Onova, verify your email address';
+  let TemplateID = 343433;
+  if (user.types.includes('reseller')) {
+    subject =
+      'Підтвердження профілю - Welcome to Drop, verify your email address';
+    TemplateID = 832474;
+    mailjetOptions = {
+      ...mailjetOptions,
+      From: {
+        Email: 'noreply@drop.uno',
+        Name: 'Drop',
+      },
+    };
+  }
 
   // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
@@ -58,7 +71,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
           {
             To: [{ Email: emailTo }],
             Variables: vars,
-            TemplateID: 343433,
+            TemplateID,
             Subject: subject,
             ...mailjetOptions,
           },
