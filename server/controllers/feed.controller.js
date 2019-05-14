@@ -48,10 +48,29 @@ function flat(
 
       if (blockedBy) blockedByIDs = blockedBy.map(f => f.following);
       if (!following.length) {
-        const DBqueryExclusive = {
+        let DBqueryExclusive = {
           status: 'forsale',
           seller: { $nin: blockedByIDs },
         };
+
+        if (categoryIds) {
+          DBqueryExclusive = {
+            ...DBqueryExclusive,
+            categoryIds: { $in: categoryIds },
+          };
+        }
+        // for pagination - results are excluding the lastId
+        if (lastId) {
+          DBqueryExclusive = {
+            ...DBqueryExclusive,
+            _id: { $lt: new mongoose.Types.ObjectId(lastId) },
+          };
+
+          const lastIdProd = await Product.findById(lastId);
+          if (!lastIdProd) {
+            throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+          }
+        }
         const products = await Product.list({
           query: DBqueryExclusive,
           limit,
