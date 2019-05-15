@@ -89,10 +89,6 @@ server {
                 send_timeout 600;
                 client_max_body_size 60m;
         }
-
-        location /uploader {
-                alias /var/www/uploader/dist;
-        }
 }
 
 server {
