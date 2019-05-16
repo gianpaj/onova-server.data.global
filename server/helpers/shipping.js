@@ -6,6 +6,8 @@ const NovaPoshta_URL = 'https://api.novaposhta.ua/v2.0/json';
 export const NP = {
   // 1
   generated: 'np-generated',
+  // 2
+  cancelled: 'np-deleted',
   // 4, 6 or 101
   shipped: 'np-shipped',
   // 7 or 8
@@ -35,9 +37,13 @@ export default class Shipping {
 
           result = data.data[0];
 
-          // Number not found
-          if (result.StatusCode === '3') {
-            return resolve(false);
+          if (
+            // Number not found
+            result.StatusCode === '3' ||
+            // Deleted
+            result.StatusCode === '2'
+          ) {
+            return resolve({ status: false });
           }
 
           try {
@@ -962,6 +968,50 @@ export const novaPoshta = {
     warnings: [
       {
         ID_20400106547369:
+          'Please enter a valid phone number from the express invoice to show full information',
+      },
+    ],
+    info: [],
+    messageCodes: [],
+    errorCodes: [],
+    warningCodes: [],
+    infoCodes: [],
+  },
+
+  // 2- Cancelled
+  cancelled: {
+    success: true,
+    data: [
+      {
+        Number: '20400127740025',
+        CounterpartySenderDescription: '',
+        ActualDeliveryDate: '',
+        Status: 'Видалено',
+        StatusCode: '2',
+        RefEW: '00000000-0000-0000-0000-000000000000',
+        RecipientFullName: '',
+        CargoDescriptionString: '',
+        RedeliverySum: '',
+        RedeliveryPayer: '',
+        AfterpaymentOnGoodsCost: '',
+        LastCreatedOnTheBasisPayerType: '',
+        LastTransactionDateTimeGM: '',
+        CounterpartyRecipientDescription: '',
+        SenderAddress: '',
+        RecipientAddress: '',
+        AnnouncedPrice: '',
+        RedeliveryPaymentCardRef: '',
+        RedeliveryPaymentCardDescription: '',
+        CreatedOnTheBasis: '',
+        DatePayedKeeping: '',
+        OnlineCreditStatusCode: '',
+        OnlineCreditStatus: '',
+      },
+    ],
+    errors: [],
+    warnings: [
+      {
+        ID_20400127740025:
           'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
