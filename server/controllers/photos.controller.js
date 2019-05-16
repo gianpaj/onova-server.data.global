@@ -43,15 +43,15 @@ async function tempUploadProductImage(
   const pipeline = sharp(file.buffer);
   const metadata = await pipeline.metadata();
 
-  if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
-    const APIerr = new APIError(
-      `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${
-        metadata.width
-      }x${metadata.height}`,
-      httpStatus.BAD_REQUEST
-    );
-    return next(APIerr);
-  }
+  // if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
+  //   const APIerr = new APIError(
+  //     `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${
+  //       metadata.width
+  //     }x${metadata.height}`,
+  //     httpStatus.BAD_REQUEST
+  //   );
+  //   return next(APIerr);
+  // }
 
   let height, width;
 
