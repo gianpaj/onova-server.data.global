@@ -43,11 +43,11 @@ server {
         # Add index.php to the list if you are using PHP
 #       index index.html index.htm index.nginx-debian.html;
 
-        server_name onova.co;
+        server_name drop.uno;
 
         # webapp SSR
         location / {
-                proxy_pass http://localhost:3001;
+                proxy_pass http://localhost:3002;
                 proxy_http_version 1.1;
                 proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection 'upgrade';
@@ -56,14 +56,14 @@ server {
                 client_max_body_size 60m;
         }
 
-        if ($host = www.onova.co) {
-            return 301 https://onova.co$request_uri;
+        if ($host = www.drop.uno) {
+            return 301 https://drop.uno$request_uri;
         }
 
         listen [::]:443 ssl http2; # managed by Certbot
         listen 443 ssl http2; # managed by Certbot
-        ssl_certificate /etc/letsencrypt/live/onova.co/fullchain.pem; # managed by Certbot
-        ssl_certificate_key /etc/letsencrypt/live/onova.co/privkey.pem; # managed by Certbot
+        ssl_certificate /etc/letsencrypt/live/drop.uno/fullchain.pem; # managed by Certbot
+        ssl_certificate_key /etc/letsencrypt/live/drop.uno/privkey.pem; # managed by Certbot
         include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
 
         ssl_stapling on;
@@ -92,12 +92,12 @@ server {
 }
 
 server {
-    if ($host = www.onova.co) {
-        return 301 https://onova.co$request_uri;
+    if ($host = www.drop.uno) {
+        return 301 https://drop.uno$request_uri;
     } # managed by Certbot
 
 
-    if ($host = onova.co) {
+    if ($host = drop.uno) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
@@ -105,6 +105,6 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name onova.co www.onova.co;
+    server_name drop.uno www.drop.uno;
     return 404; # managed by Certbot
 }
