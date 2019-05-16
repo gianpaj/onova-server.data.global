@@ -505,6 +505,81 @@ export const dealConfirmationResp = {
   },
 };
 
+export const sellerBadPhoneNum = {
+  data: {
+    id: '9F17M6E',
+    externalId: null,
+    sellerUserId: null,
+    buyerUserId: null,
+    cartId: 480,
+    productTitle: '2000 UAH price item',
+    productPrice: 200000,
+    productWeight: 3000,
+    handlerPrice: 4100,
+    status: 'NEW',
+    reasonStep: null,
+    buyerFirstName: 'Олександр',
+    buyerLastName: 'Костінський',
+    buyerPatronymic: '',
+    buyerPhone: '380977414301',
+    buyerEmail: 'gianpa+test@gmail.com',
+    sellerFirstName: 'жанфранко',
+    sellerLastName: 'Палумбо',
+    sellerPatronymic: '',
+    sellerPhone: '380977414301',
+    sellerEmail: 'gianpa+test3@gmail.com',
+    lg: 'uk',
+    createdAt: '2018-12-11T15:15:20.000Z',
+    adId: null,
+    handler: {
+      status: 'NEW',
+      statusCode: null,
+      statusText: null,
+      waybillNumber: null,
+      senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      senderCityName: null,
+      senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      senderOfficeName: null,
+      recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      recipientCityName: null,
+      recipientOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      recipientOfficeName: null,
+      type: 'NovaPoshta',
+    },
+    productPayment: {
+      id: 831,
+      amount: 189524,
+      commissionAmount: 10476,
+      status: 'REJECTED',
+      statusCode: 'REJECTED',
+      statusText:
+        '{"error":{"fields":{"handler":{"senderPhone":"WRONG_PHONE"},"sellerPhone":"WRONG_PHONE"},"code":"FORMAT_ERROR"}}',
+      type: 'P2P_ONOVA',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/receipts/774aa739-0f9c-48d4-8e04-06d0e2096326.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+    handlerPayment: {
+      id: 830,
+      amount: 4100,
+      commissionAmount: 0,
+      status: 'REJECTED',
+      statusCode: 'REJECTED',
+      // statusText:
+      type: 'ECOM',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/47248767-47d8-4f8e-b66a-a1e33c3d086e.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+  },
+};
+
 export const buyerPaymentCVCFailure = {
   data: {
     id: '4Y3KDER',

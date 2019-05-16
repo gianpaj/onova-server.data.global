@@ -29,6 +29,7 @@ import {
   buyerPaymentCVCFailure,
   buyerPaymentFailure,
   dealConfirmationResp,
+  sellerBadPhoneNum,
   sellerCancelsAPaidDeal,
   sellerConfirmedResponse,
 } from '../helpers/shipping';
@@ -1166,9 +1167,9 @@ describe('## Order APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send({ cvc: '123' })
         .expect(httpStatus.INTERNAL_SERVER_ERROR)
-        .then(({ body }) => {
-          expect(body.message).toBe('Internal server error'); // coming from UAPAY
-        });
+        .then(
+          ({ body }) => expect(body.message).toBe('Internal server error') // coming from UAPAY
+        );
     });
 
     it('should return wrong CVC error', () => {
@@ -1181,9 +1182,20 @@ describe('## Order APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send({ cvc: '123' })
         .expect(httpStatus.INTERNAL_SERVER_ERROR)
-        .then(({ body }) => {
-          expect(body.message).toBe('Wrong CVV2 value');
-        });
+        .then(({ body }) => expect(body.message).toBe('Wrong CVV2 value'));
+    });
+
+    it('should return wrong phone number error', () => {
+      mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
+      mock.onPost('/deals').reply(200, { data: { id: '9F17M6E' } });
+      mock.onPost(`/deals/9F17M6E/payments`).reply(200);
+      mock.onGet(`/deals/9F17M6E`).reply(200, sellerBadPhoneNum);
+      return request(app)
+        .post(`/api/orders/${orderId}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .send({ cvc: '123' })
+        .expect(httpStatus.INTERNAL_SERVER_ERROR)
+        .then(({ body }) => expect(body.message).toBe('Payment error'));
     });
 
     test('a seller should cancel an order that has been paid', async () => {

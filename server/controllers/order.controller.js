@@ -667,10 +667,8 @@ function createPaymentUAPAY(
       let newDeal;
       do {
         retryNum++;
-        const {
-          data: { data },
-        } = await axios.get(`/deals/${deal.id}`, axiosConfig);
-        newDeal = data;
+        const body = await axios.get(`/deals/${deal.id}`, axiosConfig);
+        newDeal = body.data.data;
         // console.log(deal.id, newDeal.productPayment.waitingFor);
         await sleep(500);
       } while (
