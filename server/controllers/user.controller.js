@@ -177,8 +177,11 @@ async function create(
       types: [body.type],
     });
 
-    if (body.mobileNumber)
-      user.mobileNumber = body.mobileNumber.replace('+380', '0');
+    if (body.mobileNumber) {
+      user.mobileNumber = body.mobileNumber
+        .replace('+380', '0')
+        .replace(/^380/, '0');
+    }
     if (body.platform) user.platform = body.platform;
     if (body.pushToken) user.pushToken = body.pushToken;
 
@@ -308,7 +311,9 @@ function update(
 
   if (typeof body.displayName === 'string') user.displayName = body.displayName;
   if (typeof body.mobileNumber === 'string')
-    user.mobileNumber = body.mobileNumber.replace('+380', '0');
+    user.mobileNumber = body.mobileNumber
+      .replace('+380', '0')
+      .replace(/^380/, '0');
   // update password (automatically hashed on save() hook)
   if (body.password) user.password = body.password;
   if (body.platform) user.platform = body.platform;

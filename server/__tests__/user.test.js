@@ -409,18 +409,18 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     let userWebToken;
-    beforeAll(() => {
-      return request(app)
+    beforeAll(() =>
+      request(app)
         .post('/api/users-web')
         .expect(httpStatus.CREATED)
-        .then(({ body }) => (userWebToken = body.token));
-    });
+        .then(({ body }) => (userWebToken = body.token))
+    );
 
     it("should remove the user's mobile number", () => {
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send({ ...user, mobileNumber: '' })
+        .send({ mobileNumber: '' })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
@@ -434,11 +434,25 @@ describe('## User APIs', () => {
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send({ ...user, mobileNumber: '+380977414301' })
+        .send({ mobileNumber: '+380977414301' })
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.emailAddress).toBe(user.emailAddress);
           expect(body.mobileNumber).toBe('0977414301');
+          expect(body.username).toBe(user.username);
+          expect(body.accountStatus).toBe('verified');
+        });
+    });
+
+    it("should update user's mobile number starting with 380", () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ mobileNumber: '380977414380' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.mobileNumber).toBe('0977414380');
           expect(body.username).toBe(user.username);
           expect(body.accountStatus).toBe('verified');
         });
