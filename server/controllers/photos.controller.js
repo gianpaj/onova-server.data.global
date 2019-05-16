@@ -43,15 +43,15 @@ async function tempUploadProductImage(
   const pipeline = sharp(file.buffer);
   const metadata = await pipeline.metadata();
 
-  // if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
-  //   const APIerr = new APIError(
-  //     `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${
-  //       metadata.width
-  //     }x${metadata.height}`,
-  //     httpStatus.BAD_REQUEST
-  //   );
-  //   return next(APIerr);
-  // }
+  if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
+    const APIerr = new APIError(
+      `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${
+        metadata.width
+      }x${metadata.height}`,
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
 
   let height, width;
 
@@ -72,8 +72,12 @@ async function tempUploadProductImage(
   // save locally for test
   if (config.env === 'test') {
     pipeline
-      .resize(THUMB_WIDTH, THUMB_HEIGHT)
-      .crop(sharp.strategy.entropy)
+      .resize({
+        width: THUMB_WIDTH,
+        height: THUMB_HEIGHT,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
       .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
@@ -91,8 +95,12 @@ async function tempUploadProductImage(
       });
 
     pipeline
-      .resize(THUMB_WIDTH * 2, THUMB_HEIGHT * 2)
-      .crop(sharp.strategy.entropy)
+      .resize(THUMB_WIDTH, THUMB_HEIGHT, {
+        width: THUMB_WIDTH * 2,
+        height: THUMB_HEIGHT * 2,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
       .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
@@ -112,8 +120,12 @@ async function tempUploadProductImage(
     const tempFilePath = `${TEMP_PATH}/${uploadDate}.jpg`;
 
     pipeline
-      .resize(width, height)
-      .crop(sharp.strategy.entropy)
+      .resize({
+        width,
+        height,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
       .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error cropping', err);
@@ -167,9 +179,13 @@ async function tempUploadProductImage(
 
   try {
     sharp(file.buffer)
-      .resize(width, height)
+      .resize({
+        width,
+        height,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
       .jpeg(JPEG_COMPRESSION)
-      .crop(sharp.strategy.entropy)
       .pipe(stream);
   } catch (error) {
     console.log('Error resize, compression or cropping image');

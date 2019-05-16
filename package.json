@@ -64,7 +64,7 @@
     "passport-local": "^1.0.0",
     "pug": "^2.0.3",
     "request": "^2.88.0",
-    "sharp": "^0.20.8",
+    "sharp": "^0.22",
     "shortid": "^2.2.13",
     "winston": "2.4.2",
     "winston-daily-rotate-file": "^3.3.2"

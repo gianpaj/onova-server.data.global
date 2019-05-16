@@ -235,9 +235,13 @@ function uploadThumbnailToGCS(
     });
 
     sharp(file.buffer)
-      .resize(width, height)
+      .resize({
+        width,
+        height,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
       .jpeg(JPEG_COMPRESSION)
-      .crop(sharp.strategy.entropy)
       .pipe(thumbnailUploadStream);
 
     thumbnailUploadStream.on('finish', () => {
