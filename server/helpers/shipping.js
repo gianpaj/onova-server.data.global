@@ -21,6 +21,7 @@ export const NP = {
 export default class Shipping {
   static async getShippingStatus(trackingNumber: string): Promise<any> {
     return new Promise((resolve, reject) => {
+      let result;
       axios
         .post(`${NovaPoshta_URL}/documentsTracking/`, {
           modelName: 'TrackingDocument',
@@ -32,7 +33,7 @@ export default class Shipping {
         .then(({ data }) => {
           if (!data.success) return reject(data);
 
-          const result = data.data[0];
+          result = data.data[0];
 
           // Number not found
           if (result.StatusCode === '3') {
