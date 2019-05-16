@@ -21,8 +21,6 @@ pipelines:
             - sentry-cli releases -o "${SENTRY_ORG}" new -p "${SENTRY_PROJECT}" "${BITBUCKET_BUILD_NUMBER}"
             - sentry-cli releases -o "${SENTRY_ORG}" set-commits --auto "${BITBUCKET_BUILD_NUMBER}"
       - step:
-          # caches:
-          #   - node
           script:
             - >
               ssh bitbucket@direct.onova.co /bin/bash << EOF

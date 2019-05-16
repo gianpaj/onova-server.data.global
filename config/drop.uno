@@ -45,6 +45,11 @@ server {
 
         server_name drop.uno;
 
+        location ~ /.well-known/apple-app-site-association {
+            root /var/www/webapp-drop/dist;
+            default_type application/pkcs7-mime;
+        }
+
         # webapp SSR
         location / {
                 proxy_pass http://localhost:3002;
