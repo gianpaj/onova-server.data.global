@@ -130,9 +130,9 @@ function activate(req, res) {
         // data.heading = 'There was an issue activating your account';
         data.heading = 'Виникла проблема при активації вашого профілю';
         // data.paragraph =
-        //   'There was something wrong with the link you received. Note that it expires after 72 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
+        //   'There was something wrong with the link you received. Note that it expires after 72 hours. Please request a new one from the App or email <a href="mailto:support@onova.co">support@onova.co</a> for support.';
         data.paragraph =
-          'Щось не так з посиланням котре ви отримали. Воно стає недійсне через 72 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на<a href="mailto:hello@onova.co">hello@onova.co</a>';
+          'Щось не так з посиланням котре ви отримали. Воно стає недійсне через 72 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на <a href="mailto:support@onova.co">support@onova.co</a>';
         // TODO: update email if link is for Drop
       } else if (verDoc.user.accountStatus == 'notverified') {
         const { username, types } = verDoc.user;
@@ -192,9 +192,9 @@ function resetPage(req, res) {
         // data.heading = 'There was an issue resetting your password';
         data.heading = 'Виникла проблема при зміні паролю';
         // data.paragraph =
-        //   'There was something wrong with the link you received. Note that it expires after 72 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
+        //   'There was something wrong with the link you received. Note that it expires after 72 hours. Please request a new one from the App or email <a href="mailto:support@onova.co">support@onova.co</a> for support.';
         data.paragraph =
-          'Щось не так з посиланням котре ви отримали. Воно стає недійсне через 72 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на<a href="mailto:hello@onova.co">hello@onova.co</a>';
+          'Щось не так з посиланням котре ви отримали. Воно стає недійсне через 72 години. Будь ласка спробуйте ще раз з додатку, або напишіть нам на <a href="mailto:support@onova.co">support@onova.co</a>';
         data.show_form = false;
       } else if (verDoc.user.types.includes('reseller')) {
         data.title = 'Drop - Заміна паролю';
