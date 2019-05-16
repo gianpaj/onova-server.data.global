@@ -35,6 +35,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
   let subject =
     'Підтвердження профілю - Welcome to Onova, verify your email address';
   let TemplateID = 343433;
+  let domain = 'onova.co';
   mailjetOptions = {
     ...mailjetOptions,
     From: {
@@ -46,6 +47,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
     subject =
       'Підтвердження профілю - Welcome to Drop, verify your email address';
     TemplateID = 832474;
+    domain = 'drop.uno';
     mailjetOptions = {
       ...mailjetOptions,
       From: {
@@ -65,7 +67,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
   })
     .then(() => {
       const vars = {
-        confirmation_link: `https://onova.co/api/auth/activate/${token}`,
+        confirmation_link: `https://${domain}/api/auth/activate/${token}`,
         displayName: user.username,
       };
 
@@ -99,6 +101,9 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
   // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
 
+  let domain = 'onova.co';
+  if (user.types.includes('reseller')) domain = 'drop.uno';
+
   // generate link
   Verification.create({
     user: user._id,
@@ -106,7 +111,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
   })
     .then(() => {
       const Variables = {
-        confirmation_link: `https://onova.co/api/auth/activate/${token}`,
+        confirmation_link: `https://${domain}/api/auth/activate/${token}`,
         displayName: user.username,
       };
 
@@ -139,6 +144,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
   const token = crypto.randomBytes(8).toString('hex');
 
   let TemplateID = 345696;
+  let domain = 'onova.co';
   mailjetOptions = {
     ...mailjetOptions,
     From: {
@@ -149,6 +155,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
 
   if (user.types.includes('reseller')) {
     TemplateID = 832656;
+    domain = 'drop.uno';
     mailjetOptions = {
       ...mailjetOptions,
       From: {
@@ -165,7 +172,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
   })
     .then(() => {
       const vars = {
-        reset_link: `https://onova.co/api/auth/reset/${token}`,
+        reset_link: `https://${domain}/api/auth/reset/${token}`,
         displayName: user.username,
       };
 
