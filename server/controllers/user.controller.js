@@ -302,7 +302,7 @@ function update(
       const notFound = ['facebook', 'instagram'].filter(
         s => !foundSocials.includes(s)
       );
-      notFound.forEach(s => user.socials.delete(s));
+      if (user.socials) notFound.forEach(s => user.socials.delete(s));
     } else {
       user.socials = undefined;
     }
