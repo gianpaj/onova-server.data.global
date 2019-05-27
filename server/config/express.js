@@ -16,6 +16,7 @@ import helmet from 'helmet';
 import passport from 'passport';
 import Agenda from 'agenda';
 import * as Sentry from '@sentry/node';
+import moesifExpress from 'moesif-express';
 require('winston-daily-rotate-file');
 
 import winstonInstance, { winstonDailyRotateConfig } from './winston';
@@ -27,6 +28,20 @@ import EscrowRunner from '../runners/escrow.runner';
 import ShippingRunner from '../runners/shipping.runner';
 
 const debug = require('debug')('server-data:index');
+
+const options = {
+  applicationId: 'eyJhcHAiOiIxMzI6NTAiLCJ2ZXIiOiIyLjAiLCJvcmciOiIxMTY6NDMiLCJpYXQiOjE1NTg5MTUyMDB9.yDHpxxgtHknxOYbJKvAwfQgnNQ_A8JUDpcBQNGgmTdE',
+  identifyUser: function(req, res) {
+    if (req.user) {
+      return req.user.id;
+    }
+    return undefined;
+  },
+
+  getSessionToken: function (req, res) {
+    return req.headers['Authorization'];
+  }
+};
 
 const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.jobDb
@@ -91,6 +106,11 @@ if (config.env === 'production') {
 
   // The request handler must be the first middleware on the app
   app.use(Sentry.Handlers.requestHandler());
+
+  const moesifMiddleware = moesifExpress(options);
+  // capture outgoing API calls (to 3rd parties like Mailjet)
+  moesifMiddleware.startCaptureOutgoing();
+  app.use(moesifMiddleware);
 }
 
 // parse body params and attache them to req.body
