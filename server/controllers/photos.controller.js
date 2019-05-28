@@ -15,8 +15,8 @@ import photos from '../helpers/photos';
 const debug = require('debug')('server-data:index');
 const download = require('image-downloader');
 
-const MIN_WIDTH = 1440;
-const MIN_HEIGHT = 1440;
+const MIN_WIDTH = 1000;
+const MIN_HEIGHT = 1000;
 const MIN_WIDTH_AP = (MIN_WIDTH / 3) * 4;
 const MIN_HEIGHT_AP = (MIN_WIDTH / 3) * 4;
 const THUMB_WIDTH = 280;
@@ -60,11 +60,11 @@ async function tempUploadProductImage(
     height = MIN_HEIGHT;
     width = MIN_HEIGHT;
   } else if (metadata.width < metadata.height) {
-    // if portrait pic, resize to width of 1440 and height of up to aspect ratio of 3:4
+    // if portrait pic, resize to width of 1000 and height of up to aspect ratio of 3:4
     height = Math.min(metadata.height, MIN_HEIGHT_AP);
     width = MIN_WIDTH;
   } else {
-    // if landscape pic, resize to height of 1440 and width of up to aspect ratio of 4:3
+    // if landscape pic, resize to height of 1000 and width of up to aspect ratio of 4:3
     height = MIN_HEIGHT;
     width = Math.min(metadata.width, MIN_WIDTH_AP);
   }
