@@ -17,12 +17,12 @@ export default {
   createProduct: {
     body: Joi.object({
       categoryIds: validation.categoriesOrTypes.required(),
-      typeIds: validation.categoriesOrTypes.required(),
-      tags: validation.tags.single(),
+      currency: Joi.string().valid('UAH'), // 'UAH' by default
       description: validation.description.required(),
       photos: validation.photos.required(),
       price: validation.price.required(),
-      currency: Joi.string().valid('UAH'), // 'UAH' by default
+      tags: validation.tags.single(),
+      typeIds: validation.categoriesOrTypes.required(),
       latitude: Joi.number()
         .min(-90)
         .max(90),
@@ -47,11 +47,11 @@ export default {
     },
     body: {
       categoryIds: validation.categoriesOrTypes,
-      typeIds: validation.categoriesOrTypes,
-      tags: validation.tags.single(),
       description: validation.description,
       photos: validation.photos,
       price: validation.price,
+      tags: validation.tags.single(),
+      typeIds: validation.categoriesOrTypes,
     },
   },
 
@@ -59,13 +59,14 @@ export default {
   getProducts: {
     query: Joi.object({
       categoryIds: validation.categoriesOrTypes,
+      lastId: validation.objectId,
       limit: Joi.number()
         .min(1)
         .max(200),
+      sellerType: validation.sellerType,
+      tags: validation.tags.unique(),
       userid: validation.objectId,
       username: validation.username.min(3),
-      tags: validation.tags.unique(),
-      lastId: validation.objectId,
     }).nand('username', 'userid'),
   },
 };

@@ -444,17 +444,30 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should get all products (from reseller)', () => {
+    it('should get all products (from resellers)', () => {
+      return request(app)
+        .get('/api/products/?sellerType=reseller')
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(Object.keys(p[0].seller).sort()).toMatchSnapshot();
+          expect(p).toHaveLength(1);
+          expect(Object.keys(p[0]).sort()).toEqual(
+            [...productFields, 'locality'].sort()
+          );
+        });
+    });
+
+    it('should get all products (I am a reseller)', () => {
       return request(app)
         .get('/api/products/')
         .set('Authorization', jwtToken5)
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
-          expect(Array.isArray(p));
           expect(p).toHaveLength(productsResellerCount);
           expect(Object.keys(p[0]).sort()).toEqual(
-            [...productFields, 'locality', 'location'].sort()
+            [...productFields, 'locality'].sort()
           );
         });
     });
@@ -465,7 +478,6 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
-          expect(Array.isArray(p));
           expect(p).toHaveLength(1);
           expect(p[0].description).toBe(thirdProduct.description);
         });
@@ -477,7 +489,6 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
-          expect(Array.isArray(p));
           expect(p).toHaveLength(productsCount);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
@@ -489,7 +500,6 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(Array.isArray(data));
           expect(data).toHaveLength(productsCount);
           expect(Object.keys(data[0]).sort()).toEqual(productFields.sort());
         });
@@ -501,7 +511,6 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(Array.isArray(data));
           expect(data).toHaveLength(4);
           expect(Object.keys(data[0]).sort()).toEqual(productFields.sort());
         });
@@ -550,7 +559,6 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
-          expect(Array.isArray(p));
           expect(p).toHaveLength(2);
           expect(p[0].description).toBe(product.description);
         });
@@ -561,7 +569,6 @@ describe('## Product APIs', () => {
         .get('/api/products/?tags[]=winter&tags[]=spring')
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(Array.isArray(body.data));
           expect(body.data).toHaveLength(3);
           expect(body.data[0].tags).toEqual(thirdProduct.tags);
           expect(body.data[1].tags).toEqual(product.tags);
@@ -575,7 +582,6 @@ describe('## Product APIs', () => {
         .get('/api/products/?tags[]=Winter&tags[]=Spring')
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(Array.isArray(body.data));
           expect(body.data).toHaveLength(3);
           expect(body.data[0].tags).toEqual(thirdProduct.tags);
           expect(body.data[1].tags).toEqual(product.tags);
@@ -603,7 +609,6 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
-          expect(Array.isArray(p));
           expect(p).toHaveLength(productsCount);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });

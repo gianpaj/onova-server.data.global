@@ -217,7 +217,6 @@ ProductSchema.statics = {
           currency: 1,
           description: 1,
           dropId: 1,
-          location: 1,
           locality: 1,
           photoURIs: 1,
           price: 1,

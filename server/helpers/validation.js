@@ -43,6 +43,7 @@ export default {
     .regex(price)
     .invalid('0')
     .invalid('0.00'),
+  sellerType: Joi.string().valid(['designer', 'reseller']),
   tag,
   tags: Joi.array()
     .max(30)

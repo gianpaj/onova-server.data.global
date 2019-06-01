@@ -91,6 +91,16 @@ Array [
 ]
 `;
 
+exports[`## Product APIs # GET /api/products/ should get all products (from resellers) 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "shippingAddress",
+  "types",
+  "username",
+]
+`;
+
 exports[`## Product APIs # GET /api/products/:uuid should get an existing product: product 1`] = `
 Array [
   "_id",

@@ -282,6 +282,7 @@ async function create(
  * @property {number|Array<number>=} req.query.categoryIds
  * @property {MongoId=} req.query.lastId (not uuid)
  * @property {number=} req.query.limit Limit number of products to be returned
+ * @property {array<string>|string=} req.query.sellerType
  * @property {array<string>|string=} req.query.tags
  * @property {string=} req.query.userid (or username)
  * @property {string=} req.query.username (or userid)
@@ -291,7 +292,15 @@ async function list(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { categoryIds, lastId, limit = 50, tags, userid, username } = req.query;
+  const {
+    categoryIds,
+    lastId,
+    limit = 50,
+    sellerType,
+    tags,
+    userid,
+    username,
+  } = req.query;
   const projection = { comments: 0 };
   let query = { status: 'forsale' };
   let sellerTypes;
@@ -361,6 +370,8 @@ async function list(
     if (req.user.types.includes('admin')) {
       sellerTypes = ['reseller', 'designer', 'admin'];
     }
+  } else if (sellerType) {
+    sellerTypes = [sellerType];
   }
 
   // use static method from ProductSchema
