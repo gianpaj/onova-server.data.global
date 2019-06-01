@@ -268,7 +268,7 @@ ProductSchema.set('toJSON', {
 });
 
 ProductSchema.index({ status: 1, createdAt: 1 });
-// ProductSchema.index({ status: 1, categoryIds: 1 });
+ProductSchema.index({ status: 1, categoryIds: 1 });
 ProductSchema.index({ status: 1, tags: 1 });
 ProductSchema.index({ status: 1, photoURIs: 1 });
 ProductSchema.index({ status: 1, seller: 1 });
