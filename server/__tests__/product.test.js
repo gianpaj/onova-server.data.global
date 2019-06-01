@@ -49,10 +49,10 @@ describe('## Product APIs', () => {
   };
 
   let product = {
-    categoryIds: [1, 2, 3],
-    typeIds: [1, 2, 3],
+    categoryIds: [0], // clothes
+    typeIds: [3], // for other - no gender
     tags: ['winter', 'spring2007'], // optional
-    description: 'nice boots',
+    description: 'nice winter jacket for anybody',
     // seller comes after the user is created
     price: '2100.99', // if 1 decimal point .00 will be added
     photos: [
@@ -61,9 +61,9 @@ describe('## Product APIs', () => {
   };
 
   let productUser2 = {
-    categoryIds: [1],
-    typeIds: [1, 3],
-    description: 'nice jacket',
+    categoryIds: [1], // shoes
+    typeIds: [1], // women
+    description: 'nice women shoes',
     price: '230.99',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
@@ -71,10 +71,10 @@ describe('## Product APIs', () => {
   };
 
   let thirdProduct = {
-    categoryIds: [2],
-    typeIds: [1, 3],
+    categoryIds: [2], // accessories
+    typeIds: [0], // men
     tags: ['spring'],
-    description: 'nice scarf',
+    description: 'nice scarf for men',
     price: '3130',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
@@ -82,10 +82,10 @@ describe('## Product APIs', () => {
   };
 
   let badProduct = {
-    categoryIds: [2],
-    typeIds: [1, 3],
+    categoryIds: [2], // accessories
+    typeIds: [1], // women
     tags: ['lol@'],
-    description: 'nice API',
+    description: 'nice handbag for women',
     price: '4290.00',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
@@ -141,7 +141,7 @@ describe('## Product APIs', () => {
     await User.updateOne({ _id: user5._id }, { $set: { types: ['reseller'] } });
   });
 
-  describe('# POST /api/products', () => {
+  describe.only('# POST /api/products', () => {
     it('should NOT create a product with invalid photos', () => {
       return request(app)
         .post('/api/products')
@@ -194,7 +194,7 @@ describe('## Product APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           const p = res.body.data;
-          expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
+          expect(p.categoryIds.sort()).toEqual(product.categoryIds);
           expect(Array.isArray(p.comments));
           expect(p.comments).toHaveLength(0);
           expect(p.currency).toBe('UAH');
@@ -207,7 +207,7 @@ describe('## Product APIs', () => {
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
           expect(p.tags).toEqual(product.tags);
-          expect(p.typeIds.sort()).toEqual([1, 2, 3]);
+          expect(p.typeIds.sort()).toEqual(product.typeIds);
           expect(Object.keys(p).sort()).toEqual(
             [...productFields, 'comments'].sort()
           );
