@@ -13,7 +13,8 @@
     "test": "jest --runInBand",
     "test:one": "NODE_ENV=test jest --bail --watch --verbose false",
     "test:watch": "yarn test --watch",
-    "test:coverage": "yarn jest --coverage"
+    "test:coverage": "yarn jest --coverage",
+    "format": "prettier-eslint \"server/**/*.js\""
   },
   "dependencies": {
     "@babel/cli": "^7.2.0",
@@ -84,6 +85,7 @@
     "jest-circus": "^24.8.0",
     "nodemon": "^1.18.0",
     "prettier": "^1.16.0",
+    "prettier-eslint-cli": "4.7.1",
     "rimraf": "^2.6.0",
     "superagent-mock": "3.7.0",
     "supertest": "^3.4.0",
