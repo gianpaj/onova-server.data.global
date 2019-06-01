@@ -60,7 +60,7 @@ let anotherUser = {
   password: 'express2',
 };
 
-let user5 = {
+let user5Reseller = {
   username: 'fifthperson',
   emailAddress: 'gianpa+test5@gmail.com',
   password: 'express5',
@@ -81,7 +81,7 @@ let userId;
 let anotherUserId;
 let firstJwtToken;
 let anotherJwtToken;
-let jwtToken5;
+let jwtToken5Reseller;
 
 describe('## Search APIs', () => {
   // TODO: reset the collections beforeEach
@@ -107,12 +107,12 @@ describe('## Search APIs', () => {
         expect(p2.description).toBe(anotherProduct.description);
 
         const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
-          user5
+          user5Reseller
         );
-        user5._id = resUser5._id;
-        jwtToken5 = token5;
+        user5Reseller._id = resUser5._id;
+        jwtToken5Reseller = token5;
         await User.updateOne(
-          { _id: user5._id },
+          { _id: user5Reseller._id },
           { $set: { types: ['reseller'] } }
         );
         const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
@@ -137,13 +137,6 @@ describe('## Search APIs', () => {
   );
 
   describe('# GET /api/search', () => {
-    it('should not allow me to search without authentication', () => {
-      return request(app)
-        .get('/api/search')
-        .expect(httpStatus.UNAUTHORIZED)
-        .then();
-    });
-
     it('should not find a deleted product', () => {
       return request(app)
         .get('/api/search')
@@ -296,21 +289,15 @@ describe('## Search APIs', () => {
         .get('/api/search?tag=freezing')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
-    test('reseller should not find products from designers', () => {
+    test('reseller should not find products from designers if I am a reseller', () => {
       return request(app)
         .get('/api/search?tag=warm')
-        .set('Authorization', jwtToken5)
+        .set('Authorization', jwtToken5Reseller)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
     it('should not search products by invalid tag', () => {
@@ -369,10 +356,7 @@ describe('## Search APIs', () => {
         .get('/api/search?description=how')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
     it('should not search products by invalid text description', () => {
@@ -418,7 +402,7 @@ describe('## Search APIs', () => {
     it('should not find products by tag & categoryIds (from designers)', () => {
       return request(app)
         .get('/api/search?tag=summer&categoryIds=2')
-        .set('Authorization', jwtToken5)
+        .set('Authorization', jwtToken5Reseller)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data).toHaveLength(0));
     });
@@ -428,10 +412,7 @@ describe('## Search APIs', () => {
         .get('/api/search?tag=summer&categoryIds=1')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
     it('should find products by tag & typeIds', () => {
@@ -451,10 +432,7 @@ describe('## Search APIs', () => {
         .get('/api/search?tag=summer&typeIds=2')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
     it('should find products by categoryIds & typeIds', () => {

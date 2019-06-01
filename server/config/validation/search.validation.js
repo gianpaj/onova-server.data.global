@@ -24,6 +24,7 @@ export default {
       limit: Joi.number()
         .min(1)
         .max(50),
+      sellerType: validation.sellerType,
       tag: validation.tag,
       typeIds: validation.categoriesOrTypes,
     },

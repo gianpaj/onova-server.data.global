@@ -27,9 +27,10 @@ function escapeRegex(text: string) {
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
  * @property {number|Array<number>=} req.query.categoryIds
- * @property {string} req.query.description
+ * @property {string} req.query.description (not used by client apps)
  * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned
+ * @property {array<string>|string=} req.query.sellerType
  * @property {string} req.query.tag Limited to a single tag
  * @property {Array<number>=} req.query.typeIds
  */
@@ -39,15 +40,17 @@ async function get(
   next: express$NextFunction
 ) {
   const {
-    limit = 50,
-    lastId,
     categoryIds,
     description,
+    lastId,
+    limit = 50,
+    sellerType,
     tag,
     typeIds,
   } = req.query;
-
+  const projection = { comments: 0 };
   let query = { status: 'forsale' };
+  let sellerTypes;
 
   if (config.env !== 'test') {
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
@@ -64,35 +67,39 @@ async function get(
   }
   if (typeIds) query = { ...query, typeIds: { $in: typeIds } };
 
-  const [usersIamBlockedBy, usersIamBlocking] = await Promise.all([
-    Block.find({ targetUser: req.user._id }),
-    Block.find({ sourceUser: req.user._id }),
-  ]);
+  if (req.user) {
+    const [usersIamBlockedBy, usersIamBlocking] = await Promise.all([
+      Block.find({ targetUser: req.user._id }),
+      Block.find({ sourceUser: req.user._id }),
+    ]);
 
-  const idsA = usersIamBlockedBy.map(u => u.sourceUser);
-  const idsB = usersIamBlocking.map(u => u.targetUser);
+    const idsA = usersIamBlockedBy.map(u => u.sourceUser);
+    const idsB = usersIamBlocking.map(u => u.targetUser);
 
-  query.seller = { $nin: [...idsA, ...idsB] };
-
-  const projection = { comments: 0 };
+    query.seller = { $nin: [...idsA, ...idsB] };
+  }
 
   // for pagination - results are excluding the lastId
   if (lastId) {
-    query = { ...query, _id: { $lt: new mongoose.Types.ObjectId(lastId) } };
-
     const product = await Product.findById(lastId);
     if (!product) {
       const APIerr = new APIError('Product not found.', httpStatus.NOT_FOUND);
       return next(APIerr);
     }
+
+    query = { ...query, _id: { $lt: new mongoose.Types.ObjectId(lastId) } };
   }
 
-  let sellerTypes = req.user.types;
-  if (req.user.types.includes('admin')) {
-    sellerTypes = ['reseller', 'designer', 'admin'];
+  if (req.user && req.user.types) {
+    sellerTypes = req.user.types;
+    if (req.user.types.includes('admin')) {
+      sellerTypes = ['reseller', 'designer', 'admin'];
+    }
+  } else if (sellerType) {
+    sellerTypes = [sellerType];
   }
 
-  // using static method from ProductSchema
+  // use static method from ProductSchema
   Product.list({ query, projection, limit, sellerTypes })
     .then(data => res.json({ data }))
     .catch(e => next(e));

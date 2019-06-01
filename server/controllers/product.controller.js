@@ -309,17 +309,6 @@ async function list(
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
   }
 
-  if (tags) {
-    if (Array.isArray(tags)) {
-      const regexAllTags = tags.map(tag => new RegExp(escapeRegex(tag), 'i'));
-      query = { ...query, tags: { $in: regexAllTags } };
-    } else {
-      const regexTag = new RegExp(escapeRegex(tags), 'i');
-      query = { ...query, tags: regexTag };
-    }
-    // to display from the web
-    sellerTypes = ['reseller', 'designer', 'admin'];
-  }
   if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
 
   if (userid) {
@@ -351,6 +340,18 @@ async function list(
     }
 
     query = { ...query, seller: new mongoose.Types.ObjectId(user._id) };
+    sellerTypes = ['reseller', 'designer', 'admin'];
+  }
+
+  if (tags) {
+    if (Array.isArray(tags)) {
+      const regexAllTags = tags.map(tag => new RegExp(escapeRegex(tag), 'i'));
+      query = { ...query, tags: { $in: regexAllTags } };
+    } else {
+      const regexTag = new RegExp(escapeRegex(tags), 'i');
+      query = { ...query, tags: regexTag };
+    }
+    // to display from the web
     sellerTypes = ['reseller', 'designer', 'admin'];
   }
 
