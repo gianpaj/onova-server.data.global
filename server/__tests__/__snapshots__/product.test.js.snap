@@ -90,3 +90,34 @@ Array [
   "username",
 ]
 `;
+
+exports[`## Product APIs # GET /api/products/:uuid should get an existing product: product 1`] = `
+Array [
+  "_id",
+  "categoryIds",
+  "createdAt",
+  "currency",
+  "description",
+  "photoURIs",
+  "price",
+  "seller",
+  "status",
+  "tags",
+  "typeIds",
+  "updatedAt",
+  "uuid",
+  "weight",
+]
+`;
+
+exports[`## Product APIs # GET /api/products/:uuid should get an existing product: product.seller 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "displayName",
+  "profilePic",
+  "shippingAddress",
+  "types",
+  "username",
+]
+`;

@@ -42,7 +42,7 @@ describe('## Product APIs', () => {
     password: 'express4',
   };
 
-  let user5: UserDoc = {
+  let user5Reseller: UserDoc = {
     username: 'fifthperson',
     emailAddress: 'gianpa+test5@gmail.com',
     password: 'express5',
@@ -128,9 +128,9 @@ describe('## Product APIs', () => {
     user4._id = resUser4._id;
     jwtToken4 = token4;
     const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
-      user5
+      user5Reseller
     );
-    user5._id = resUser5._id;
+    user5Reseller._id = resUser5._id;
     jwtToken5 = token5;
     await request(app)
       .put(`/api/users/${user3._id}`)
@@ -138,10 +138,13 @@ describe('## Product APIs', () => {
       .send({ shippingAddress: {} })
       .expect(httpStatus.OK);
     await User.updateOne({ _id: user4._id }, { $unset: { paymentInfo: '' } });
-    await User.updateOne({ _id: user5._id }, { $set: { types: ['reseller'] } });
+    await User.updateOne(
+      { _id: user5Reseller._id },
+      { $set: { types: ['reseller'] } }
+    );
   });
 
-  describe.only('# POST /api/products', () => {
+  describe('# POST /api/products', () => {
     it('should NOT create a product with invalid photos', () => {
       return request(app)
         .post('/api/products')
@@ -391,8 +394,8 @@ describe('## Product APIs', () => {
           // expect(p.comments).toHaveLength(0);
           expect(Array.isArray(p.tags));
           expect(p.tags).toHaveLength(2);
-          expect(p.typeIds.sort()).toEqual([1, 2, 3]);
-          expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
+          expect(p.typeIds.sort()).toEqual(product.typeIds);
+          expect(p.categoryIds.sort()).toEqual(product.categoryIds);
           expect(p.photoURIs).toHaveLength(1);
         });
     });
@@ -450,7 +453,9 @@ describe('## Product APIs', () => {
           const p = res.body.data;
           expect(Array.isArray(p));
           expect(p).toHaveLength(productsResellerCount);
-          expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
+          expect(Object.keys(p[0]).sort()).toEqual(
+            [...productFields, 'locality', 'location'].sort()
+          );
         });
     });
 
@@ -490,14 +495,14 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should get all the products by username and categoryIds', () => {
+    it('should get all the products by username and categoryIds=0 (clothes)', () => {
       return request(app)
-        .get(`/api/products/?username=${user1.username}&categoryIds=2`)
+        .get(`/api/products/?username=${user1.username}&categoryIds=0`)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
           expect(Array.isArray(data));
-          expect(data).toHaveLength(5);
+          expect(data).toHaveLength(4);
           expect(Object.keys(data[0]).sort()).toEqual(productFields.sort());
         });
     });
