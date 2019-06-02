@@ -174,7 +174,7 @@ async function create(
       username: body.username,
       emailAddress: body.emailAddress,
       password: body.password,
-      types: ['designer'],
+      types: [body.type],
     });
 
     if (body.mobileNumber) {
