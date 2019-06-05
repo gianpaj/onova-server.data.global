@@ -23,99 +23,61 @@ declare class session$Request extends express$Request {
  * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned.
  */
-function flat(
+async function flat(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
   const { limit = 50, lastId, categoryIds, tag, typeIds } = req.query;
 
-  Follow.find({
-    follower: req.user._id,
-    status: { $ne: -1 },
-  })
-    .limit(1000)
-    .then(async (following: Array<FollowDoc>) => {
-      let sellerTypes = req.user.types;
-      if (req.user.types.includes('admin')) {
-        sellerTypes = ['reseller', 'designer', 'admin'];
-      }
-      const blockedBy = await Follow.find({
-        follower: req.user._id,
-        status: -1,
-      });
-      let blockedByIDs = [];
+  let sellerTypes = req.user.types;
+  if (req.user.types.includes('admin')) {
+    sellerTypes = ['reseller', 'designer', 'admin'];
+  }
 
-      if (blockedBy) blockedByIDs = blockedBy.map(f => f.following);
-      if (!following.length) {
-        let DBqueryExclusive = {
-          status: 'forsale',
-          seller: { $nin: blockedByIDs },
-        };
-
-        if (categoryIds) {
-          DBqueryExclusive = {
-            ...DBqueryExclusive,
-            categoryIds: { $in: categoryIds },
-          };
-        }
-        // for pagination - results are excluding the lastId
-        if (lastId) {
-          DBqueryExclusive = {
-            ...DBqueryExclusive,
-            _id: { $lt: new mongoose.Types.ObjectId(lastId) },
-          };
-
-          const lastIdProd = await Product.findById(lastId);
-          if (!lastIdProd) {
-            throw new APIError('Product not found.', httpStatus.NOT_FOUND);
-          }
-        }
-        const products = await Product.list({
-          query: DBqueryExclusive,
-          limit,
-          sellerTypes,
-        });
-
-        return res.json({ data: products });
-      }
-
-      const followingIDs = following.map(f => f.following);
-
-      let DBqueryInclusive = {
+  try {
+    // if i am a designer only show my items
+    // NOTE: no pagination (TODO:?)
+    if (req.user.types.includes('designer')) {
+      let query = {
         status: 'forsale',
-        seller: { $in: followingIDs },
+        seller: req.user._id,
       };
-      let DBqueryExclusive = {
-        status: 'forsale',
-        seller: { $nin: [...followingIDs, ...blockedByIDs] },
-      };
-
-      if (typeIds) {
-        DBqueryInclusive = { ...DBqueryInclusive, typeIds: { $in: typeIds } };
-        DBqueryExclusive = { ...DBqueryExclusive, typeIds: { $in: typeIds } };
-      }
       if (categoryIds) {
-        DBqueryInclusive = {
-          ...DBqueryInclusive,
+        query = {
+          ...query,
           categoryIds: { $in: categoryIds },
         };
+      }
+      const products = await Product.list({ query, limit, sellerTypes });
+      return res.json({ data: products });
+    }
+
+    const following: Array<FollowDoc> = await Follow.find({
+      follower: req.user._id,
+      status: { $ne: -1 },
+    }).limit(1000);
+    const blockedBy = await Follow.find({
+      follower: req.user._id,
+      status: -1,
+    });
+    let blockedByIDs = [];
+
+    if (blockedBy) blockedByIDs = blockedBy.map(f => f.following);
+    if (!following.length) {
+      let DBqueryExclusive = {
+        status: 'forsale',
+        seller: { $nin: blockedByIDs },
+      };
+
+      if (categoryIds) {
         DBqueryExclusive = {
           ...DBqueryExclusive,
           categoryIds: { $in: categoryIds },
         };
       }
-      if (tag) {
-        DBqueryInclusive = { ...DBqueryInclusive, tags: tag };
-        DBqueryExclusive = { ...DBqueryExclusive, tags: tag };
-      }
-
       // for pagination - results are excluding the lastId
       if (lastId) {
-        DBqueryInclusive = {
-          ...DBqueryInclusive,
-          _id: { $lt: new mongoose.Types.ObjectId(lastId) },
-        };
         DBqueryExclusive = {
           ...DBqueryExclusive,
           _id: { $lt: new mongoose.Types.ObjectId(lastId) },
@@ -126,17 +88,77 @@ function flat(
           throw new APIError('Product not found.', httpStatus.NOT_FOUND);
         }
       }
-
-      const products = await Promise.all([
-        Product.list({ query: DBqueryInclusive, limit, sellerTypes }),
-        Product.list({ query: DBqueryExclusive, limit, sellerTypes }),
-      ]);
-
-      return res.json({
-        data: [].concat.apply([], products).slice(0, +limit),
+      const products = await Product.list({
+        query: DBqueryExclusive,
+        limit,
+        sellerTypes,
       });
-    })
-    .catch(e => next(e));
+
+      return res.json({ data: products });
+    }
+
+    const followingIDs = following.map(f => f.following);
+
+    let DBqueryInclusive = {
+      status: 'forsale',
+      seller: { $in: followingIDs },
+    };
+    let DBqueryExclusive = {
+      status: 'forsale',
+      seller: { $nin: [...followingIDs, ...blockedByIDs] },
+    };
+
+    if (typeIds) {
+      DBqueryInclusive = { ...DBqueryInclusive, typeIds: { $in: typeIds } };
+      DBqueryExclusive = { ...DBqueryExclusive, typeIds: { $in: typeIds } };
+    }
+    if (categoryIds) {
+      DBqueryInclusive = {
+        ...DBqueryInclusive,
+        categoryIds: { $in: categoryIds },
+      };
+      DBqueryExclusive = {
+        ...DBqueryExclusive,
+        categoryIds: { $in: categoryIds },
+      };
+    }
+    if (tag) {
+      DBqueryInclusive = { ...DBqueryInclusive, tags: tag };
+      DBqueryExclusive = { ...DBqueryExclusive, tags: tag };
+    }
+
+    // for pagination - results are excluding the lastId
+    if (lastId) {
+      DBqueryInclusive = {
+        ...DBqueryInclusive,
+        _id: { $lt: new mongoose.Types.ObjectId(lastId) },
+      };
+      DBqueryExclusive = {
+        ...DBqueryExclusive,
+        _id: { $lt: new mongoose.Types.ObjectId(lastId) },
+      };
+
+      const lastIdProd = await Product.findById(lastId);
+      if (!lastIdProd) {
+        throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+      }
+    }
+
+    // console.log(
+    //   JSON.stringify({ query: DBqueryInclusive, limit, sellerTypes }, null, 2)
+    // );
+
+    const products = await Promise.all([
+      Product.list({ query: DBqueryInclusive, limit, sellerTypes }),
+      Product.list({ query: DBqueryExclusive, limit, sellerTypes }),
+    ]);
+
+    return res.json({
+      data: [].concat.apply([], products).slice(0, +limit),
+    });
+  } catch (e) {
+    next(e);
+  }
 }
 
 // const StreamMongoose = stream.mongoose;
