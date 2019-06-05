@@ -5,7 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import { Tag, Product, User, UserDoc } from '../models';
+import { Tag, Product, UserDoc } from '../models';
 import {
   beforeAllTests,
   createProduct,
@@ -89,16 +89,18 @@ const user4: UserDoc = {
   password: 'express4',
 };
 
-const user5: UserDoc = {
+const user5Reseller: UserDoc = {
   username: 'fifthperson',
   emailAddress: 'gianpa+test5@gmail.com',
   password: 'express5',
+  type: 'reseller',
 };
 
-const user6: UserDoc = {
+const user6Reseller: UserDoc = {
   username: 'sixthperson',
   emailAddress: 'gianpa+test6@gmail.com',
   password: 'express6',
+  type: 'reseller',
 };
 
 const user7 = {
@@ -124,7 +126,7 @@ let productUuid;
 let anotherProductUuid;
 let firstJwtToken;
 let anotherJwtToken;
-let jwtToken5, jwtToken6, jwtToken7;
+let jwtToken5Reseller, jwtToken6Reseller, jwtToken7;
 let user3_id;
 let user3_jwtToken;
 let user4_jwtToken;
@@ -161,23 +163,14 @@ describe('## Feed APIs', () => {
       )
       .then(async () => {
         const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
-          user5
+          user5Reseller
         );
-        user5._id = resUser5._id;
-        jwtToken5 = token5;
-        await User.updateOne(
-          { _id: user5._id },
-          { $set: { types: ['reseller'] } }
-        );
+        jwtToken5Reseller = token5;
         const { user: resUser6, jwtToken: token6 } = await createUserAndLogin(
-          user6
+          user6Reseller
         );
-        user6._id = resUser6._id;
+        user6Reseller._id = resUser6._id;
         // jwtToken6 = token6;
-        await User.updateOne(
-          { _id: user6._id },
-          { $set: { types: ['reseller'] } }
-        );
         const { user: resUser7, jwtToken: token7 } = await createUserAndLogin(
           user7
         );
@@ -217,7 +210,7 @@ describe('## Feed APIs', () => {
       followUser(firstJwtToken, anotherUserId),
       followUser(anotherJwtToken, userId),
       followUser(user4_jwtToken, user3_id),
-      followUser(jwtToken5, user6._id),
+      followUser(jwtToken5Reseller, user6Reseller._id),
     ])
   );
 
@@ -261,7 +254,7 @@ describe('## Feed APIs', () => {
         });
     });
 
-    it("should get user`s feed that doesn't follow anybody", () => {
+    it("should get user's feed when she doesn't follow anybody", () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', jwtToken7)
