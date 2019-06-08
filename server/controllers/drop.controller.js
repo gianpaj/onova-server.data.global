@@ -33,8 +33,8 @@ import {
 const { minPrice } = config.settings;
 
 export const i18n = {
-  // listedDrop: 'Your drop has been posted',
-  listedDrop: 'Ваш Дроп виставлено на продаж',
+  // listedDrop: 'Your collection is for sale',
+  listedDrop: 'Вашу колекцію виставлено на продаж',
 };
 
 declare class session$Request extends express$Request {
