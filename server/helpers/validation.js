@@ -27,7 +27,7 @@ export default {
     .items(
       Joi.number()
         .min(0)
-        .max(5)
+        .max(29)
     )
     .single(),
   description: Joi.string()

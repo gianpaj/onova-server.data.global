@@ -34,11 +34,18 @@ const GeoJSON = new Schema({
   coordinates: [Number],
 });
 
-// from mobileapp (AddProduct.js)
+// from mobileapp (ui.js)
+
 // categoryIds
-//   { label: 'Clothes', value: 0 },
-//   { label: 'Shoes', value: 1 },
-//   { label: 'Other', value: 2 },
+//   { label: 'Clothes-Men', value: 0 },
+//   { label: 'Clothes-Women', value: 1 },
+//   { label: 'Clothes-Shoes', value: 2 },
+//   { label: 'Accessories-Jewelry', value: 10 },
+//   { label: 'Accessories-Bags', value: 11 },
+//   { label: 'Accessories-Accessories', value: 12 },
+//   { label: 'For Home-Forniture', value: 20 },
+//   { label: 'For Home-Art', value: 21 },
+//   { label: 'For Home-Design', value: 22 },
 
 // typeIds
 //   { label: 'Men', value: 0 },
