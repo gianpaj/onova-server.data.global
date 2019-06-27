@@ -22,7 +22,7 @@ export default {
       photos: validation.photos.required(),
       price: validation.price.required(),
       tags: validation.tags.single(),
-      typeIds: validation.categoriesOrTypes.required(),
+      typeIds: validation.categoriesOrTypes,
       latitude: Joi.number()
         .min(-90)
         .max(90),

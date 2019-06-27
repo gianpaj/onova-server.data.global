@@ -49,7 +49,7 @@ describe('## Product APIs', () => {
   };
 
   let product = {
-    categoryIds: [0], // clothes
+    categoryIds: [0],
     typeIds: [3], // for other - no gender
     tags: ['winter', 'spring2007'], // optional
     description: 'nice winter jacket for anybody',
@@ -61,7 +61,7 @@ describe('## Product APIs', () => {
   };
 
   let productUser2 = {
-    categoryIds: [1], // shoes
+    categoryIds: [1],
     typeIds: [1], // women
     description: 'nice women shoes',
     price: '230.99',
@@ -71,8 +71,7 @@ describe('## Product APIs', () => {
   };
 
   let thirdProduct = {
-    categoryIds: [2], // accessories
-    typeIds: [0], // men
+    categoryIds: [2],
     tags: ['spring'],
     description: 'nice scarf for men',
     price: '3130',
@@ -82,7 +81,7 @@ describe('## Product APIs', () => {
   };
 
   let badProduct = {
-    categoryIds: [2], // accessories
+    categoryIds: [2],
     typeIds: [1], // women
     tags: ['lol@'],
     description: 'nice handbag for women',
@@ -681,7 +680,6 @@ describe('## Product APIs', () => {
           description: 'amazing boots',
           price: '319.99',
           categoryIds: [],
-          typeIds: [3],
         })
         .set('Authorization', jwtToken1)
         .expect(httpStatus.BAD_REQUEST)

@@ -104,7 +104,6 @@ export const ProductSchema = new Schema(
     },
     typeIds: {
       type: [Number],
-      required: true,
     },
     uuid: {
       type: String,
@@ -144,7 +143,7 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   seller: string;
   status: string;
   tags: ?Array<string>;
-  typeIds: Array<Number>;
+  typeIds: ?Array<Number>;
   updatedAt: Date;
   uuid: string;
   weight: Number;
