@@ -21,7 +21,7 @@ export default {
       description: validation.description.required(),
       photos: validation.photos.required(),
       price: validation.price.required(),
-      tags: validation.tags.single(),
+      tags: validation.tags,
       typeIds: validation.categoriesOrTypes,
       latitude: Joi.number()
         .min(-90)
@@ -50,7 +50,7 @@ export default {
       description: validation.description,
       photos: validation.photos,
       price: validation.price,
-      tags: validation.tags.single(),
+      tags: validation.tags,
       typeIds: validation.categoriesOrTypes,
     },
   },

@@ -43,7 +43,7 @@ export default {
             photos: validation.photos.required(),
             price: validation.price.required(),
             tags: validation.tags,
-            typeIds: validation.categoriesOrTypes.required(),
+            typeIds: validation.categoriesOrTypes,
           })
         )
         .required(),
