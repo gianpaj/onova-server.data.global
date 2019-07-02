@@ -50,10 +50,10 @@ const DropSchema = new Schema(
 
 export class DropDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
+  amISubscribed: Boolean;
   createdAt: Date;
   description: ?string;
   posted: Boolean;
-  amISubscribed: Boolean;
   products: Array<ProductDoc>;
   scheduledAt: Date;
   seller: MongoId;

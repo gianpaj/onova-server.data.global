@@ -7,13 +7,7 @@ import path from 'path';
 import app from '../index';
 
 import { Product, User } from '../models';
-import {
-  beforeAllTests,
-  createOrder,
-  createProduct,
-  createUserAndLogin,
-  productFields,
-} from './utils';
+import { beforeAllTests, createOrder, createProduct, createUserAndLogin, productFields } from './utils';
 
 describe('## Product APIs', () => {
   beforeAll(beforeAllTests);
@@ -54,30 +48,27 @@ describe('## Product APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice winter jacket for anybody',
     // seller comes after the user is created
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
     price: '2100.99', // if 1 decimal point .00 will be added
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    quantity: 1,
   };
 
   let productUser2 = {
     categoryIds: [1],
     typeIds: [1], // women
     description: 'nice women shoes',
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
     price: '230.99',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    quantity: 1,
   };
 
   let thirdProduct = {
     categoryIds: [2],
     tags: ['spring'],
     description: 'nice scarf for men',
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
     price: '3130',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    quantity: 1,
   };
 
   let badProduct = {
@@ -85,10 +76,9 @@ describe('## Product APIs', () => {
     typeIds: [1], // women
     tags: ['lol@'],
     description: 'nice handbag for women',
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
     price: '4290.00',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    quantity: 1,
   };
 
   let productUuid;
@@ -204,7 +194,7 @@ describe('## Product APIs', () => {
           expect(p.photoURIs[0]).not.toContain('thumb');
           expect(p.photoURIs[0]).toContain('/products/');
           expect(p.price).toBe(product.price);
-          // flow-disable-next-line
+          expect(p.quantity).toBe(product.quantity);
           expect(p.seller).toBe(user1._id);
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
@@ -376,7 +366,6 @@ describe('## Product APIs', () => {
           const p = res.body.data;
           expect(Object.keys(p).sort()).toMatchSnapshot('product');
           expect(p.description).toBe(product.description);
-          // flow-disable-next-line
           expect(p.seller._id).toBe(user1._id);
           expect(p.seller.username).toBe(user1.username);
           expect(Object.keys(p.seller).sort()).toMatchSnapshot(
@@ -388,6 +377,7 @@ describe('## Product APIs', () => {
           expect(p.seller.profilePic).toContain('.jpg');
           expect(p.status).toBe('forsale');
           expect(p.price).toBe(product.price);
+          expect(p.quantity).toBe(product.quantity);
           expect(p.currency).toBe('UAH');
           expect(Array.isArray(p.comments));
           // expect(p.comments).toHaveLength(0);
@@ -591,15 +581,21 @@ describe('## Product APIs', () => {
   });
 
   describe('# DELETE /api/products/:uuid', () => {
+    let productToBeDeleted;
+    beforeAll(async () => {
+      const p = await createProduct(thirdProduct, jwtToken1);
+      productToBeDeleted = p.uuid;
+      const p2 = await createProduct(productUser2, jwtToken2);
+      productUser2Uuid = p2.uuid;
+      productsCount++;
+    });
+
     it('should delete an existing product', () => {
       return request(app)
-        .delete(`/api/products/${productUuid}`)
+        .delete(`/api/products/${productToBeDeleted}`)
         .set('Authorization', jwtToken1)
         .expect(httpStatus.NO_CONTENT)
-        .then(({ body }) => {
-          expect(body).toMatchObject({});
-          productsCount--;
-        });
+        .then(({ body }) => expect(body).toMatchObject({}));
     });
 
     it('should get all remaining products', () => {
@@ -613,27 +609,19 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should NOT delete a deleted product', () => {
+    it('should NOT delete an already deleted product', () => {
       return request(app)
-        .delete(`/api/products/${productUuid}`)
+        .delete(`/api/products/${productToBeDeleted}`)
         .set('Authorization', jwtToken1)
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) => expect(body).toMatchObject({}));
+        .expect(httpStatus.BAD_REQUEST);
     });
 
-    describe('create another product', () => {
-      beforeAll(async () => {
-        const p = await createProduct(productUser2, jwtToken2);
-        productUser2Uuid = p.uuid;
-      });
-
-      it('should NOT delete a product which is not mine', () => {
-        return request(app)
-          .delete(`/api/products/${productUser2Uuid}`)
-          .set('Authorization', jwtToken1)
-          .expect(httpStatus.UNAUTHORIZED)
-          .then(({ body }) => expect(body.message).toBe('Unauthorized'));
-      });
+    it('should NOT delete a product which is not mine', () => {
+      return request(app)
+        .delete(`/api/products/${productUser2Uuid}`)
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(({ body }) => expect(body.message).toBe('Unauthorized'));
     });
   });
 
@@ -724,11 +712,28 @@ describe('## Product APIs', () => {
     it('should update the price without decimal points', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
-        .send(product)
         .send({ ...product, price: '199' })
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data.price).toEqual('199.00'));
+    });
+
+    it('should increase the quantity', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send({ ...product, quantity: 2 })
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.quantity).toEqual(2));
+    });
+
+    it('should zero the quantity', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send({ ...product, quantity: 0 })
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.quantity).toEqual(0));
     });
 
     it('should replace the photos', () => {
@@ -768,6 +773,7 @@ describe('## Product APIs', () => {
     });
 
     it('should not require to update the photos', () => {
+      // eslint-disable-next-line no-unused-vars
       const { photos, ...restOfKeys } = product;
 
       return request(app)

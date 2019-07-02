@@ -135,6 +135,7 @@ Array [
   "locality",
   "photoURIs",
   "price",
+  "quantity",
   "seller",
   "status",
   "tags",

@@ -77,6 +77,7 @@ export const productFields = [
   'description',
   'photoURIs',
   'price',
+  'quantity',
   'seller',
   'status',
   'tags',
@@ -264,6 +265,7 @@ export async function createManyProducts(num: number, jwtToken: string) {
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
     price: '999',
+    quantity: 1,
   };
 
   const res = [];

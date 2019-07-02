@@ -110,6 +110,7 @@ Array [
   "description",
   "photoURIs",
   "price",
+  "quantity",
   "seller",
   "status",
   "tags",

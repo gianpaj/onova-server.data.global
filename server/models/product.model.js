@@ -4,13 +4,11 @@ import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import shortid from 'shortid';
-// import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
 import { userPopulateFields } from './';
 
 const { Schema } = mongoose;
-// const FeedManager = stream.FeedManager;
 
 const CommentSchema = new Schema({
   createdAt: {
@@ -47,11 +45,6 @@ const GeoJSON = new Schema({
 //   { label: 'For Home-Art', value: 21 },
 //   { label: 'For Home-Design', value: 22 },
 
-// typeIds
-//   { label: 'Men', value: 0 },
-//   { label: 'Women', value: 1 },
-//   { label: 'Other', value: 2 },
-
 /** @namespace */
 export const ProductSchema = new Schema(
   {
@@ -84,6 +77,12 @@ export const ProductSchema = new Schema(
     price: {
       type: Schema.Types.Decimal,
       required: true,
+    },
+    quantity: {
+      default: 1,
+      min: 0,
+      required: true,
+      type: Schema.Types.Number,
     },
     reservedDate: Date,
     seller: {
@@ -121,6 +120,8 @@ export const ProductSchema = new Schema(
   }
 );
 
+export type ProductStatus = 'forsale' | 'reserved' | 'sold' | 'banned' | 'deleted';
+
 export class ProductDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
   categoryIds: Array<Number>;
@@ -139,9 +140,10 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   locality: string;
   photoURIs: Array<string>;
   price: number;
+  quantity: number;
   reservedDate: Date;
-  seller: string;
-  status: string;
+  seller: MongoId;
+  status: ProductStatus;
   tags: ?Array<string>;
   typeIds: ?Array<Number>;
   updatedAt: Date;
@@ -177,9 +179,8 @@ ProductSchema.statics = {
       })
       .select('-comments')
       .then((product: ProductDoc) => {
-        if (!product) {
-          return Promise.reject();
-        }
+        if (!product) return Promise.reject();
+
         return product;
       })
       .catch(() => {
@@ -194,7 +195,8 @@ ProductSchema.statics = {
    * @param {Object} obj
    * @param {Object} obj.query DB query params
    * @param {Object} obj.projection Limit number of fields to be returned
-   * @param {number} obj.limit Limit number of products to be returned.
+   * @param {number} obj.limit Limit number of products to be returned
+   * @param {Array<string>} obj.sellerTypes
    */
   list({
     query = {},
@@ -226,6 +228,7 @@ ProductSchema.statics = {
           locality: 1,
           photoURIs: 1,
           price: 1,
+          quantity: 1,
           reservedDate: 1,
           seller: { $arrayElemAt: ['$references', 0] },
           status: 1,
@@ -239,7 +242,6 @@ ProductSchema.statics = {
       { $sort: { _id: -1 } },
       { $limit: +limit },
     ]).then((products: ProductDoc[]) =>
-      // eslint-disable-next-line no-unused-vars
       products.map(p => ({
         ...p,
         seller: {
@@ -279,12 +281,6 @@ ProductSchema.index({ status: 1, photoURIs: 1 });
 ProductSchema.index({ status: 1, seller: 1 });
 // ProductSchema.index({ location: '2dsphere' });
 // ProductSchema.index({ uuid: 1 }, { unique: true }); // created by `unique` schema setting above
-
-// ProductSchema.plugin(stream.mongoose.activity);
-
-// ProductSchema.methods.activityActorProp = function() {
-//   return 'seller';
-// };
 
 const UNIQUE_RETRIES = 9999;
 

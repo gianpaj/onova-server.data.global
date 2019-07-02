@@ -87,11 +87,12 @@ const product = {
   typeIds: [1, 2, 3],
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
-  price: '1100.99',
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733068.jpg',
     'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733069.jpg',
   ],
+  price: '1100.99',
+  quantity: 1,
 };
 
 describe('## Drops feed APIs', () => {
@@ -347,9 +348,9 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
-          products: [product],
           longitude: 23.9573617,
           latitude: 49.8134431,
+          products: [product],
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -460,7 +461,7 @@ describe('## Drops feed APIs', () => {
           expect(shortid.isValid(d.uuid)).toBe(true);
           return d;
         });
-      // check that the drop item is not listed
+      // check that the drop item is not yet listed
       await request(app)
         .get('/api/products/')
         .expect(httpStatus.OK)
@@ -468,6 +469,8 @@ describe('## Drops feed APIs', () => {
           expect(Array.isArray(body.data));
           expect(body.data).toHaveLength(0);
         });
+
+      // if (!schedulerIsRunning) return done();
 
       const waitFor = 15 * 1000; // 15 seconds
       const interval = Math.floor(waitFor / 100);
@@ -491,7 +494,7 @@ describe('## Drops feed APIs', () => {
           expect(body.data[0].dropId).toEqual(drop._id);
 
           // Check:
-          // - a Notification has been created to the seller
+          // - a Notification has been created to the seller indicating the Drop was listed
           // - a Push notification has been scheduled to the seller
           const jobs = await findJobs(config.JOBNAMES.PUSH_DROP_LISTED);
           expect(jobs).toHaveLength(1);
@@ -936,11 +939,12 @@ async function createManyDrops(num: number, jwtToken: string) {
     typeIds: [1, 2, 3],
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
-    price: '1100.99',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733068.jpg',
       'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733069.jpg',
     ],
+    price: '1100.99',
+    quantity: 1,
   };
 
   const d = {

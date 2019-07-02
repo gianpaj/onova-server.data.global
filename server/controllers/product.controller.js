@@ -426,6 +426,7 @@ function remove(
  * @property {string} req.body.description
  * @property {Array<string>} req.body.photos
  * @property {string} req.body.price
+ * @property {string} req.body.quantity
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
  */
@@ -506,6 +507,9 @@ async function update(
       foundProduct.description = body.description
         ? body.description
         : foundProduct.description;
+      foundProduct.quantity = Number.isInteger(body.quantity)
+        ? body.quantity
+        : foundProduct.quantity;
 
       // always put 2 decimal points
       foundProduct.price = body.price
@@ -516,9 +520,7 @@ async function update(
 
       return foundProduct.save();
     })
-    .then(product => {
-      return res.json({ data: product });
-    })
+    .then(product => res.json({ data: product }))
     .catch(err => {
       if (!(err instanceof APIError)) {
         console.error(err);

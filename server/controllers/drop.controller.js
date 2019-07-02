@@ -33,8 +33,11 @@ import {
 const { minPrice } = config.settings;
 
 export const i18n = {
+  // listedDrop: 'Your drop has been listed',
+  // listedDrop: 'Ваш Дроп виставлено на продаж',
   // listedDrop: 'Your collection is for sale',
   listedDrop: 'Вашу колекцію виставлено на продаж',
+  sellerDropIsAboutToDrop: 'дроп скоро в продажу!',
 };
 
 declare class session$Request extends express$Request {
@@ -265,6 +268,7 @@ async function myFeed(
  * @property {Array<number>} req.body.products.categoryIds
  * @property {Array<string>=} req.body.products.photos
  * @property {string} req.body.products.price
+ * @property {string} req.body.products.quantity
  * @property {Array<string>=} req.body.products.tags
  * @property {Array<number>} req.body.products.typeIds
  */
@@ -319,6 +323,7 @@ async function create(
         locality,
         location,
         price: parseFloat(prod.price).toFixed(2),
+        quantity: prod.quantity,
         // status: prod.status, // 'forsale' by default
         tags: prod.tags,
         typeIds: prod.typeIds,

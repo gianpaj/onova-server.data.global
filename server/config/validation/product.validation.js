@@ -21,6 +21,7 @@ export default {
       description: validation.description.required(),
       photos: validation.photos.required(),
       price: validation.price.required(),
+      quantity: validation.quantity.required(),
       tags: validation.tags,
       typeIds: validation.categoriesOrTypes,
       latitude: Joi.number()
@@ -50,6 +51,7 @@ export default {
       description: validation.description,
       photos: validation.photos,
       price: validation.price,
+      quantity: validation.quantity,
       tags: validation.tags,
       typeIds: validation.categoriesOrTypes,
     },
