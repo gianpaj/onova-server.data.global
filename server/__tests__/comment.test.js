@@ -7,12 +7,7 @@ import httpStatus from 'http-status';
 import { Product, Tag } from '../models';
 
 import app from '../index';
-import {
-  beforeAllTests,
-  createComment,
-  createProduct,
-  createUserAndLogin,
-} from './utils';
+import { beforeAllTests, createComment, createProduct, createUserAndLogin } from './utils';
 
 /**
  * root level hooks
@@ -35,9 +30,7 @@ const product = {
   description: 'nice boots',
   // seller comes after the user is created
   price: '1100.99', // if no decimal points .00 will be added
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let anotherProduct = {
@@ -45,9 +38,7 @@ let anotherProduct = {
   typeIds: [1, 3],
   description: 'nice jacket',
   price: '230.99',
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let user = {
@@ -80,9 +71,7 @@ const notForSaleProduct = {
   tags: ['WINTER'],
   description: 'nice scarf',
   price: '1130',
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let productUuid;
@@ -161,9 +150,7 @@ describe('## Comment APIs', () => {
   });
 
   describe('# POST /api/products/:uuid/comment', () => {
-    beforeAll(() =>
-      Product.collection.updateMany({}, { $unset: { comments: '' } })
-    );
+    beforeAll(() => Product.collection.updateMany({}, { $unset: { comments: '' } }));
 
     it('should add a comment to a product', () => {
       return request(app)
@@ -174,9 +161,7 @@ describe('## Comment APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
-          expect(Object.keys(data.comment).sort()).toEqual(
-            commentFields.sort()
-          );
+          expect(Object.keys(data.comment).sort()).toEqual(commentFields.sort());
         });
     });
 
@@ -190,9 +175,7 @@ describe('## Comment APIs', () => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
           expect(data.comment.text).toContain('nice one [@firstperson:');
-          expect(Object.keys(data.comment).sort()).toEqual(
-            commentFields.sort()
-          );
+          expect(Object.keys(data.comment).sort()).toEqual(commentFields.sort());
         });
     });
 
@@ -206,9 +189,7 @@ describe('## Comment APIs', () => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
           expect(data.comment.text).toContain('nice one [@hacker:null]');
-          expect(Object.keys(data.comment).sort()).toEqual(
-            commentFields.sort()
-          );
+          expect(Object.keys(data.comment).sort()).toEqual(commentFields.sort());
         });
     });
 
@@ -221,13 +202,9 @@ describe('## Comment APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
-          expect(data.comment.text).toContain(
-            'nice one [@hacker:null] and [@firstperson:'
-          );
+          expect(data.comment.text).toContain('nice one [@hacker:null] and [@firstperson:');
           expect(data.comment.text).toContain(' and [@anotherperson:');
-          expect(Object.keys(data.comment).sort()).toEqual(
-            commentFields.sort()
-          );
+          expect(Object.keys(data.comment).sort()).toEqual(commentFields.sort());
         });
     });
 
@@ -242,9 +219,7 @@ describe('## Comment APIs', () => {
           expect(data.uuid).toBe(productUuid);
           expect(data.comment.text).toContain('nice one [@firstperson:');
           expect(data.comment.text).toContain(' and [@firstperson:');
-          expect(Object.keys(data.comment).sort()).toEqual(
-            commentFields.sort()
-          );
+          expect(Object.keys(data.comment).sort()).toEqual(commentFields.sort());
         });
     });
 
@@ -257,12 +232,8 @@ describe('## Comment APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
-          expect(data.comment.text).toContain(
-            'nice one [@hacker:null] and [@hacker:null]'
-          );
-          expect(Object.keys(data.comment).sort()).toEqual(
-            commentFields.sort()
-          );
+          expect(data.comment.text).toContain('nice one [@hacker:null] and [@hacker:null]');
+          expect(Object.keys(data.comment).sort()).toEqual(commentFields.sort());
         });
     });
 
@@ -310,11 +281,7 @@ describe('## Comment APIs', () => {
     });
 
     beforeAll(async () => {
-      const data = await createComment(
-        { text: 'nice jacket' },
-        productUuid,
-        jwtToken
-      );
+      const data = await createComment({ text: 'nice jacket' }, productUuid, jwtToken);
       commentIdFirst = data.comment._id;
     });
 
@@ -327,14 +294,8 @@ describe('## Comment APIs', () => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
           expect(data.comments[0]._id).toBe(commentIdFirst);
-          expect(Object.keys(data.comments[0].user).sort()).toEqual([
-            '_id',
-            'accountStatus',
-            'username',
-          ]);
-          expect(Object.keys(data.comments[0]).sort()).toEqual(
-            commentFields.sort()
-          );
+          expect(Object.keys(data.comments[0].user).sort()).toEqual(['_id', 'accountStatus', 'username']);
+          expect(Object.keys(data.comments[0]).sort()).toEqual(commentFields.sort());
           expect(data.comments).toHaveLength(1);
         });
     });
@@ -359,17 +320,9 @@ describe('## Comment APIs', () => {
     });
 
     beforeAll(async () => {
-      const data2 = await createComment(
-        { text: 'nice jacket' },
-        productUuid,
-        anotherJwtToken
-      );
+      const data2 = await createComment({ text: 'nice jacket' }, productUuid, anotherJwtToken);
       commentIdSecond = data2.comment._id;
-      const data3 = await createComment(
-        { text: 'nice jacket' },
-        anotherProductUuid,
-        jwtToken
-      );
+      const data3 = await createComment({ text: 'nice jacket' }, anotherProductUuid, jwtToken);
       commentIdThird = data3.comment._id;
       const data4 = await createComment(
         { text: 'thanks for the comment @firstperson' },
@@ -415,9 +368,7 @@ describe('## Comment APIs', () => {
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toContain(
-            'Cannot delete other people`s comment'
-          );
+          expect(res.body.message).toContain('Cannot delete other people`s comment');
         });
     });
 

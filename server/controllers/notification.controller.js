@@ -40,11 +40,7 @@ export type NotifPayload = {
  * @property {MongoId} req.query.lastId
  * @property {number} req.query.limit Limit number of notifications to be returned
  */
-async function get(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function get(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, lastId } = req.query;
   let DBquery = { targetUser: req.user._id };
 
@@ -207,10 +203,7 @@ function shorten(str: string, maxLength: number): string {
     return str;
   }
   let trimmedString = str.substr(0, maxLength);
-  trimmedString = trimmedString.substr(
-    0,
-    Math.min(trimmedString.length, trimmedString.lastIndexOf(' '))
-  );
+  trimmedString = trimmedString.substr(0, Math.min(trimmedString.length, trimmedString.lastIndexOf(' ')));
   return `${trimmedString}\…`;
 }
 

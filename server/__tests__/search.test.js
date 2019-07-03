@@ -33,9 +33,7 @@ const product = {
   description: 'nice boots',
   // seller comes after the user is created
   price: '1100.99', // if no decimal points .00 will be added
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let anotherProduct = {
@@ -43,9 +41,7 @@ let anotherProduct = {
   typeIds: [1, 3],
   description: 'nice jacket',
   price: '230.99',
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let user = {
@@ -72,9 +68,7 @@ const notForSaleProduct = {
   tags: ['WINTER'],
   description: 'nice scarf',
   price: '1130',
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let userId;
@@ -106,15 +100,10 @@ describe('## Search APIs', () => {
         const p2 = await createProduct(anotherProduct, anotherJwtToken);
         expect(p2.description).toBe(anotherProduct.description);
 
-        const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
-          user5Reseller
-        );
+        const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(user5Reseller);
         user5Reseller._id = resUser5._id;
         jwtToken5Reseller = token5;
-        await User.updateOne(
-          { _id: user5Reseller._id },
-          { $set: { types: ['reseller'] } }
-        );
+        await User.updateOne({ _id: user5Reseller._id }, { $set: { types: ['reseller'] } });
         const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
         expect(p3.description).toBe(notForSaleProduct.description);
         request(app)
@@ -129,12 +118,7 @@ describe('## Search APIs', () => {
   });
 
   // both accounts follow each other
-  beforeAll(() =>
-    Promise.all([
-      followUser(firstJwtToken, anotherUserId),
-      followUser(anotherJwtToken, userId),
-    ])
-  );
+  beforeAll(() => Promise.all([followUser(firstJwtToken, anotherUserId), followUser(anotherJwtToken, userId)]));
 
   describe('# GET /api/search', () => {
     it('should not find a deleted product', () => {
@@ -161,9 +145,7 @@ describe('## Search APIs', () => {
         tags: ['WINTER'],
         description: 'nice jumper',
         price: '239',
-        photos: [
-          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-        ],
+        photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -211,9 +193,7 @@ describe('## Search APIs', () => {
         tags: ['WINTER'],
         description: 'nice hoodie',
         price: '169',
-        photos: [
-          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-        ],
+        photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -262,9 +242,7 @@ describe('## Search APIs', () => {
         tags: ['warm'],
         description: 'nice socks',
         price: '219',
-        photos: [
-          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-        ],
+        photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -318,9 +296,7 @@ describe('## Search APIs', () => {
         tags: ['WINTER'],
         description: 'nice hoodie',
         price: '390',
-        photos: [
-          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-        ],
+        photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -378,9 +354,7 @@ describe('## Search APIs', () => {
         tags: ['summer'],
         description: 'nice hoodie',
         price: '390',
-        photos: [
-          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-        ],
+        photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);

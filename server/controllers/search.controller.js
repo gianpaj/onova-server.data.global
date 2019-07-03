@@ -34,20 +34,8 @@ function escapeRegex(text: string) {
  * @property {string} req.query.tag Limited to a single tag
  * @property {Array<number>=} req.query.typeIds
  */
-async function get(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  const {
-    categoryIds,
-    description,
-    lastId,
-    limit = 50,
-    sellerType,
-    tag,
-    typeIds,
-  } = req.query;
+async function get(req: session$Request, res: express$Response, next: express$NextFunction) {
+  const { categoryIds, description, lastId, limit = 50, sellerType, tag, typeIds } = req.query;
   const projection = { comments: 0 };
   let query = { status: 'forsale' };
   let sellerTypes;

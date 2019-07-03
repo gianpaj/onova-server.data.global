@@ -66,9 +66,7 @@ async function main() {
       let data;
       i++;
       try {
-        const res = await http.get(
-          `/handlers/NovaPoshta/cities/${city.id}/offices`
-        );
+        const res = await http.get(`/handlers/NovaPoshta/cities/${city.id}/offices`);
         if (!res.data || !res.data.data || !res.data.data.length) {
           console.log(res);
           if (!res.data.data) console.error('error with city id:', city.id);
@@ -85,9 +83,7 @@ async function main() {
 
       // TODO: update the number of departments for the city
 
-      return await Department.insertMany(
-        data.map(o => ({ ...o, cityID: city.id }))
-      );
+      return await Department.insertMany(data.map(o => ({ ...o, cityID: city.id })));
       // console.log(res[0]);
     })
   );

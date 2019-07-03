@@ -22,10 +22,7 @@ export async function sendPush({
 
   // if person A is blocking person B neither of them can send each other push notifications
   blocking = await Block.countDocuments({
-    $or: [
-      { sourceUser: targetUser, targetUser: triggeredBy },
-      { sourceUser: triggeredBy, targetUser: targetUser },
-    ],
+    $or: [{ sourceUser: targetUser, targetUser: triggeredBy }, { sourceUser: triggeredBy, targetUser: targetUser }],
   });
 
   // }

@@ -32,11 +32,7 @@ const storage = Storage({
 
 const tempBucket = storage.bucket('temp-uploads.onova.co');
 
-async function tempUploadProductImage(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function tempUploadProductImage(req: express$Request, res: express$Response, next: express$NextFunction) {
   const { file } = req;
   const uploadDate = Date.now();
 
@@ -45,9 +41,9 @@ async function tempUploadProductImage(
 
   if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
     const APIerr = new APIError(
-      `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${
-        metadata.width
-      }x${metadata.height}`,
+      `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${metadata.width}x${
+        metadata.height
+      }`,
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
@@ -84,10 +80,7 @@ async function tempUploadProductImage(
       })
       .toFile(`${TEMP_PATH}/${uploadDate}-thumb.jpg`)
       .then(() => {
-        debug(
-          'temp thumbnail generated',
-          `${TEMP_PATH}/${uploadDate}-thumb.jpg`
-        );
+        debug('temp thumbnail generated', `${TEMP_PATH}/${uploadDate}-thumb.jpg`);
       })
       .catch(err => {
         console.error(err);
@@ -107,10 +100,7 @@ async function tempUploadProductImage(
       })
       .toFile(`${TEMP_PATH}/${uploadDate}-thumb@2x.jpg`)
       .then(() => {
-        debug(
-          'temp thumbnail generated',
-          `${TEMP_PATH}/${uploadDate}-thumb@2x.jpg`
-        );
+        debug('temp thumbnail generated', `${TEMP_PATH}/${uploadDate}-thumb@2x.jpg`);
       })
       .catch(err => {
         console.error(err);
@@ -144,13 +134,7 @@ async function tempUploadProductImage(
   }
   // generate 2 square thumbnails
   const gcsname = `${uploadDate}.jpg`;
-  photos.uploadThumbnailToGCS(
-    THUMB_WIDTH,
-    THUMB_HEIGHT,
-    file,
-    gcsname.replace('.jpg', '-thumb.jpg'),
-    tempBucket
-  );
+  photos.uploadThumbnailToGCS(THUMB_WIDTH, THUMB_HEIGHT, file, gcsname.replace('.jpg', '-thumb.jpg'), tempBucket);
   photos.uploadThumbnailToGCS(
     THUMB_WIDTH * 2,
     THUMB_HEIGHT * 2,
@@ -170,10 +154,7 @@ async function tempUploadProductImage(
   stream.on('error', err => {
     console.log('Error uploading image');
     console.error(err);
-    const APIerr = new APIError(
-      'Error uploading image',
-      httpStatus.INTERNAL_SERVER_ERROR
-    );
+    const APIerr = new APIError('Error uploading image', httpStatus.INTERNAL_SERVER_ERROR);
     next(APIerr);
   });
 
@@ -190,10 +171,7 @@ async function tempUploadProductImage(
   } catch (error) {
     console.log('Error resize, compression or cropping image');
     console.error(error);
-    const APIerr = new APIError(
-      'Error uploading image',
-      httpStatus.INTERNAL_SERVER_ERROR
-    );
+    const APIerr = new APIError('Error uploading image', httpStatus.INTERNAL_SERVER_ERROR);
     next(APIerr);
     return;
   }
@@ -249,11 +227,7 @@ const uploadChatImage = multer({ storage: storageForChatImages });
  * @property {string} req.body.upload_url
  * @property {Array<string>|string} req.body.photos
  */
-async function uploadToVK(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function uploadToVK(req: express$Request, res: express$Response, next: express$NextFunction) {
   // TODO: check if we have access to VK.com
 
   // $FlowFixMe
@@ -272,9 +246,7 @@ async function uploadToVK(
     const uploads = files.map(file => {
       return new Promise((resolve, reject) => {
         const formData = new FormData();
-        const filename = file.filename.split('/')[
-          file.filename.split('/').length - 1
-        ];
+        const filename = file.filename.split('/')[file.filename.split('/').length - 1];
         formData.append('photo', file.image, { filename });
         fetch(upload_url, {
           method: 'POST',

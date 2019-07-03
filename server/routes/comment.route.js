@@ -17,28 +17,16 @@ router
   .route('/:uuid/comment')
 
   // GET /api/products/:uuid/comment - Get product's comments
-  .get(
-    validate(productParamValidation.productUUIDParam),
-    requireAuth,
-    commentCtrl.get
-  )
+  .get(validate(productParamValidation.productUUIDParam), requireAuth, commentCtrl.get)
 
   // POST /api/products/:uuid/comment - Create product's comment
-  .post(
-    validate(paramValidation.createComment),
-    requireAuth,
-    commentCtrl.create
-  );
+  .post(validate(paramValidation.createComment), requireAuth, commentCtrl.create);
 
 router
   .route('/:uuid/comment/:commentId')
 
   // DELETE /api/products/:uuid/comment/:commentId - DELETE a product's comment
-  .delete(
-    validate(paramValidation.deleteComment),
-    requireAuth,
-    commentCtrl.remove
-  );
+  .delete(validate(paramValidation.deleteComment), requireAuth, commentCtrl.remove);
 
 // Load product when API with uuid route parameter is hit
 router.param('uuid', productCtrl.loadWithComments);

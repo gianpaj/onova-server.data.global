@@ -5,15 +5,7 @@ import request from 'request';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 
 import APIError from '../helpers/APIError';
-import {
-  Cities,
-  Order,
-  OrderDoc,
-  Review,
-  ReviewDoc,
-  User,
-  UserDoc,
-} from '../models';
+import { Cities, Order, OrderDoc, Review, ReviewDoc, User, UserDoc } from '../models';
 
 import config from '../config/config';
 import Analytics from '../config/analytics';
@@ -51,11 +43,7 @@ declare class session$RequestCreate extends express$Request {
  * @property {*} req.query - express session query
  * @property {string} req.query.as buyer|seller|both (default is both)
  */
-async function list(
-  req: session$RequestList,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function list(req: session$RequestList, res: express$Response, next: express$NextFunction) {
   const { userId } = req.params;
   const { as } = req.query;
   // const { limit = 50, lastId } = req.query;
@@ -140,16 +128,9 @@ async function list(
  * @property {string} req.body.lang
  * @property {number} req.body
  */
-async function create(
-  req: session$RequestCreate,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function create(req: session$RequestCreate, res: express$Response, next: express$NextFunction) {
   if (req.user.accountStatus !== 'verified') {
-    const APIerr = new APIError(
-      'Please verify your account before creating a review.',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Please verify your account before creating a review.', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
   const { orderId, text, rateNumber, lang } = req.body;
@@ -158,15 +139,8 @@ async function create(
   try {
     order = await Order.get(orderId, req.user._id.toString());
 
-    if (
-      ['completed', 'failed_by_buyer', 'failed_by_seller'].indexOf(
-        order.status
-      ) < 0
-    ) {
-      throw new APIError(
-        `Cannot create review on an order that is '${order.status}'`,
-        httpStatus.BAD_REQUEST
-      );
+    if (['completed', 'failed_by_buyer', 'failed_by_seller'].indexOf(order.status) < 0) {
+      throw new APIError(`Cannot create review on an order that is '${order.status}'`, httpStatus.BAD_REQUEST);
     }
 
     // let cities;
@@ -299,16 +273,14 @@ async function getValidTrackingNumberCities(
     CargoType: 'Parcel',
     CitySender: 'Львів',
     CityRecipient: 'Чернівці',
-    WarehouseRecipient:
-      'Відділення №14 (до 30 кг на одне місце): вул. Небесної Сотні, 20',
+    WarehouseRecipient: 'Відділення №14 (до 30 кг на одне місце): вул. Небесної Сотні, 20',
     CounterpartyType: 'PrivatePerson',
     AfterpaymentOnGoodsCost: '',
     ServiceType: 'WarehouseWarehouse',
     UndeliveryReasonsSubtypeDescription: '',
     WarehouseRecipientNumber: 14,
     LastCreatedOnTheBasisNumber: '',
-    WarehouseRecipientInternetAddressRef:
-      '01ae25ec-e1c2-11e3-8c4a-0050568002cf',
+    WarehouseRecipientInternetAddressRef: '01ae25ec-e1c2-11e3-8c4a-0050568002cf',
     MarketplacePartnerToken: '***REMOVED***',
     ClientBarcode: '',
     SenderAddress: '',
@@ -371,16 +343,10 @@ async function getValidTrackingNumberCities(
         const data = body.data[0];
 
         // Number not found
-        if (data.StatusCode == '3' || !data.ScheduledDeliveryDate)
-          return resolve(false);
+        if (data.StatusCode == '3' || !data.ScheduledDeliveryDate) return resolve(false);
 
         // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
-        const trackingNumberDate = new Date(
-          data.ScheduledDeliveryDate.replace(
-            /(\d{2})-(\d{2})-(\d{4})/,
-            '$2/$1/$3'
-          )
-        );
+        const trackingNumberDate = new Date(data.ScheduledDeliveryDate.replace(/(\d{2})-(\d{2})-(\d{4})/, '$2/$1/$3'));
         // const orderDate = new Date(orderDatePending);
 
         if (

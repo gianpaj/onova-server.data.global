@@ -16,11 +16,7 @@ import authCtrl from './auth.controller';
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
  */
-async function create(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   const user = await UserWeb.create({});
 
   return res.status(httpStatus.CREATED).json({
@@ -38,11 +34,7 @@ async function create(
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.userId
  */
-async function get(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function get(req: session$Request, res: express$Response, next: express$NextFunction) {
   if (req.params.userId === 'me') return res.json({ data: req.user });
 
   UserWeb.get(req.params.userId)
@@ -57,11 +49,7 @@ async function get(
  *
  * @property {*} req - Express request
  */
-async function update(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function update(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body, user: authUser } = req;
 
   try {
@@ -70,8 +58,7 @@ async function update(
 
     if (body.emailAddress) user.emailAddress = body.emailAddress;
 
-    if (body.mobileNumber)
-      user.mobileNumber = body.mobileNumber.replace('+380', '0');
+    if (body.mobileNumber) user.mobileNumber = body.mobileNumber.replace('+380', '0');
 
     if (body.shippingAddress) user.shippingAddress = body.shippingAddress;
 

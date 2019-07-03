@@ -23,11 +23,7 @@ declare class session$Request extends express$Request {
  * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned.
  */
-async function flat(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function flat(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, lastId, categoryIds, tag, typeIds } = req.query;
 
   let sellerTypes = req.user.types;

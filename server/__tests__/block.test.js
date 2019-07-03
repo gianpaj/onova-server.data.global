@@ -5,13 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import {
-  beforeAllTests,
-  createUserAndLogin,
-  createProduct,
-  createOrder,
-  followUser,
-} from './utils';
+import { beforeAllTests, createUserAndLogin, createProduct, createOrder, followUser } from './utils';
 import { UserDoc, ProductDoc } from '../models';
 
 const blockFields = ['createdAt', '_id', 'sourceUser', 'targetUser'];
@@ -43,9 +37,7 @@ describe('## Block methods', () => {
     typeIds: [3],
     description: 'nice boots',
     price: '1100.99',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
   };
 
   // $FlowFixMe
@@ -119,10 +111,7 @@ describe('## Block methods', () => {
 
       // firstUser -- orders --> product from user 0
       // $FlowFixMe
-      const o = await createOrder(
-        { ...product, uuid: p2.uuid },
-        firstUser.jwtToken
-      );
+      const o = await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
       await request(app)
         .put(`/api/orders/${o.id}`)
         .set('Authorization', firstUser.jwtToken)
@@ -130,10 +119,7 @@ describe('## Block methods', () => {
         .expect(httpStatus.OK);
       // firstUser -- orders --> product from user 1
       // $FlowFixMe
-      const o2 = await createOrder(
-        { ...product, uuid: p3.uuid },
-        firstUser.jwtToken
-      );
+      const o2 = await createOrder({ ...product, uuid: p3.uuid }, firstUser.jwtToken);
       await request(app)
         .put(`/api/orders/${o2.id}`)
         .set('Authorization', firstUser.jwtToken)
@@ -141,10 +127,7 @@ describe('## Block methods', () => {
         .expect(httpStatus.OK);
       // user 0 -- orders --> product from user 1
       // $FlowFixMe
-      const o3 = await createOrder(
-        { ...product, uuid: p4.uuid },
-        users[0].jwtToken
-      );
+      const o3 = await createOrder({ ...product, uuid: p4.uuid }, users[0].jwtToken);
       await request(app)
         .put(`/api/orders/${o3.id}`)
         .set('Authorization', users[0].jwtToken)
@@ -184,9 +167,7 @@ describe('## Block methods', () => {
       .post(`/api/users/${firstUser._id.toString()}/unfollow`)
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.BAD_REQUEST)
-      .then(({ body }) =>
-        expect(body.message).toBe('Error unfollowing a user')
-      );
+      .then(({ body }) => expect(body.message).toBe('Error unfollowing a user'));
   });
 
   it('should NOT follow a blocked user', () => {
@@ -339,11 +320,7 @@ describe('## Block methods', () => {
       .set('Authorization', users[0].jwtToken)
       .send({ product: firstUser.productUuid })
       .expect(httpStatus.BAD_REQUEST)
-      .then(({ body }) =>
-        expect(body.message).toBe(
-          'This product is not longer for sale or is reserved.'
-        )
-      );
+      .then(({ body }) => expect(body.message).toBe('This product is not longer for sale or is reserved.'));
   });
 
   it.skip('should NOT allowed to create an order when blocking the seller', () => {
@@ -352,10 +329,6 @@ describe('## Block methods', () => {
       .set('Authorization', firstUser.jwtToken)
       .send({ product: users[0].productUuid })
       .expect(httpStatus.BAD_REQUEST)
-      .then(({ body }) =>
-        expect(body.message).toBe(
-          'This product is not longer for sale or is reserved.'
-        )
-      );
+      .then(({ body }) => expect(body.message).toBe('This product is not longer for sale or is reserved.'));
   });
 });

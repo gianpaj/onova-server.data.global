@@ -16,17 +16,7 @@ import {
 } from './utils';
 
 // GET & PUT /api/users/<id>/reviews should only return these fields
-const reviewFields = [
-  '_id',
-  'id',
-  'order',
-  'fromUser',
-  'targetUser',
-  'text',
-  'rateNumber',
-  'lang',
-  'createdAt',
-];
+const reviewFields = ['_id', 'id', 'order', 'fromUser', 'targetUser', 'text', 'rateNumber', 'lang', 'createdAt'];
 
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
@@ -66,9 +56,7 @@ describe('## Order APIs', () => {
     description: 'nice boots',
     // seller id is the user who creates the product
     price: '1100.99', // if no decimal points .00 will be added
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
   };
 
   let productFlipflops = {
@@ -77,9 +65,7 @@ describe('## Order APIs', () => {
     tags: ['summer'],
     description: 'nice flipflops',
     price: '800.99',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
   };
 
   let productShorts = {
@@ -87,9 +73,7 @@ describe('## Order APIs', () => {
     typeIds: [2, 3],
     description: 'nice shorts',
     price: '200.50',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
   };
 
   let reviewTwo = {
@@ -123,14 +107,10 @@ describe('## Order APIs', () => {
     const { user: resUser, jwtToken: token } = await createUserAndLogin(user1);
     user1._id = resUser._id;
     jwtToken1 = token;
-    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(
-      user2
-    );
+    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(user2);
     user2._id = resUser2._id;
     jwtToken2 = token2;
-    const { user: resUser4, jwtToken: token4 } = await createUserAndLogin(
-      user4
-    );
+    const { user: resUser4, jwtToken: token4 } = await createUserAndLogin(user4);
     user4._id = resUser4._id;
     jwtToken4 = token4;
     const { body } = await request(app)
@@ -203,10 +183,7 @@ describe('## Order APIs', () => {
           },
           jwtToken1
         );
-        const o = await Order.updateOne(
-          { _id: orderOne.id },
-          { $set: { status: 'completed' } }
-        );
+        const o = await Order.updateOne({ _id: orderOne.id }, { $set: { status: 'completed' } });
         expect(o.nModified).toBe(1);
         ordersAndReviewsCountUser1++;
         ordersAndReviewsCountUser2++;
@@ -218,10 +195,7 @@ describe('## Order APIs', () => {
           },
           jwtToken2
         );
-        const o2 = await Order.updateOne(
-          { _id: orderTwo.id },
-          { $set: { status: 'completed' } }
-        );
+        const o2 = await Order.updateOne({ _id: orderTwo.id }, { $set: { status: 'completed' } });
         expect(o2.nModified).toBe(1);
         reviewTwo.orderId = orderTwo.id;
         ordersAndReviewsCountUser1++;
@@ -241,10 +215,7 @@ describe('## Order APIs', () => {
           },
           jwtToken4
         );
-        const o6 = await Order.updateOne(
-          { _id: orderSix.id },
-          { $set: { status: 'completed' } }
-        );
+        const o6 = await Order.updateOne({ _id: orderSix.id }, { $set: { status: 'completed' } });
         expect(o6.nModified).toBe(1);
         ordersAndReviewsCountUser1++;
       } catch (error) {
@@ -253,12 +224,7 @@ describe('## Order APIs', () => {
     });
 
     // user1 <-> user2 follow each other
-    beforeAll(() =>
-      Promise.all([
-        followUser(jwtToken1, user2._id),
-        followUser(jwtToken2, user1._id),
-      ])
-    );
+    beforeAll(() => Promise.all([followUser(jwtToken1, user2._id), followUser(jwtToken2, user1._id)]));
 
     // user1 reviews user2 +5 [orderOne]
     it('should create a review by the buyer', () => {
@@ -351,9 +317,7 @@ describe('## Order APIs', () => {
           rateNumber: 9,
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('must be less than or equal to 5')
-        );
+        .then(({ body }) => expect(body.message).toContain('must be less than or equal to 5'));
     });
 
     it('should NOT create a review without a verified account', () => {
@@ -362,11 +326,7 @@ describe('## Order APIs', () => {
         .set('Authorization', userNotActiveJwtToken)
         .send(reviewTwo)
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain(
-            'Please verify your account before creating a review'
-          )
-        );
+        .then(({ body }) => expect(body.message).toContain('Please verify your account before creating a review'));
     });
 
     it('should NOT create a review with an invalid order', () => {
@@ -390,9 +350,7 @@ describe('## Order APIs', () => {
           lang: 'po',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('must be one of [uk, en, n/a]')
-        );
+        .then(({ body }) => expect(body.message).toContain('must be one of [uk, en, n/a]'));
     });
 
     it('should NOT create a review with an invalid text', () => {
@@ -404,9 +362,7 @@ describe('## Order APIs', () => {
           text: 'gr',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('must be at least 7 characters')
-        );
+        .then(({ body }) => expect(body.message).toContain('must be at least 7 characters'));
     });
 
     it('should NOT create a review for an order I`m not part of', () => {
@@ -478,11 +434,7 @@ describe('## Order APIs', () => {
   describe('# GET /api/users/:userId/review', () => {
     // delete all Product, Orders and Reviews
     beforeAll(done => {
-      const collections = [
-        Order.collection,
-        Product.collection,
-        Review.collection,
-      ];
+      const collections = [Order.collection, Product.collection, Review.collection];
 
       let todo = collections.length;
       if (!todo) return done();
@@ -533,34 +485,19 @@ describe('## Order APIs', () => {
      */
     beforeAll(async () => {
       try {
-        orderFour = await createOrder(
-          { ...productShorts, uuid: productShortsUser2Uuid },
-          jwtToken1
-        );
-        const o = await Order.updateOne(
-          { _id: orderFour.id },
-          { $set: { status: 'completed' } }
-        );
+        orderFour = await createOrder({ ...productShorts, uuid: productShortsUser2Uuid }, jwtToken1);
+        const o = await Order.updateOne({ _id: orderFour.id }, { $set: { status: 'completed' } });
         expect(o.nModified).toBe(1);
         user2OrdersAsSeller++;
         user1OrdersAsBuyer++;
 
-        orderFive = await createOrder(
-          { ...productBoots, uuid: productBootsUuid },
-          jwtToken2
-        );
-        const o2 = await Order.updateOne(
-          { _id: orderFive.id },
-          { $set: { status: 'completed' } }
-        );
+        orderFive = await createOrder({ ...productBoots, uuid: productBootsUuid }, jwtToken2);
+        const o2 = await Order.updateOne({ _id: orderFive.id }, { $set: { status: 'completed' } });
         expect(o2.nModified).toBe(1);
         user1OrdersAsSeller++;
         user2OrdersAsBuyer++;
 
-        orderSix = await createOrder(
-          { ...productShorts, uuid: productShortsUser2Uuid2 },
-          jwtToken1
-        );
+        orderSix = await createOrder({ ...productShorts, uuid: productShortsUser2Uuid2 }, jwtToken1);
         const o3 = await Order.updateOne(
           { _id: orderSix.id },
           { $set: { status: 'cancelled', reason: 'i sold it somewhere else' } }
@@ -622,15 +559,11 @@ describe('## Order APIs', () => {
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.data).toHaveLength(
-            user2OrdersAsSeller + user2OrdersAsBuyer
-          );
+          expect(res.body.data).toHaveLength(user2OrdersAsSeller + user2OrdersAsBuyer);
           const o = res.body.data.find(o => o.id === orderFour.id);
           expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
           expect(o.priceOfItem).toBe(productShorts.price);
-          expect(Object.keys(o.product).sort()).toEqual(
-            [...productFields, 'comments', 'reservedDate'].sort()
-          );
+          expect(Object.keys(o.product).sort()).toEqual([...productFields, 'comments', 'reservedDate'].sort());
           expect(Object.keys(o.buyer).sort()).toMatchSnapshot();
           expect(Object.keys(o.seller).sort()).toMatchSnapshot();
           expect(o.reviewFromBuyer.fromUser).toBe(user1._id);
@@ -647,9 +580,7 @@ describe('## Order APIs', () => {
         .set('Authorization', jwtToken2)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.data).toHaveLength(
-            user1OrdersAsSeller + user1OrdersAsBuyer
-          );
+          expect(res.body.data).toHaveLength(user1OrdersAsSeller + user1OrdersAsBuyer);
           const o = res.body.data.find(o => o.id === orderFour.id);
           expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
           expect(o.priceOfItem).toBe(productShorts.price);
@@ -668,9 +599,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.data).toHaveLength(user2OrdersAsSeller);
-          expect(res.body.data.filter(o => o.reviewFromBuyer)).toHaveLength(
-            user2ReceivedReviewsAsSeller
-          );
+          expect(res.body.data.filter(o => o.reviewFromBuyer)).toHaveLength(user2ReceivedReviewsAsSeller);
           const o = res.body.data.find(o => o.id === orderFour.id);
           expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
           expect(o.priceOfItem).toBe(productShorts.price);

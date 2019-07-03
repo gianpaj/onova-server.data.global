@@ -39,11 +39,7 @@ router
   .get(validate(paramValidation.getProducts), conditionalAuth, productCtrl.list)
 
   // POST /api/products - Create new product
-  .post(
-    validate(paramValidation.createProduct),
-    requireAuth,
-    productCtrl.create
-  );
+  .post(validate(paramValidation.createProduct), requireAuth, productCtrl.create);
 
 router
   .route('/:uuid')
@@ -51,20 +47,10 @@ router
   .get(validate(paramValidation.productUUIDParam), productCtrl.get)
 
   // PUT /api/products/:uuid - Update product
-  .put(
-    validate(paramValidation.putProduct),
-    requireAuth,
-    isAuthorized,
-    productCtrl.update
-  )
+  .put(validate(paramValidation.putProduct), requireAuth, isAuthorized, productCtrl.update)
 
   // DELETE /api/products/:uuid - Delete product - Protected route
-  .delete(
-    validate(paramValidation.productUUIDParam),
-    requireAuth,
-    isAuthorized,
-    productCtrl.remove
-  );
+  .delete(validate(paramValidation.productUUIDParam), requireAuth, isAuthorized, productCtrl.remove);
 
 // Load product when API with uuid route parameter is hit
 router.param('uuid', productCtrl.load);

@@ -2,12 +2,7 @@
 
 import httpStatus from 'http-status';
 import shortid from 'shortid';
-import {
-  addMinutes,
-  differenceInCalendarDays,
-  differenceInSeconds,
-  differenceInMinutes,
-} from 'date-fns';
+import { addMinutes, differenceInCalendarDays, differenceInSeconds, differenceInMinutes } from 'date-fns';
 import path from 'path';
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
@@ -19,16 +14,7 @@ import config from '../config/config';
 
 import photoHelper from '../helpers/photos';
 import APIError from '../helpers/APIError';
-import {
-  Drop,
-  DropDoc,
-  Follow,
-  FollowDoc,
-  User,
-  UserDoc,
-  Product,
-  ProductDoc,
-} from '../models';
+import { Drop, DropDoc, Follow, FollowDoc, User, UserDoc, Product, ProductDoc } from '../models';
 
 const { minPrice } = config.settings;
 
@@ -48,12 +34,7 @@ declare class session$Request extends express$Request {
 /**
  * Load a drop and append to req.
  */
-function load(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction,
-  uuid: string
-) {
+function load(req: session$Request, res: express$Response, next: express$NextFunction, uuid: string) {
   // use static method from DropSchema
   // flow-disable-next-line
   Drop.get(uuid)
@@ -76,11 +57,7 @@ function load(
  * @property {*} req.params - express session parameters
  * @property {shortid} req.params.uuid
  */
-function get(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function get(req: session$Request, res: express$Response, next: express$NextFunction) {
   if (!req.drop) {
     const error = new APIError('Drop not found', httpStatus.NOT_FOUND);
     return next(error);
@@ -97,18 +74,11 @@ function get(
  * @property {*} req.params - express session parameters
  * @property {shortid} req.params.uuid
  */
-async function remove(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function remove(req: session$Request, res: express$Response, next: express$NextFunction) {
   try {
     const { uuid } = req.params;
 
-    const doc = await Drop.findOneAndUpdate(
-      { uuid, status: 'valid' },
-      { status: 'deleted' }
-    );
+    const doc = await Drop.findOneAndUpdate({ uuid, status: 'valid' }, { status: 'deleted' });
 
     if (!doc) {
       return res.status(httpStatus.NOT_FOUND).json();
@@ -117,10 +87,7 @@ async function remove(
   } catch (error) {
     if (!(error instanceof APIError)) {
       console.error(error);
-      const e = new APIError(
-        'Error deleting a drop',
-        httpStatus.SERVICE_UNAVAILABLE
-      );
+      const e = new APIError('Error deleting a drop', httpStatus.SERVICE_UNAVAILABLE);
       return next(e);
     }
     next(error);
@@ -136,11 +103,7 @@ async function remove(
  * @property {*} req.query
  * @property {string} req.query.username
  */
-async function list(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function list(req: session$Request, res: express$Response, next: express$NextFunction) {
   try {
     const user = await User.findOne({ username: req.query.username });
     if (!user) {
@@ -157,9 +120,7 @@ async function list(
 
       // add the amISubscribed field
       drops = drops.map(drop => {
-        const subscribers = drop.subscribers.map(subscriber =>
-          subscriber._id.toString()
-        );
+        const subscribers = drop.subscribers.map(subscriber => subscriber._id.toString());
         let amISubscribed = false;
         if (subscribers.indexOf(myUserId.toString()) > -1) {
           amISubscribed = true;
@@ -172,10 +133,7 @@ async function list(
   } catch (error) {
     if (!(error instanceof APIError)) {
       console.error(error);
-      const e = new APIError(
-        'Error getting scheduled listing',
-        httpStatus.SERVICE_UNAVAILABLE
-      );
+      const e = new APIError('Error getting scheduled listing', httpStatus.SERVICE_UNAVAILABLE);
       return next(e);
     }
     next(error);
@@ -192,11 +150,7 @@ async function list(
  * @property {MongoId} req.query.lastId
  * @property {number} req.query.limit Limit number of drops to be returned.
  */
-async function myFeed(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function myFeed(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, lastId } = req.query;
 
   try {
@@ -237,9 +191,7 @@ async function myFeed(
 
     // add the amISubscribed field
     drops = drops.map(drop => {
-      const subscribers = drop.subscribers.map(subscriber =>
-        subscriber._id.toString()
-      );
+      const subscribers = drop.subscribers.map(subscriber => subscriber._id.toString());
       let amISubscribed = false;
       if (subscribers.indexOf(myUserId.toString()) > -1) {
         amISubscribed = true;
@@ -272,19 +224,12 @@ async function myFeed(
  * @property {Array<string>=} req.body.products.tags
  * @property {Array<number>} req.body.products.typeIds
  */
-async function create(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body } = req;
 
   try {
     if (differenceInCalendarDays(body.date, Date.now()) > 90) {
-      throw new APIError(
-        'Cannot create a drop 90 days from today',
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError('Cannot create a drop 90 days from today', httpStatus.BAD_REQUEST);
     }
 
     validateProducts(body.products);
@@ -304,8 +249,7 @@ async function create(
     // if the drop date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
     // but for testing only is not further thatn 3 seconds in the future
     const secondsDiff = config.env === 'test' ? 2 : 30;
-    const posted =
-      Math.abs(differenceInSeconds(new Date(), body.date)) <= secondsDiff;
+    const posted = Math.abs(differenceInSeconds(new Date(), body.date)) <= secondsDiff;
 
     const drop: DropDoc = new Drop({
       scheduledAt: body.date,
@@ -338,17 +282,11 @@ async function create(
         const photo = prod.photos[i];
         const thumb = photo.replace('.jpg', '-thumb.jpg');
         const thumb2x = photo.replace('.jpg', '-thumb@2x.jpg');
-        promises.push(
-          photoHelper.copyPhoto(thumb, product.uuid, i, date, '-thumb')
-        );
-        promises.push(
-          photoHelper.copyPhoto(thumb2x, product.uuid, i, date, '-thumb@2x')
-        );
+        promises.push(photoHelper.copyPhoto(thumb, product.uuid, i, date, '-thumb'));
+        promises.push(photoHelper.copyPhoto(thumb2x, product.uuid, i, date, '-thumb@2x'));
       }
 
-      prod.photos.map((p, i) =>
-        promises.push(photoHelper.copyPhoto(p, product.uuid, i, date))
-      );
+      prod.photos.map((p, i) => promises.push(photoHelper.copyPhoto(p, product.uuid, i, date)));
 
       try {
         const photos = await Promise.all(promises);
@@ -398,26 +336,17 @@ async function create(
  * @property {*} req.params Express params parameters
  * @property {string} req.params.dropId The target drop to subscribe to
  */
-async function subscribe(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function subscribe(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { drop } = req;
 
   const myUserId = req.user._id.toString();
 
   try {
     if (myUserId === drop.seller._id.toString()) {
-      throw new APIError(
-        'Cannot subscribe your own drop',
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError('Cannot subscribe your own drop', httpStatus.BAD_REQUEST);
     }
 
-    const subscribers = drop.subscribers.map(subscriber =>
-      subscriber._id.toString()
-    );
+    const subscribers = drop.subscribers.map(subscriber => subscriber._id.toString());
 
     if (subscribers.indexOf(myUserId) > -1) {
       throw new APIError("You're already subscribed", httpStatus.BAD_REQUEST);
@@ -435,9 +364,7 @@ async function subscribe(
         { drop, sub: req.user },
         err => {
           if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(
-            `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 15m`
-          );
+          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 15m`);
           res.status(httpStatus.CREATED).json({ data: drop });
         }
       );
@@ -449,9 +376,7 @@ async function subscribe(
         { drop, sub: req.user },
         err => {
           if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(
-            `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`
-          );
+          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`);
           res.status(httpStatus.CREATED).json({ data: drop });
         }
       );
@@ -463,9 +388,7 @@ async function subscribe(
         { drop, sub: req.user },
         err => {
           if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(
-            `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`
-          );
+          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`);
           res.status(httpStatus.CREATED).json({ data: drop });
         }
       );
@@ -486,45 +409,31 @@ async function subscribe(
  * @property {*} req.params Express params parameters
  * @property {string} req.params.dropId The target drop to unsubscribe to
  */
-async function unsubscribe(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function unsubscribe(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { drop } = req;
 
   const myUserId = req.user._id.toString();
 
   try {
     if (myUserId === drop.seller._id.toString()) {
-      throw new APIError(
-        'Cannot unsubscribe your own drop',
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError('Cannot unsubscribe your own drop', httpStatus.BAD_REQUEST);
     }
 
-    const subscribers = drop.subscribers.map(subscriber =>
-      subscriber._id.toString()
-    );
+    const subscribers = drop.subscribers.map(subscriber => subscriber._id.toString());
 
     if (subscribers.indexOf(myUserId) === -1) {
       throw new APIError("You're not subscribed", httpStatus.BAD_REQUEST);
     }
 
-    drop.subscribers = drop.subscribers.filter(
-      sub => sub._id.toString() !== myUserId
-    );
+    drop.subscribers = drop.subscribers.filter(sub => sub._id.toString() !== myUserId);
 
     await drop.save();
 
-    agenda.cancel(
-      { 'data.drop._id': drop._id, 'data.sub._id': req.user._id },
-      (err, numRemoved) => {
-        if (err) return console.error(err);
-        debug('numRemoved ' + numRemoved);
-        return res.status(httpStatus.OK).json({ data: drop });
-      }
-    );
+    agenda.cancel({ 'data.drop._id': drop._id, 'data.sub._id': req.user._id }, (err, numRemoved) => {
+      if (err) return console.error(err);
+      debug('numRemoved ' + numRemoved);
+      return res.status(httpStatus.OK).json({ data: drop });
+    });
   } catch (error) {
     next(error);
   }
@@ -533,10 +442,7 @@ async function unsubscribe(
 function validateProducts(products: Array<ProductDoc>) {
   products.forEach(product => {
     if (parseFloat(product.price) < minPrice) {
-      throw new APIError(
-        `Invalid product price. The minimum price is ${minPrice} UAH`,
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError(`Invalid product price. The minimum price is ${minPrice} UAH`, httpStatus.BAD_REQUEST);
     }
 
     const correctPhotos = product.photos.filter(p =>
@@ -555,28 +461,13 @@ function validateSeller(seller) {
     throw new APIError('Seller not found', httpStatus.BAD_REQUEST);
   }
   if (seller.accountStatus !== 'verified') {
-    throw new APIError(
-      'Please verify your account before creating a drop',
-      httpStatus.BAD_REQUEST
-    );
+    throw new APIError('Please verify your account before creating a drop', httpStatus.BAD_REQUEST);
   }
-  if (
-    !seller.shippingAddress.departmentNovaposhta ||
-    !seller.shippingAddress.city
-  ) {
-    throw new APIError(
-      'Please enter your shipping address info before creating a drop',
-      httpStatus.BAD_REQUEST
-    );
+  if (!seller.shippingAddress.departmentNovaposhta || !seller.shippingAddress.city) {
+    throw new APIError('Please enter your shipping address info before creating a drop', httpStatus.BAD_REQUEST);
   }
-  if (
-    !seller.paymentInfo.short.card_token &&
-    !seller.paymentInfo.full.card_token
-  ) {
-    throw new APIError(
-      'Please enter your payment info before creating a drop',
-      httpStatus.BAD_REQUEST
-    );
+  if (!seller.paymentInfo.short.card_token && !seller.paymentInfo.full.card_token) {
+    throw new APIError('Please enter your payment info before creating a drop', httpStatus.BAD_REQUEST);
   }
 }
 

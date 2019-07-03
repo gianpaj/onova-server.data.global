@@ -140,13 +140,7 @@ const OrderSchema = new Schema(
     transactionId: String,
     transactionStatus: {
       type: String,
-      enum: [
-        'ua-pending',
-        'ua-needsconfirmation',
-        'ua-finished',
-        'ua-rejected',
-        'ua-reversed',
-      ],
+      enum: ['ua-pending', 'ua-needsconfirmation', 'ua-finished', 'ua-rejected', 'ua-reversed'],
     },
     shippingFee: Schema.Types.Decimal128,
     shippingProvider: {
@@ -169,9 +163,7 @@ const OrderSchema = new Schema(
  */
 
 OrderSchema.virtual('total').get(function() {
-  return (
-    parseFloat(this.priceOfItem) + parseFloat(this.shippingFee || 0)
-  ).toString();
+  return (parseFloat(this.priceOfItem) + parseFloat(this.shippingFee || 0)).toString();
 });
 
 OrderSchema.virtual('finalisedAt').get(function() {

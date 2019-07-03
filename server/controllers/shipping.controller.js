@@ -14,11 +14,7 @@ axios.defaults.baseURL = config.UAPAY_BASE_URL;
  *
  * GET /api/shipping/cities
  */
-function cities(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function cities(req: express$Request, res: express$Response, next: express$NextFunction) {
   Cities.find({}, { _id: 0, uk: 1, id: 1 })
     .sort({ departmentsCount: -1 })
     .then(cities => {
@@ -29,12 +25,7 @@ function cities(
     })
     .catch(error => {
       console.error(error);
-      next(
-        new APIError(
-          'Error getting list of cities from UAPAY NovaPoshta',
-          httpStatus.SERVICE_UNAVAILABLE
-        )
-      );
+      next(new APIError('Error getting list of cities from UAPAY NovaPoshta', httpStatus.SERVICE_UNAVAILABLE));
     });
 }
 
@@ -49,11 +40,7 @@ function cities(
  * @property {number} req.query.recipientOfficeID
  * @property {number} req.query.orderId
  */
-async function costs(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function costs(req: express$Request, res: express$Response, next: express$NextFunction) {
   const { recipientOfficeID, orderId, price, weight } = req.query;
   try {
     const recipientDepartment = await Departments.findOne({
@@ -68,8 +55,7 @@ async function costs(
     const seller: UserDoc = await User.findById(order.seller);
     const { shippingAddress: Sship } = seller;
 
-    if (!Sship.city || !Sship.departmentNovaposhta)
-      throw new Error('Seller is missing payment or shipping info');
+    if (!Sship.city || !Sship.departmentNovaposhta) throw new Error('Seller is missing payment or shipping info');
 
     const costs = await getShippingCost(weight, price, Sship, {
       departmentNovaposhta: recipientDepartment.id,
@@ -78,16 +64,10 @@ async function costs(
 
     res.json({ data: costs });
   } catch (error) {
-    if (error.response && error.response.data)
-      console.error(error.response.data);
+    if (error.response && error.response.data) console.error(error.response.data);
     if (!(error instanceof APIError)) {
       console.error(error);
-      return next(
-        new APIError(
-          'Error calculating shipping costs',
-          httpStatus.SERVICE_UNAVAILABLE
-        )
-      );
+      return next(new APIError('Error calculating shipping costs', httpStatus.SERVICE_UNAVAILABLE));
     }
     next(error);
   }
@@ -99,14 +79,8 @@ export function getShippingCost(
   senderShippingAddress: any,
   recipientShippingAddress: any
 ): Promise<string> {
-  const {
-    departmentNovaposhta: senderOfficeId,
-    city: senderCityId,
-  } = senderShippingAddress;
-  const {
-    departmentNovaposhta: recipientOfficeId,
-    city: recipientCityId,
-  } = recipientShippingAddress;
+  const { departmentNovaposhta: senderOfficeId, city: senderCityId } = senderShippingAddress;
+  const { departmentNovaposhta: recipientOfficeId, city: recipientCityId } = recipientShippingAddress;
   return axios
     .get('/handlers/NovaPoshta/costs', {
       params: {
@@ -123,8 +97,7 @@ export function getShippingCost(
       },
     })
     .then(result => {
-      if (!result || !result.data)
-        throw new APIError('Error getting the costs from UAPAY');
+      if (!result || !result.data) throw new APIError('Error getting the costs from UAPAY');
       return parseFloat(result.data.data.handlerPrice / 100).toFixed(2);
     });
 }
@@ -138,11 +111,7 @@ export function getShippingCost(
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.city
  */
-async function departments(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function departments(req: express$Request, res: express$Response, next: express$NextFunction) {
   Departments.find({ cityID: req.params.city }, { _id: 0, uk: 1, id: 1 })
     .then(departments => {
       if (!departments.length) {
@@ -151,12 +120,7 @@ async function departments(
       res.json({ data: departments });
     })
     .catch(error => {
-      next(
-        new APIError(
-          'Error getting list of departments from UAPAY NovaPoshta',
-          httpStatus.SERVICE_UNAVAILABLE
-        )
-      );
+      next(new APIError('Error getting list of departments from UAPAY NovaPoshta', httpStatus.SERVICE_UNAVAILABLE));
     });
 }
 

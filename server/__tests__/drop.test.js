@@ -10,13 +10,7 @@ import { User, Drop, Product, Notification, DropDoc } from '../models';
 
 import config from '../config/config';
 import app from '../index';
-import {
-  beforeAllTests,
-  clearJobs,
-  createUserAndLogin,
-  findJobs,
-  followUser,
-} from './utils';
+import { beforeAllTests, clearJobs, createUserAndLogin, findJobs, followUser } from './utils';
 import { i18n } from '../controllers/drop.controller';
 
 // if server.push is NOT running
@@ -133,10 +127,7 @@ describe('## Drops feed APIs', () => {
      * | user0 | follows -> | user1  |
      * | user1 | follows -> | user0  |
      */
-    await Promise.all([
-      followUser(users[0].token, users[1]._id),
-      followUser(users[1].token, users[0]._id),
-    ]);
+    await Promise.all([followUser(users[0].token, users[1]._id), followUser(users[1].token, users[0]._id)]);
   });
 
   describe('# GET /api/v2/drops/:uuid', () => {
@@ -156,10 +147,7 @@ describe('## Drops feed APIs', () => {
           expect(shortid.isValid(body.data.uuid)).toBe(true);
           expect(body.data.posted).toBe(false);
           expect(body.data.products).toHaveLength(1);
-          expect(Object.keys(body.data.products[0]).sort()).toEqual([
-            '_id',
-            'photoURIs',
-          ]);
+          expect(Object.keys(body.data.products[0]).sort()).toEqual(['_id', 'photoURIs']);
         });
     });
 
@@ -206,9 +194,7 @@ describe('## Drops feed APIs', () => {
   });
 
   describe('# POST /api/v2/drops', () => {
-    beforeEach(() =>
-      Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()])
-    );
+    beforeEach(() => Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()]));
 
     it('should NOT make a drop with a item price to low', () => {
       return request(app)
@@ -216,18 +202,12 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
-          products: [
-            { ...product, price: (config.settings.minPrice - 10).toString() },
-          ],
+          products: [{ ...product, price: (config.settings.minPrice - 10).toString() }],
           longitude: 23.9573617,
           latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain(
-            'Invalid product price. The minimum price is'
-          )
-        );
+        .then(({ body }) => expect(body.message).toContain('Invalid product price. The minimum price is'));
     });
 
     it('should NOT create a drop with invalid item images', () => {
@@ -256,9 +236,7 @@ describe('## Drops feed APIs', () => {
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe(
-            'Please verify your account before creating a drop'
-          );
+          expect(res.body.message).toBe('Please verify your account before creating a drop');
         });
     });
 
@@ -273,9 +251,7 @@ describe('## Drops feed APIs', () => {
           latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('Please enter your shipping address')
-        );
+        .then(({ body }) => expect(body.message).toContain('Please enter your shipping address'));
     });
 
     it(`should NOT create a drop if seller doesn't have a payment info`, () => {
@@ -289,9 +265,7 @@ describe('## Drops feed APIs', () => {
           date: new Date(),
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('Please enter your payment info')
-        );
+        .then(({ body }) => expect(body.message).toContain('Please enter your payment info'));
     });
 
     it('should NOT create a drop in the past (previous day)', () => {
@@ -305,9 +279,7 @@ describe('## Drops feed APIs', () => {
           latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('must be larger than or equal')
-        );
+        .then(({ body }) => expect(body.message).toContain('must be larger than or equal'));
     });
 
     it('should NOT create a drop an item after 3 months from today', () => {
@@ -321,9 +293,7 @@ describe('## Drops feed APIs', () => {
           latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('Cannot create a drop 90 days')
-        );
+        .then(({ body }) => expect(body.message).toContain('Cannot create a drop 90 days'));
     });
 
     it('should NOT create a drop without coordinates', () => {
@@ -337,9 +307,7 @@ describe('## Drops feed APIs', () => {
           latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('Cannot create a drop 90 days')
-        );
+        .then(({ body }) => expect(body.message).toContain('Cannot create a drop 90 days'));
     });
 
     it('should create a drop immediately with one product', async () => {
@@ -586,10 +554,7 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .send({
           date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
-          products: [
-            { ...product, description: 'firstfirst' },
-            { ...product, description: 'secondsecond' },
-          ],
+          products: [{ ...product, description: 'firstfirst' }, { ...product, description: 'secondsecond' }],
           longitude: 23.9573617,
           latitude: 49.8134431,
         })
@@ -620,10 +585,7 @@ describe('## Drops feed APIs', () => {
 
         if (body.data.length) {
           expect(body.data).toHaveLength(2);
-          expect(body.data.map(p => p.description)).toEqual([
-            'firstfirst',
-            'secondsecond',
-          ]);
+          expect(body.data.map(p => p.description)).toEqual(['firstfirst', 'secondsecond']);
           done();
           clearInterval(timer);
           return;
@@ -672,15 +634,8 @@ describe('## Drops feed APIs', () => {
 
   describe('# GET /api/feed/drops', () => {
     beforeEach(async () => {
-      await Promise.all([
-        Drop.deleteMany({}),
-        Product.deleteMany({}),
-        clearJobs(),
-      ]);
-      await Promise.all([
-        createManyDrops(1, users[0].token),
-        createManyDrops(1, users[1].token),
-      ]);
+      await Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()]);
+      await Promise.all([createManyDrops(1, users[0].token), createManyDrops(1, users[1].token)]);
     });
 
     it('should NOT get my feed of drops without auth', () => {
@@ -713,10 +668,7 @@ describe('## Drops feed APIs', () => {
           expect(drop.amISubscribed).toBe(false);
           expect(drop.products).toHaveLength(1);
           expect(drop.subscribers).toHaveLength(0);
-          expect(Object.keys(drop.products[0]).sort()).toEqual([
-            '_id',
-            'photoURIs',
-          ]);
+          expect(Object.keys(drop.products[0]).sort()).toEqual(['_id', 'photoURIs']);
         });
     });
   });
@@ -724,11 +676,7 @@ describe('## Drops feed APIs', () => {
   describe('# POST /api/v2/drops/:uuid/subscribe', () => {
     let drops;
     beforeAll(async () => {
-      await Promise.all([
-        Drop.deleteMany({}),
-        Product.deleteMany({}),
-        clearJobs(),
-      ]);
+      await Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()]);
       drops = await createManyDrops(1, users[0].token);
     });
 
@@ -737,9 +685,7 @@ describe('## Drops feed APIs', () => {
         .post(`/api/v2/drops/${drops[0].uuid}/subscribe`)
         .set('Authorization', users[0].token)
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toBe('Cannot subscribe your own drop')
-        );
+        .then(({ body }) => expect(body.message).toBe('Cannot subscribe your own drop'));
     });
 
     it('should subscribe to a drop', async () => {
@@ -767,12 +713,9 @@ describe('## Drops feed APIs', () => {
         totalTime += interval;
 
         // job to notify me
-        const subscriptions = await findJobs(
-          config.JOBNAMES.DROP_SUBSCRIPTION,
-          {
-            'data.uuid': drops[0].uuid,
-          }
-        );
+        const subscriptions = await findJobs(config.JOBNAMES.DROP_SUBSCRIPTION, {
+          'data.uuid': drops[0].uuid,
+        });
 
         if (subscriptions.length) {
           expect(subscriptions).toHaveLength(1);
@@ -793,20 +736,14 @@ describe('## Drops feed APIs', () => {
         .post(`/api/v2/drops/${drops[0].uuid}/subscribe`)
         .set('Authorization', users[1].token)
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toBe("You're already subscribed")
-        );
+        .then(({ body }) => expect(body.message).toBe("You're already subscribed"));
     });
   });
 
   describe('# POST /api/v2/drops/:uuid/unsubscribe', () => {
     let drops;
     beforeAll(async () => {
-      await Promise.all([
-        Drop.deleteMany({}),
-        Product.deleteMany({}),
-        clearJobs(),
-      ]);
+      await Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()]);
       drops = await createManyDrops(1, users[0].token);
     });
 
@@ -815,9 +752,7 @@ describe('## Drops feed APIs', () => {
         .post(`/api/v2/drops/${drops[0].uuid}/unsubscribe`)
         .set('Authorization', users[0].token)
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toBe('Cannot unsubscribe your own drop')
-        );
+        .then(({ body }) => expect(body.message).toBe('Cannot unsubscribe your own drop'));
     });
 
     it('should unsubscribe to a drop', async () => {
@@ -841,12 +776,9 @@ describe('## Drops feed APIs', () => {
         totalTime += interval;
 
         // job to notify me
-        const subscriptions = await findJobs(
-          config.JOBNAMES.DROP_SUBSCRIPTION,
-          {
-            'data.uuid': drops[0].uuid,
-          }
-        );
+        const subscriptions = await findJobs(config.JOBNAMES.DROP_SUBSCRIPTION, {
+          'data.uuid': drops[0].uuid,
+        });
 
         if (subscriptions.length) {
           expect(subscriptions).toHaveLength(0);

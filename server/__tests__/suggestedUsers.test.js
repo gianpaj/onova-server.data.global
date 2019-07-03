@@ -141,12 +141,7 @@ describe('## Suggested Users APIs', () => {
         expect(body.data).toHaveLength(1);
         const [firstSuggestion] = body.data;
         expect(firstSuggestion._id.username).toBe('user2');
-        expect(Object.keys(firstSuggestion._id).sort()).toEqual([
-          '_id',
-          'amIAFollower',
-          'profilePic',
-          'username',
-        ]);
+        expect(Object.keys(firstSuggestion._id).sort()).toEqual(['_id', 'amIAFollower', 'profilePic', 'username']);
         expect(firstSuggestion.numOfConns).toBe(1);
         expect(body.new).toBe(true);
       });
@@ -158,12 +153,7 @@ describe('## Suggested Users APIs', () => {
       .set('Authorization', users[0].token)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(Object.keys(body.data[0]._id).sort()).toEqual([
-          '_id',
-          'amIAFollower',
-          'profilePic',
-          'username',
-        ]);
+        expect(Object.keys(body.data[0]._id).sort()).toEqual(['_id', 'amIAFollower', 'profilePic', 'username']);
         expect(body.data).toHaveLength(1);
         expect(body.data[0].numOfConns).toBe(1);
         expect(body.new).toBe(false);

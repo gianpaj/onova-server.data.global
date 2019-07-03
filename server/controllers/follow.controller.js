@@ -4,14 +4,7 @@ import httpStatus from 'http-status';
 
 const debug = require('debug')('server-data:index');
 import APIError from '../helpers/APIError';
-import {
-  Block,
-  DefaultFollow,
-  User,
-  UserDoc,
-  Follow,
-  FollowDoc,
-} from '../models';
+import { Block, DefaultFollow, User, UserDoc, Follow, FollowDoc } from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import type { NotifPayload } from '../controllers/notification.controller';
 
@@ -33,18 +26,11 @@ declare class session$Request extends express$Request {
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.userId
  */
-function get(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function get(req: session$Request, res: express$Response, next: express$NextFunction) {
   const targetUserId = req.params.userId;
 
   if (req.user._id.toString() === targetUserId.toString()) {
-    const APIerr = new APIError(
-      'Cannot follow thyself',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Cannot follow thyself', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 
@@ -70,18 +56,11 @@ function get(
  * @property {*} req.params Express params parameters
  * @property {string} req.params.userId The target user to be followed
  */
-async function follow(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function follow(req: session$Request, res: express$Response, next: express$NextFunction) {
   const targetUserId = req.params.userId;
 
   if (req.user._id.toString() === targetUserId.toString()) {
-    const APIerr = new APIError(
-      'Cannot follow thyself',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Cannot follow thyself', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 
@@ -93,10 +72,7 @@ async function follow(
   });
 
   if (blocking > 0) {
-    const APIerr = new APIError(
-      'Error following a user',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Error following a user', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 
@@ -116,10 +92,7 @@ async function follow(
  * @param {UserDoc} sender
  * @param {String} targetUser _id or username
  */
-function internalFollow(
-  sender: UserDoc,
-  targetUser: String | MongoId
-): Promise<any> {
+function internalFollow(sender: UserDoc, targetUser: String | MongoId): Promise<any> {
   // search by userId and username
   return User.findOne({
     $or: [{ username: targetUser }, { _id: targetUser }],
@@ -185,18 +158,11 @@ function internalFollow(
  * @property {*} req.params Express params parameters
  * @property {string} req.params.userId The target user to be followed
  */
-function unfollow(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function unfollow(req: session$Request, res: express$Response, next: express$NextFunction) {
   const targetUserId = req.params.userId;
 
   if (req.user._id.toString() === targetUserId.toString()) {
-    const APIerr = new APIError(
-      'Cannot unfollow thyself',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Cannot unfollow thyself', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 
@@ -236,11 +202,7 @@ function unfollow(
  * @property {number} req.query.skip Number of users to be skipped.
  * @property {number} req.query.limit Limit number of users to be returned.
  */
-async function listFollowers(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function listFollowers(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
 
   const DBquery = { following: req.params.userId, status: { $ne: -1 } };
@@ -269,10 +231,7 @@ async function listFollowers(
           dateCreated: f.dateCreated,
           amIAFollower: false,
         };
-        if (
-          myFollowings &&
-          myFollowings.indexOf(f.follower._id.toString()) > -1
-        ) {
+        if (myFollowings && myFollowings.indexOf(f.follower._id.toString()) > -1) {
           doc.amIAFollower = true;
         }
         return doc;
@@ -296,11 +255,7 @@ async function listFollowers(
  * @property {number} req.query.skip Number of users to be skipped.
  * @property {number} req.query.limit Limit number of users to be returned.
  */
-async function listFollowing(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function listFollowing(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
 
   const DBquery = { follower: req.params.userId, status: { $ne: -1 } };

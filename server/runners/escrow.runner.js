@@ -1,17 +1,7 @@
 //@flow
 
-import {
-  Order,
-  OrderDoc,
-  Product,
-  userPopulateFields,
-  productPopulateFields,
-} from '../models';
-import {
-  createOrderNotification,
-  rejectPayment,
-  i18n,
-} from '../controllers/order.controller';
+import { Order, OrderDoc, Product, userPopulateFields, productPopulateFields } from '../models';
+import { createOrderNotification, rejectPayment, i18n } from '../controllers/order.controller';
 import notifCtrl from '../controllers/notification.controller';
 
 import config from '../config/config';
@@ -60,19 +50,12 @@ export default class EscrowRunner {
     this.defineRemindToConfirmOrderJob();
 
     agenda.on('ready', () => {
-      agenda.cancel(
-        { name: JOB.PUSH_ORDER_CONFIRM_REMINDER },
-        (err, numRemoved) => {
-          if (err) return console.error(err);
-          debug(
-            JOB.PUSH_ORDER_CONFIRM_REMINDER,
-            'cleaned up jobs:',
-            numRemoved
-          );
-          agenda.start();
-          this.createRemindToConfirmOrderJob();
-        }
-      );
+      agenda.cancel({ name: JOB.PUSH_ORDER_CONFIRM_REMINDER }, (err, numRemoved) => {
+        if (err) return console.error(err);
+        debug(JOB.PUSH_ORDER_CONFIRM_REMINDER, 'cleaned up jobs:', numRemoved);
+        agenda.start();
+        this.createRemindToConfirmOrderJob();
+      });
     });
   }
 
@@ -93,11 +76,7 @@ export default class EscrowRunner {
   createRemindToConfirmOrderJob() {
     const job = agenda.create(JOB.PUSH_ORDER_CONFIRM_REMINDER);
     job.unique({ jobName: JOB.PUSH_ORDER_CONFIRM_REMINDER });
-    job.repeatEvery(
-      config.env === 'test'
-        ? '3 seconds'
-        : config.settings.remindToConfirmOrderEvery
-    );
+    job.repeatEvery(config.env === 'test' ? '3 seconds' : config.settings.remindToConfirmOrderEvery);
     job.save();
   }
 
@@ -106,10 +85,7 @@ export default class EscrowRunner {
       debug('checkout job running at', new Date());
 
       const previousDate = new Date(
-        Date.now() -
-          (config.env === 'test'
-            ? 30 * 1000
-            : config.settings.holdProductFor * 1000)
+        Date.now() - (config.env === 'test' ? 30 * 1000 : config.settings.holdProductFor * 1000)
       );
       const query = {
         status: 'pending',
@@ -128,13 +104,9 @@ export default class EscrowRunner {
         });
 
         debug('Unpaid orders cancelled:', ordersUpdated.nModified);
-        const productsToPutBackForSale = orders
-          .map(order => order.product)
-          .filter(p => p);
+        const productsToPutBackForSale = orders.map(order => order.product).filter(p => p);
         debug('productsToPutBackForSale:', productsToPutBackForSale);
-        const updated = await this.removeProductsFromCheckout(
-          productsToPutBackForSale
-        );
+        const updated = await this.removeProductsFromCheckout(productsToPutBackForSale);
         debug('Products updated:', updated.nModified);
         done();
       } catch (error) {
@@ -151,10 +123,7 @@ export default class EscrowRunner {
       debug('cancel-paid-orders job running at', new Date());
 
       const previousDate = new Date(
-        Date.now() -
-          (config.env === 'test'
-            ? 30 * 1000
-            : config.settings.cancelPaidOrdersAfter * 1000)
+        Date.now() - (config.env === 'test' ? 30 * 1000 : config.settings.cancelPaidOrdersAfter * 1000)
       );
 
       try {
@@ -180,13 +149,9 @@ export default class EscrowRunner {
         );
 
         debug('Paid orders cancelled:', ordersUpdated.nModified);
-        const productsToPutBackForSale = orders
-          .map(order => order.product)
-          .filter(p => p);
+        const productsToPutBackForSale = orders.map(order => order.product).filter(p => p);
         debug('productsToPutBackForSale:', productsToPutBackForSale);
-        const updated = await this.removeProductsFromCheckout(
-          productsToPutBackForSale
-        );
+        const updated = await this.removeProductsFromCheckout(productsToPutBackForSale);
         debug('Products updated:', updated.nModified);
 
         const updatedOrders: Array<OrderDoc> = await Order.find({
@@ -199,10 +164,7 @@ export default class EscrowRunner {
         // create array of arrays of notification promises and then flatten/merge the arrays
         const notificationPromises = [].concat.apply(
           [],
-          updatedOrders.map(order => [
-            createOrderNotification(order, true),
-            createOrderNotification(order, false),
-          ])
+          updatedOrders.map(order => [createOrderNotification(order, true), createOrderNotification(order, false)])
         );
 
         await Promise.all(notificationPromises);
@@ -221,10 +183,7 @@ export default class EscrowRunner {
       debug(JOB.PUSH_ORDER_CONFIRM_REMINDER + ' job running at', new Date());
 
       const previousDate = new Date(
-        Date.now() -
-          (config.env === 'test'
-            ? 30 * 1000
-            : config.settings.cancelPaidOrdersAfter * 1000)
+        Date.now() - (config.env === 'test' ? 30 * 1000 : config.settings.cancelPaidOrdersAfter * 1000)
       );
 
       try {
@@ -275,9 +234,6 @@ export default class EscrowRunner {
   }
 
   removeProductsFromCheckout(products): Promise<any> {
-    return Product.updateMany(
-      { _id: { $in: products } },
-      { status: 'forsale', $unset: { reservedDate: '' } }
-    );
+    return Product.updateMany({ _id: { $in: products } }, { status: 'forsale', $unset: { reservedDate: '' } });
   }
 }

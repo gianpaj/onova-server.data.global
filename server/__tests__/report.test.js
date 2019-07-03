@@ -34,9 +34,7 @@ describe('## Report methods', () => {
     typeIds: [3],
     description: 'nice boots',
     price: '1100.99',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
   };
 
   let users = [
@@ -109,11 +107,7 @@ describe('## Report methods', () => {
       .set('Authorization', nonActiveUser.jwtToken)
       .send({ user: users[0]._id, text: 'they are a bad user' })
       .expect(httpStatus.BAD_REQUEST)
-      .then(({ body }) =>
-        expect(body.message).toBe(
-          'Please verify your account before making a report'
-        )
-      );
+      .then(({ body }) => expect(body.message).toBe('Please verify your account before making a report'));
   });
 
   it('should report a user', () => {
@@ -124,9 +118,7 @@ describe('## Report methods', () => {
       .expect(httpStatus.CREATED)
       .then(({ body }) => {
         expect(body.data.text).toBe('they are a bad user');
-        expect(Object.keys(body.data).sort()).toEqual(
-          [...reportFields, 'user'].sort()
-        );
+        expect(Object.keys(body.data).sort()).toEqual([...reportFields, 'user'].sort());
       });
   });
 
@@ -167,9 +159,7 @@ describe('## Report methods', () => {
       .expect(httpStatus.CREATED)
       .then(({ body }) => {
         expect(body.data.text).toBe('bad product');
-        expect(Object.keys(body.data).sort()).toEqual(
-          [...reportFields, 'product'].sort()
-        );
+        expect(Object.keys(body.data).sort()).toEqual([...reportFields, 'product'].sort());
       });
   });
 

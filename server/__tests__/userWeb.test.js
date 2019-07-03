@@ -102,9 +102,7 @@ describe('## UserWeb APIs', () => {
           .set('Authorization', user1token)
           .send({ emailAddress: 'hello@example.com' })
           .expect(httpStatus.BAD_REQUEST)
-          .then(({ body }) =>
-            expect(body.message).toBe('"userId" must be one of [me]')
-          );
+          .then(({ body }) => expect(body.message).toBe('"userId" must be one of [me]'));
       });
 
       // reduce the expiresIn to 2 seconds

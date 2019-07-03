@@ -73,9 +73,7 @@ const product = {
   description: 'nice boots',
   // seller comes after the user is created
   price: '1010.99', // if no decimal points .00 will be added
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let anotherProduct = {
@@ -83,9 +81,7 @@ let anotherProduct = {
   typeIds: [1, 3],
   description: 'nice jacket',
   price: '230.99',
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 let userId;
@@ -134,18 +130,10 @@ describe('## Notification APIs', () => {
   describe('# GET /api/users/notifications', () => {
     // create comments
     beforeAll(async () => {
-      const c1 = await createComment(
-        { text: 'first!' },
-        anotherProductUuid,
-        firstJwtToken
-      );
+      const c1 = await createComment({ text: 'first!' }, anotherProductUuid, firstJwtToken);
       expect(c1.uuid).toBe(anotherProductUuid);
       numberOfNotifForAnotherUser++;
-      const c2 = await createComment(
-        { text: 'thanks dude!' },
-        anotherProductUuid,
-        anotherJwtToken
-      );
+      const c2 = await createComment({ text: 'thanks dude!' }, anotherProductUuid, anotherJwtToken);
       expect(c2.uuid).toBe(anotherProductUuid);
       await createManyComments(40, productUuid, anotherJwtToken);
       numberOfNotifForFirstUser += 40;
@@ -211,9 +199,7 @@ describe('## Notification APIs', () => {
         .get(`/api/users/notifications?lastId=5ff8ef0e9147a8bd32ea35f6`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.NOT_FOUND)
-        .then(res =>
-          expect(res.body.message).toContain('Notification not found')
-        );
+        .then(res => expect(res.body.message).toContain('Notification not found'));
     });
 
     it('should not get notifications without authorization', () => {
@@ -242,17 +228,11 @@ describe('## Notification APIs', () => {
     let commentIdSecond;
 
     beforeAll(async () => {
-      const data = await createComment(
-        { text: 'love the boots' },
-        anotherProductUuid,
-        firstJwtToken
-      );
+      const data = await createComment({ text: 'love the boots' }, anotherProductUuid, firstJwtToken);
       commentIdSecond = data.comment._id;
 
       return request(app)
-        .delete(
-          `/api/products/${anotherProductUuid}/comment/${commentIdSecond}`
-        )
+        .delete(`/api/products/${anotherProductUuid}/comment/${commentIdSecond}`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
@@ -316,10 +296,7 @@ describe('## Notification APIs', () => {
     let orderId;
     beforeAll(async () => {
       // anotherUser -- orders -> productUuid from firstUser
-      const o = await createOrder(
-        { ...product, uuid: productUuid },
-        anotherJwtToken
-      );
+      const o = await createOrder({ ...product, uuid: productUuid }, anotherJwtToken);
       orderId = o.id;
       expect(o.status).toBe('pending');
       expect(o.priceOfItem).toBe(product.price);
@@ -388,10 +365,7 @@ describe('## Notification APIs', () => {
       expect(p2.description).toBe(anotherProduct.description);
       productUuid = p2.uuid;
       // anotherUser -- orders -> productUuid from firstUser
-      const o = await createOrder(
-        { ...anotherProduct, uuid: productUuid },
-        anotherJwtToken
-      );
+      const o = await createOrder({ ...anotherProduct, uuid: productUuid }, anotherJwtToken);
       orderId = o.id;
       expect(o.status).toBe('pending');
       expect(o.priceOfItem).toBe(anotherProduct.price);
@@ -478,9 +452,7 @@ describe('## Notification APIs', () => {
             .expect(httpStatus.OK)
             .then(res => {
               const { data } = res.body;
-              const notifs = data.filter(
-                n => n.notifI18n !== i18n.orderPaidReminder
-              );
+              const notifs = data.filter(n => n.notifI18n !== i18n.orderPaidReminder);
               expect(notifs[0].notifI18n).toContain(i18n.orderPaidForSeller);
               expect(notifs).toHaveLength(numberOfNotifForFirstUser);
               done();
@@ -493,31 +465,15 @@ describe('## Notification APIs', () => {
   describe('# Comment with @mentions', () => {
     // create comments
     beforeAll(async () => {
-      const c1 = await createComment(
-        { text: 'check this out @anotherperson' },
-        productUuid,
-        firstJwtToken
-      );
+      const c1 = await createComment({ text: 'check this out @anotherperson' }, productUuid, firstJwtToken);
       numberOfNotifForAnotherUser++;
       expect(c1.uuid).toBe(productUuid);
-      const c3 = await createComment(
-        { text: '@anotherperson oops thats`s me!' },
-        anotherProductUuid,
-        anotherJwtToken
-      );
+      const c3 = await createComment({ text: '@anotherperson oops thats`s me!' }, anotherProductUuid, anotherJwtToken);
       expect(c3.uuid).toBe(anotherProductUuid);
-      const c2 = await createComment(
-        { text: '@firstperson thanks dude!' },
-        anotherProductUuid,
-        anotherJwtToken
-      );
+      const c2 = await createComment({ text: '@firstperson thanks dude!' }, anotherProductUuid, anotherJwtToken);
       numberOfNotifForFirstUser++;
       expect(c2.uuid).toBe(anotherProductUuid);
-      const c4 = await createComment(
-        { text: '@hacker thanks dude!' },
-        anotherProductUuid,
-        anotherJwtToken
-      );
+      const c4 = await createComment({ text: '@hacker thanks dude!' }, anotherProductUuid, anotherJwtToken);
       expect(c4.uuid).toBe(anotherProductUuid);
       const c5 = await createComment(
         { text: '@firstperson @firstperson thanks a million' },
@@ -534,9 +490,7 @@ describe('## Notification APIs', () => {
           expect(jobs).toHaveLength(numberOfNotifForFirstUser + 2);
 
           // get the second comment in order of time for the FirstUser
-          const { data } = jobs.map(j => j.attrs)[
-            numberOfNotifForFirstUser - 1
-          ];
+          const { data } = jobs.map(j => j.attrs)[numberOfNotifForFirstUser - 1];
           expect(data.message).toBe('check this out @anotherperson');
           expect(data.hasOwnProperty('platform')).toBe(true);
           expect(data.productUuid).toBe(productUuid);
@@ -574,9 +528,7 @@ describe('## Notification APIs', () => {
           expect(data[1].data.text).toBe('@firstperson thanks dude!');
           expect(data[1].triggeredBy._id).toBe(anotherProductId);
           expect(data[1].notifI18n).toBe('mentioned you');
-          const comment = data.find(
-            c => c.data.text == '@anotherperson oops thats`s me!'
-          );
+          const comment = data.find(c => c.data.text == '@anotherperson oops thats`s me!');
           expect(comment).toBeUndefined();
           expect(data[0].data.text).not.toContain('oops thats');
           expect(data).toHaveLength(numberOfNotifForFirstUser + 1);

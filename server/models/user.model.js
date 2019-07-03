@@ -266,10 +266,7 @@ UserSchema.pre('save', function(next) {
 UserSchema.post('save', function(error: Error, doc, next) {
   console.log(error);
   if (error.code === 11000 && error.message.includes('facebook_1 dup')) {
-    const APIerr = new APIError(
-      'Duplicate facebook id',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Duplicate facebook id', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 });
@@ -278,8 +275,7 @@ UserSchema.post('save', function(error: Error, doc, next) {
 // This doesn't effect `toObject` method
 UserSchema.set('toJSON', {
   transform: (doc, ret) => {
-    if (doc.paymentInfo.short.card_token)
-      delete ret.paymentInfo.short.card_token;
+    if (doc.paymentInfo.short.card_token) delete ret.paymentInfo.short.card_token;
     if (doc.paymentInfo.full.card_token) delete ret.paymentInfo.full.card_token;
     delete ret.password;
     delete ret.__v;

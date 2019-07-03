@@ -18,11 +18,7 @@ declare class session$Request extends express$Request {
  * @property {*} req.body - Express body parameters
  * @property {string} req.body.targetUser
  */
-async function create(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { targetUser } = req.body;
 
   let foundUser;
@@ -48,10 +44,7 @@ async function create(
 
   await Follow.updateMany(
     {
-      $or: [
-        { follower: req.user._id, following: foundUser._id },
-        { following: req.user._id, follower: foundUser._id },
-      ],
+      $or: [{ follower: req.user._id, following: foundUser._id }, { following: req.user._id, follower: foundUser._id }],
     },
     { status: -1 }
   );

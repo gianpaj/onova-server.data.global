@@ -22,27 +22,24 @@ passport.deserializeUser((id, done) => {
 
 // Setting up local login strategy
 passport.use(
-  new LocalStrategy(
-    { usernameField: 'emailAddress' },
-    (email, password, done) => {
-      // mongoose changes the email to lowercase
-      User.findOne({ emailAddress: email.toLowerCase() })
-        .then((user: UserDoc) => {
-          if (!user) {
-            return done(new Error('invalid email'));
-          }
+  new LocalStrategy({ usernameField: 'emailAddress' }, (email, password, done) => {
+    // mongoose changes the email to lowercase
+    User.findOne({ emailAddress: email.toLowerCase() })
+      .then((user: UserDoc) => {
+        if (!user) {
+          return done(new Error('invalid email'));
+        }
 
-          user.comparePassword(password, (err, isMatch) => {
-            if (err) return done(err);
+        user.comparePassword(password, (err, isMatch) => {
+          if (err) return done(err);
 
-            if (isMatch) return done(null, user);
+          if (isMatch) return done(null, user);
 
-            return done(new Error('invalid password'));
-          });
-        })
-        .catch(err => done(err, false));
-    }
-  )
+          return done(new Error('invalid password'));
+        });
+      })
+      .catch(err => done(err, false));
+  })
 );
 
 // Setting JWT strategy options

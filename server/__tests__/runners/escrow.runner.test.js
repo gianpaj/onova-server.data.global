@@ -21,16 +21,10 @@ import {
   mock,
   payOrder,
 } from '../utils';
-import {
-  buyerNeedsToPay,
-  buyerPaymentFailure,
-  sellerCancelsAPaidDeal,
-} from '../../helpers/shipping';
+import { buyerNeedsToPay, buyerPaymentFailure, sellerCancelsAPaidDeal } from '../../helpers/shipping';
 
 const photos = {
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 jest.setTimeout(10000);
@@ -105,14 +99,8 @@ describe('## Escrow Manager', () => {
 
     it('should reserve a product and put back forsale', async done => {
       try {
-        const o = await createOrder(
-          { ...productA, uuid: user1ProductUuidA },
-          user2JwtToken
-        );
-        const o2 = await createOrder(
-          { ...productA, uuid: user1ProductUuidA2 },
-          user2JwtToken
-        );
+        const o = await createOrder({ ...productA, uuid: user1ProductUuidA }, user2JwtToken);
+        const o2 = await createOrder({ ...productA, uuid: user1ProductUuidA2 }, user2JwtToken);
 
         const { body } = await request(app)
           .post('/api/orders')
@@ -121,14 +109,9 @@ describe('## Escrow Manager', () => {
           .expect(httpStatus.BAD_REQUEST);
 
         // put the 2nd order 10 minutes back
-        await Order.updateOne(
-          { _id: o2.id },
-          { $set: { datePending: new Date(Date.now() - 10 * 60 * 1000) } }
-        );
+        await Order.updateOne({ _id: o2.id }, { $set: { datePending: new Date(Date.now() - 10 * 60 * 1000) } });
 
-        expect(body.message).toBe(
-          'This product is not longer for sale or is reserved.'
-        );
+        expect(body.message).toBe('This product is not longer for sale or is reserved.');
 
         const { body: product } = await request(app)
           .get(`/api/products/${user1ProductUuidA}`)
@@ -199,21 +182,12 @@ describe('## Escrow Manager', () => {
       };
 
       try {
-        const o = await createOrder(
-          { ...productA, uuid: seller.productUUID },
-          buyer.jwtToken
-        );
-        const o2 = await createOrder(
-          { ...productA, uuid: user1ProductUuidA2 },
-          buyer.jwtToken
-        );
+        const o = await createOrder({ ...productA, uuid: seller.productUUID }, buyer.jwtToken);
+        const o2 = await createOrder({ ...productA, uuid: user1ProductUuidA2 }, buyer.jwtToken);
         const dealID = '9B27M6E';
 
         // put the order payment 10 minutes back
-        await Order.updateOne(
-          { _id: o.id },
-          { $set: { datePaid: new Date(Date.now() - 10 * 60 * 1000) } }
-        );
+        await Order.updateOne({ _id: o.id }, { $set: { datePaid: new Date(Date.now() - 10 * 60 * 1000) } });
 
         // buyer pays
         await payOrder(o.id, buyer.jwtToken, dealID);
@@ -221,9 +195,7 @@ describe('## Escrow Manager', () => {
         // buyer pays
         await payOrder(o2.id, buyer.jwtToken, dealID);
 
-        mock
-          .onPost(`/deals/${dealID}/rejections`)
-          .reply(200, sellerCancelsAPaidDeal);
+        mock.onPost(`/deals/${dealID}/rejections`).reply(200, sellerCancelsAPaidDeal);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -263,9 +235,7 @@ describe('## Escrow Manager', () => {
             agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
               if (err) return done(err);
 
-              jobs = jobs.filter(
-                j => j.attrs.data.triggeredBy.toString() !== o2.id
-              );
+              jobs = jobs.filter(j => j.attrs.data.triggeredBy.toString() !== o2.id);
               expect(jobs).toHaveLength(3);
               const targetUsers = jobs
                 .map(j => j.attrs)
@@ -287,11 +257,7 @@ describe('## Escrow Manager', () => {
               agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
                 if (err) return done(err);
                 const data = jobs.map(job => job.attrs.data);
-                expect(
-                  data.find(d =>
-                    d.message.endsWith(i18n.orderPaidReminder.slice(-10))
-                  )
-                ).toBeTruthy();
+                expect(data.find(d => d.message.endsWith(i18n.orderPaidReminder.slice(-10)))).toBeTruthy();
                 done();
                 clearInterval(timer);
               });
@@ -318,10 +284,7 @@ describe('## Escrow Manager', () => {
       };
 
       try {
-        const o = await createOrder(
-          { ...productA, uuid: seller.productUUID },
-          buyer.jwtToken
-        );
+        const o = await createOrder({ ...productA, uuid: seller.productUUID }, buyer.jwtToken);
         const dealID = '9B27M6E';
 
         // buyer starts payment BUT payment fails
@@ -329,9 +292,7 @@ describe('## Escrow Manager', () => {
         mock.onPost('/deals').reply(200, { data: { id: dealID } });
         mock.onPost(`/deals/${dealID}/payments`).reply(200);
         mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-        mock
-          .onGet('/handlers/NovaPoshta/costs')
-          .reply(200, { data: { handlerPrice: 2500 } });
+        mock.onGet('/handlers/NovaPoshta/costs').reply(200, { data: { handlerPrice: 2500 } });
         await request(app)
           .post(`/api/orders/${o.id}/pay`)
           .set('Authorization', buyer.jwtToken)
@@ -382,9 +343,7 @@ describe('## Escrow Manager', () => {
             agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
               if (err) return done(err);
 
-              jobs = jobs.filter(
-                j => j.attrs.data.triggeredBy.toString() !== o2.id
-              );
+              jobs = jobs.filter(j => j.attrs.data.triggeredBy.toString() !== o2.id);
               expect(jobs).toHaveLength(3);
               const targetUsers = jobs
                 .map(j => j.attrs)
@@ -427,18 +386,13 @@ describe('## Escrow Manager', () => {
       };
 
       try {
-        const o = await createOrder(
-          { ...productA, uuid: seller.productUUID },
-          buyer.jwtToken
-        );
+        const o = await createOrder({ ...productA, uuid: seller.productUUID }, buyer.jwtToken);
         const dealID = '9B27M6E';
 
         // buyer pays
         await payOrder(o.id, buyer.jwtToken, dealID);
 
-        mock
-          .onPost(`/deals/${dealID}/rejections`)
-          .reply(200, sellerCancelsAPaidDeal);
+        mock.onPost(`/deals/${dealID}/rejections`).reply(200, sellerCancelsAPaidDeal);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);

@@ -7,21 +7,14 @@ import MockAdapter from 'axios-mock-adapter';
 
 import app from '../index';
 
-import {
-  beforeAllTests,
-  createOrder,
-  createProduct,
-  createUserAndLogin,
-} from './utils';
+import { beforeAllTests, createOrder, createProduct, createUserAndLogin } from './utils';
 
 const mock = new MockAdapter(axios);
 
 const kyiv = '8d5a980d-391c-11dd-90d9-001a92567626';
 
 const photos = {
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 describe('## Shipping', () => {
@@ -43,14 +36,10 @@ describe('## Shipping', () => {
 
   // create 2 users
   beforeAll(async () => {
-    const { user: resUser1, jwtToken: token1 } = await createUserAndLogin(
-      user1
-    );
+    const { user: resUser1, jwtToken: token1 } = await createUserAndLogin(user1);
     user1._id = resUser1._id;
     user1JwtToken = token1;
-    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(
-      user2
-    );
+    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(user2);
     user2._id = resUser2._id;
     user2JwtToken = token2;
   });
@@ -82,20 +71,14 @@ describe('## Shipping', () => {
       return request(app)
         .get('/api/shipping/departments/8d5a980d-391c-11dd-90d9-001a92567699')
         .expect(httpStatus.SERVICE_UNAVAILABLE)
-        .then(res =>
-          expect(res.body.message).toContain(
-            'Error getting list of departments'
-          )
-        );
+        .then(res => expect(res.body.message).toContain('Error getting list of departments'));
     });
 
     it('should NOT get the list of departments for an invalid city uuid', () => {
       return request(app)
         .get('/api/shipping/departments/8d5a980d-391c-11dd-90d9')
         .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toBe('"city" must be a valid GUID')
-        );
+        .then(res => expect(res.body.message).toBe('"city" must be a valid GUID'));
     });
   });
 
@@ -129,15 +112,9 @@ describe('## Shipping', () => {
         weight: 3000,
       };
       return request(app)
-        .get(
-          `/api/shipping/costs?price=${product.price}&weight=${
-            product.weight
-          }&orderId=${orderId}`
-        )
+        .get(`/api/shipping/costs?price=${product.price}&weight=${product.weight}&orderId=${orderId}`)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toBe('"recipientOfficeID" is required')
-        );
+        .then(res => expect(res.body.message).toBe('"recipientOfficeID" is required'));
     });
 
     it('should get the shipping costs', () => {
@@ -146,9 +123,7 @@ describe('## Shipping', () => {
         weight: 3000,
       };
 
-      mock
-        .onGet('/handlers/NovaPoshta/costs')
-        .reply(200, { data: { handlerPrice: 2500 } });
+      mock.onGet('/handlers/NovaPoshta/costs').reply(200, { data: { handlerPrice: 2500 } });
       return request(app)
         .get(
           `/api/shipping/costs?price=${product.price}&weight=${

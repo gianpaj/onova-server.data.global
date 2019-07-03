@@ -87,10 +87,7 @@ FollowSchema.statics = {
 
 FollowSchema.post('save', function(error: Error, doc, next) {
   if (error.code === 11000) {
-    const APIerr = new APIError(
-      'Duplicate follower<->following',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Duplicate follower<->following', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
   next(error);

@@ -62,12 +62,8 @@ const envVarsSchema = Joi.object({
   SLACK_WEBHOOK_URL: Joi.string()
     .required()
     .description('Slack Webhook URL (for reporting)'),
-  FACEBOOK_APP_ID: Joi.string().description(
-    "Facebook APP ID for Posting item on sellers' walls [not using]"
-  ),
-  FACEBOOK_APP_SECRET: Joi.string().description(
-    'Facebook APP Secret [not using]'
-  ),
+  FACEBOOK_APP_ID: Joi.string().description("Facebook APP ID for Posting item on sellers' walls [not using]"),
+  FACEBOOK_APP_SECRET: Joi.string().description('Facebook APP Secret [not using]'),
   VK_APP_ID: Joi.string()
     .description("VK APP ID for Auth to post item on sellers' walls")
     .when('NODE_ENV', nonRequiredForDev),
@@ -82,9 +78,7 @@ const envVarsSchema = Joi.object({
     .description('Sentry key'),
   UAPAY_CLIENTID_P2P: Joi.string()
     .required()
-    .description(
-      'UAPAY param for JWT clientId for P2P - to a request card token'
-    ),
+    .description('UAPAY param for JWT clientId for P2P - to a request card token'),
   UAPAY_SECRET_P2P: Joi.string()
     .required()
     .description('UAPAY JWT secret for P2P'),

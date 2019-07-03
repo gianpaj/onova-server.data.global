@@ -32,9 +32,7 @@ const uploadMulter = multer({
   },
   fileFilter: (req, file, cb) => {
     const validMimeType = filetypes.test(file.mimetype);
-    const validExtension = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
+    const validExtension = filetypes.test(path.extname(file.originalname).toLowerCase());
 
     if (!validMimeType || !validExtension) {
       const APIerr = new APIError(
@@ -129,9 +127,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
 function uploadProfilePic(user: UserDoc, file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     if (config.env === 'test')
-      return resolve(
-        'https://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
-      );
+      return resolve('https://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg');
 
     const gcspath = `users/${user._id.toString()}-${Date.now()}.jpg`;
     const gcsFile = bucket.file(gcspath);
@@ -273,10 +269,7 @@ async function copyPhoto(
   date: number,
   suffix: string = ''
 ): Promise<string | Error> {
-  const srcFilename = photo.replace(
-    'https://storage.googleapis.com/temp-uploads.onova.co/',
-    ''
-  );
+  const srcFilename = photo.replace('https://storage.googleapis.com/temp-uploads.onova.co/', '');
   const destFilename = `products/${uuid}-${i + 1}-${date}${suffix}.jpg`;
 
   if (config.env === 'test') {
@@ -288,9 +281,7 @@ async function copyPhoto(
       .bucket(srcBucketName)
       .file(srcFilename)
       .copy(storage.bucket(destBucketName).file(destFilename));
-    debug(
-      `gs://${srcBucketName}/${srcFilename} copied to gs://${destBucketName}/${destFilename}.`
-    );
+    debug(`gs://${srcBucketName}/${srcFilename} copied to gs://${destBucketName}/${destFilename}.`);
     await storage
       .bucket(destBucketName)
       .file(destFilename)

@@ -7,18 +7,7 @@ import httpStatus from 'http-status';
 import * as Sentry from '@sentry/node';
 
 import APIError from '../helpers/APIError';
-import {
-  Block,
-  Cities,
-  Notification,
-  Order,
-  OrderDoc,
-  Product,
-  ProductDoc,
-  User,
-  UserDoc,
-  UserWeb,
-} from '../models';
+import { Block, Cities, Notification, Order, OrderDoc, Product, ProductDoc, User, UserDoc, UserWeb } from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';
@@ -65,28 +54,23 @@ declare class express$Request extends express$Request {
 }
 
 export const i18n = {
-  orderPaidForBuyer:
-    'Ваше замовлення зареєстровано. Продавець має найближчим часом підтвердити його.',
+  orderPaidForBuyer: 'Ваше замовлення зареєстровано. Продавець має найближчим часом підтвердити його.',
   orderPaidForSeller: 'Вітаємо, підтвердіть нове замовлення!',
   orderPaidReminder: 'Замовлення чекає вашого підтвердження',
   orderCancelled: 'Ваше замовлення скасовано, ваші кошти повернуться вам',
   orderNotConfirmedToBuyer: 'Шкода, продавець не підтвердив замовлення вчасно',
-  orderNotConfirmedToSeller:
-    "Ти не підтвердив замовлення вчасно, це з'явиться в твоїх відгуках",
+  orderNotConfirmedToSeller: "Ти не підтвердив замовлення вчасно, це з'явиться в твоїх відгуках",
 
   // system messages
-  orderConfirmed:
-    'Замовлення підтверджено та чекає відправлення продавцем за номером накладної\n__TRACKING_NUM__',
+  orderConfirmed: 'Замовлення підтверджено та чекає відправлення продавцем за номером накладної\n__TRACKING_NUM__',
   // failsToShip: 'TODO',
-  orderShipped:
-    'Замовлення за номером накладної __TRACKING_NUM__\n було відправлено!',
+  orderShipped: 'Замовлення за номером накладної __TRACKING_NUM__\n було відправлено!',
   orderDelivered:
     'Замовлення за номером накладної __TRACKING_NUM__\n доставлено на відділення нової пошти та чекає покупця',
   orderCompleted: 'Замовлення за номером накладної __TRACKING_NUM__\n отримано',
   // failedToCollect:
   //   'TODO - The package with tracking number: __TRACKING_NUM__\n was not collected on time',
-  refusedItem:
-    'Замовлення за номером накладної __TRACKING_NUM__\n було скасовано покупцем на відділенні нової пошти',
+  refusedItem: 'Замовлення за номером накладної __TRACKING_NUM__\n було скасовано покупцем на відділенні нової пошти',
 
   // emails
   openApp: 'Відкрийте мобільний додаток щоб продовжити',
@@ -129,12 +113,7 @@ const UAPAY_EXTRA = 10; // UAH
  *
  * Load a order and append to req.
  */
-function load(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction,
-  id: string
-) {
+function load(req: express$Request, res: express$Response, next: express$NextFunction, id: string) {
   // use static method from OrderSchema
   // flow-disable-next-line
   Order.get(id)
@@ -167,20 +146,13 @@ async function get(req: express$Request, res: express$Response) {
  * @property {*} req.body - Express body parameters
  * @property {bson$ObjectId} req.body.product - uuid
  */
-function create(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function create(req: express$Request, res: express$Response, next: express$NextFunction) {
   let buyerType = 'User';
   if (req.user.type && req.user.type == 'web') buyerType = 'UserWeb';
   const isWebBuyer = buyerType === 'UserWeb';
 
   if (!isWebBuyer && req.user.accountStatus !== 'verified') {
-    throw new APIError(
-      'Please verify your account before buying a product.',
-      httpStatus.BAD_REQUEST
-    );
+    throw new APIError('Please verify your account before buying a product.', httpStatus.BAD_REQUEST);
   }
 
   Product.findOne({ uuid: req.body.product })
@@ -191,10 +163,7 @@ function create(
       }
 
       if (req.user._id.toString() === product.seller._id.toString()) {
-        throw new APIError(
-          'You cannot buy your own items',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('You cannot buy your own items', httpStatus.BAD_REQUEST);
       }
 
       const order = await Order.findOne({
@@ -203,10 +172,7 @@ function create(
       });
       // FIXME: extend APIError to be able to send extra data
       if (order) {
-        if (
-          order.status === 'paid' &&
-          order.transactionStatus === 'ua-finished'
-        ) {
+        if (order.status === 'paid' && order.transactionStatus === 'ua-finished') {
           throw new APIError(
             "This product has been paid and it's waiting for seller's confirmation",
             httpStatus.BAD_REQUEST
@@ -226,18 +192,14 @@ function create(
 
       const seller = await User.findById(product.seller._id);
 
-      if (!sellerCanTransact(seller))
-        throw new Error('Seller is missing payment or shipping info');
+      if (!sellerCanTransact(seller)) throw new Error('Seller is missing payment or shipping info');
 
       const blocking = await Block.countDocuments({
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
       });
 
       if (product.status !== 'forsale' || blocking > 0) {
-        throw new APIError(
-          'This product is not longer for sale or is reserved.',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('This product is not longer for sale or is reserved.', httpStatus.BAD_REQUEST);
       }
       return product;
     })
@@ -261,14 +223,10 @@ function create(
       await addProductToCheckout(product);
       return order.save();
     })
-    .then(savedOrder =>
-      res.status(httpStatus.CREATED).json({ data: savedOrder })
-    )
+    .then(savedOrder => res.status(httpStatus.CREATED).json({ data: savedOrder }))
     .catch(e => {
       if (e.message === 'Duplicate order') {
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: e.message, data: e.order });
+        return res.status(httpStatus.BAD_REQUEST).json({ message: e.message, data: e.order });
       }
       next(e);
     });
@@ -299,43 +257,26 @@ function calculateFees(productPrice) {
  * @property {string} req.query.status
  * @property {string=} req.query.paymentMethod
  */
-async function update(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function update(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { archive, reason, status: newStatus } = req.body;
 
-  const iAmTheSeller =
-    req.user._id.toString() == req.order.seller._id.toString();
+  const iAmTheSeller = req.user._id.toString() == req.order.seller._id.toString();
 
   const foundOrder = req.order;
 
   try {
     // can go only from either 'paid' or 'pending' -> 'cancelled'
-    if (
-      ['paid', 'pending'].indexOf(foundOrder.status) < 0 &&
-      newStatus === 'cancelled'
-    ) {
-      throw new APIError(
-        'cannot cancel an order that has been shipped or completed',
-        httpStatus.BAD_REQUEST
-      );
+    if (['paid', 'pending'].indexOf(foundOrder.status) < 0 && newStatus === 'cancelled') {
+      throw new APIError('cannot cancel an order that has been shipped or completed', httpStatus.BAD_REQUEST);
     }
 
     if (foundOrder.status === 'cancelled' && newStatus !== 'cancelled') {
-      throw new APIError(
-        'cannot change the status of an order once is cancelled',
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError('cannot change the status of an order once is cancelled', httpStatus.BAD_REQUEST);
     }
 
     // TODO: do with Joi in order.validation.js
     if (newStatus && archive) {
-      throw new APIError(
-        'cannot change the status and archive at the same time',
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError('cannot change the status and archive at the same time', httpStatus.BAD_REQUEST);
     }
 
     if (archive) {
@@ -353,10 +294,7 @@ async function update(
 
     if (newStatus === 'confirmed') {
       if (foundOrder.status !== 'paid') {
-        throw new APIError(
-          'cannot confirm an order that is not paid',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('cannot confirm an order that is not paid', httpStatus.BAD_REQUEST);
       }
       // only the seller can confirm the order
       if (!iAmTheSeller) {
@@ -364,19 +302,11 @@ async function update(
       }
 
       try {
-        await axios.post(
-          `/deals/${foundOrder.transactionId}/confirmations`,
-          null,
-          axiosConfig
-        );
+        await axios.post(`/deals/${foundOrder.transactionId}/confirmations`, null, axiosConfig);
       } catch (error) {
-        if (error.response && error.response.data)
-          console.error(error.response.data);
+        if (error.response && error.response.data) console.error(error.response.data);
         else console.error(error);
-        const err = new APIError(
-          'Error with payment provider',
-          httpStatus.INTERNAL_SERVER_ERROR
-        );
+        const err = new APIError('Error with payment provider', httpStatus.INTERNAL_SERVER_ERROR);
         return next(err);
       }
 
@@ -414,27 +344,17 @@ async function update(
     }
     if (!iAmTheSeller && foundOrder.status === 'paid') {
       // buyer cannot cancel a paid order
-      const err = new APIError(
-        'cannot cancel a paid order',
-        httpStatus.BAD_REQUEST
-      );
+      const err = new APIError('cannot cancel a paid order', httpStatus.BAD_REQUEST);
       return next(err);
     }
     foundOrder.reason = reason;
 
-    if (
-      foundOrder.transactionId &&
-      (foundOrder.status === 'paid' ||
-        foundOrder.transactionStatus == 'ua-pending')
-    ) {
+    if (foundOrder.transactionId && (foundOrder.status === 'paid' || foundOrder.transactionStatus == 'ua-pending')) {
       try {
         await rejectPayment(foundOrder);
       } catch (error) {
         console.error(error);
-        const err = new APIError(
-          'Error with payment provider',
-          httpStatus.INTERNAL_SERVER_ERROR
-        );
+        const err = new APIError('Error with payment provider', httpStatus.INTERNAL_SERVER_ERROR);
         return next(err);
       }
     }
@@ -444,9 +364,7 @@ async function update(
   }
 
   foundOrder.status = newStatus ? newStatus : foundOrder.status;
-  foundOrder.paymentMethod = req.body.paymentMethod
-    ? req.body.paymentMethod
-    : foundOrder.paymentMethod;
+  foundOrder.paymentMethod = req.body.paymentMethod ? req.body.paymentMethod : foundOrder.paymentMethod;
 
   if (newStatus) {
     await createOrderNotification(foundOrder, iAmTheSeller);
@@ -474,11 +392,7 @@ async function update(
  * @property {number} req.query.skip Number of orders to be skipped.
  * @property {number} req.query.limit Limit number of orders to be returned.
  */
-function list(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function list(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
   // use static method from orderSchema
   // flow-disable-next-line
@@ -497,27 +411,18 @@ function list(
  * @property {*} req.body - Express body parameters
  * @property {string} req.body.cvc - The CVC of the payer (buyer) payment card
  */
-async function pay(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function pay(req: express$Request, res: express$Response, next: express$NextFunction) {
   const { body, order } = req;
 
   try {
-    if (isNaN(parseInt(body.cvc)))
-      throw new APIError('Invalid CVC', httpStatus.BAD_REQUEST);
+    if (isNaN(parseInt(body.cvc))) throw new APIError('Invalid CVC', httpStatus.BAD_REQUEST);
 
     if (order.status !== 'pending')
-      throw new APIError(
-        `Cannot pay an order that\'s ${order.status}`,
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError(`Cannot pay an order that\'s ${order.status}`, httpStatus.BAD_REQUEST);
 
     const product: ProductDoc = await Product.findOne({ _id: order.product });
 
-    if (!product)
-      throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+    if (!product) throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
     // confirmation info
     const payment = await createPaymentUAPAY(order, product, body.cvc, req.ip);
@@ -554,21 +459,13 @@ async function pay(
     if (!(err instanceof APIError)) {
       if (config.env === 'production') Sentry.captureException(err);
       console.error(err);
-      err = new APIError(
-        'Error creating payment',
-        httpStatus.INTERNAL_SERVER_ERROR
-      );
+      err = new APIError('Error creating payment', httpStatus.INTERNAL_SERVER_ERROR);
     }
     next(err);
   }
 }
 
-function createPaymentUAPAY(
-  order: OrderDoc,
-  product: ProductDoc,
-  cvc: string,
-  remoteIP: string
-): Promise<any> {
+function createPaymentUAPAY(order: OrderDoc, product: ProductDoc, cvc: string, remoteIP: string): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
       let buyer;
@@ -579,11 +476,9 @@ function createPaymentUAPAY(
       }
       const seller = await User.findById(order.seller);
 
-      if (!sellerCanTransact(seller))
-        throw new Error('Seller is missing payment or shipping info');
+      if (!sellerCanTransact(seller)) throw new Error('Seller is missing payment or shipping info');
 
-      if (!buyerCanTransact(buyer))
-        throw new Error('Buyer is missing payment or shipping info');
+      if (!buyerCanTransact(buyer)) throw new Error('Buyer is missing payment or shipping info');
 
       const { shippingAddress: Bship } = buyer;
       const { shippingAddress: Sship } = seller;
@@ -620,9 +515,7 @@ function createPaymentUAPAY(
           lg: 'uk',
           payment: {
             type: 'P2P_ONOVA',
-            cardToId:
-              seller.paymentInfo.short.card_token ||
-              seller.paymentInfo.full.card_token,
+            cardToId: seller.paymentInfo.short.card_token || seller.paymentInfo.full.card_token,
           },
           handler: {
             type: 'NovaPoshta',
@@ -671,10 +564,7 @@ function createPaymentUAPAY(
         newDeal = body.data.data;
         // console.log(deal.id, newDeal.productPayment.waitingFor);
         await sleep(500);
-      } while (
-        newDeal.productPayment.waitingFor !== 'CONFIRMATION' &&
-        retryNum < (config.env === 'test' ? 1 : 15)
-      );
+      } while (newDeal.productPayment.waitingFor !== 'CONFIRMATION' && retryNum < (config.env === 'test' ? 1 : 15));
 
       const { productPayment: paym } = newDeal;
 
@@ -684,10 +574,7 @@ function createPaymentUAPAY(
         if (newDeal.productWeight !== product.weight) {
           throw new Error('Error with productWeight');
         }
-        if (
-          newDeal.productPrice.toString() !==
-          product.price.toString().replace('.', '')
-        ) {
+        if (newDeal.productPrice.toString() !== product.price.toString().replace('.', '')) {
           throw new Error('Error with productPrice');
         }
       }
@@ -743,11 +630,7 @@ function createPaymentUAPAY(
  * @property {*} req.query - Express query parameters
  * @property {MongoId} req.query.orderId
  */
-async function paymentStatus(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function paymentStatus(req: express$Request, res: express$Response, next: express$NextFunction) {
   const { order } = req;
 
   try {
@@ -775,10 +658,7 @@ async function paymentStatus(
     // order.save();
     if (!(error instanceof APIError)) {
       console.error(error);
-      error = new APIError(
-        'Error getting payment status',
-        httpStatus.INTERNAL_SERVER_ERROR
-      );
+      error = new APIError('Error getting payment status', httpStatus.INTERNAL_SERVER_ERROR);
     }
     next(error);
   }
@@ -802,8 +682,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
         case 'NEW':
           order.transactionStatus = 'ua-pending';
           // The buyer needs to confirmation the transaction entering the 3DS code (LOOKUP works?)
-          if (data.productPayment.statusCode === 'NEEDS_CONFIRMATION')
-            order.transactionStatus = 'ua-needsconfirmation';
+          if (data.productPayment.statusCode === 'NEEDS_CONFIRMATION') order.transactionStatus = 'ua-needsconfirmation';
           break;
         case 'PAID':
           if (data.status === 'CONFIRMED') {
@@ -858,8 +737,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
 
       resolve(data);
     } catch (error) {
-      if (error.response && error.response.data)
-        console.error(error.response.data);
+      if (error.response && error.response.data) console.error(error.response.data);
       reject(error);
     }
   });
@@ -883,10 +761,7 @@ export function rejectPayment(order: OrderDoc): Promise<any> {
  *
  * See graph in `ORDER_PROCESS.md`
  */
-export async function createOrderNotification(
-  order: OrderDoc,
-  iAmTheSeller?: boolean
-) {
+export async function createOrderNotification(order: OrderDoc, iAmTheSeller?: boolean) {
   let notif: NotifPayload = {
     data: order,
     sourceUserType: order.buyerType,
@@ -958,9 +833,7 @@ export async function createOrderNotification(
         notifI18n: i18n.orderCancelled,
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
-        actionMsg: `Причина скасування замовлення продавцем ${
-          order.seller.username
-        }: ${order.reason}`,
+        actionMsg: `Причина скасування замовлення продавцем ${order.seller.username}: ${order.reason}`,
       };
       break;
 
@@ -1009,10 +882,7 @@ function addProductToCheckout(product) {
 }
 
 function removeProductFromCheckout(productId: string) {
-  return Product.updateOne(
-    { _id: productId },
-    { status: 'forsale', $unset: { reservedDate: '' } }
-  );
+  return Product.updateOne({ _id: productId }, { status: 'forsale', $unset: { reservedDate: '' } });
 }
 
 const sleep = ms => {

@@ -10,9 +10,7 @@ import * as fs from 'fs';
 
 const debug = require('debug')('server-data:index');
 
-const mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${
-  config.mongo.db
-}`;
+const mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`;
 
 const options = {
   keepAlive: 1,
@@ -55,9 +53,7 @@ if (!module.parent) {
     https
       .createServer(httpsOptions, app)
       .listen(config.port, '0.0.0.0', () =>
-        console.info(
-          `**HTTPS** server started on port ${config.port} (${config.env})`
-        )
+        console.info(`**HTTPS** server started on port ${config.port} (${config.env})`)
       );
   } else {
     app.listen(config.port, '0.0.0.0', () =>

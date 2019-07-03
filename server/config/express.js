@@ -28,9 +28,7 @@ import ShippingRunner from '../runners/shipping.runner';
 
 const debug = require('debug')('server-data:index');
 
-const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
-  config.mongo.jobDb
-}`;
+const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.jobDb}`;
 
 export const agenda = new Agenda({ db: { address: jobDb } });
 
@@ -54,15 +52,9 @@ function ensureAgendaIndexes() {
   // for profile drops feed
   // and
   // for my feed of drops
-  agenda._collection.createIndex(
-    { name: 1, 'data.product.seller': 1 },
-    { background: true }
-  );
+  agenda._collection.createIndex({ name: 1, 'data.product.seller': 1 }, { background: true });
   // for PUSH_MSG
-  agenda._collection.createIndex(
-    { message: 1, targetUser: 1, triggeredBy: 1 },
-    { background: true }
-  );
+  agenda._collection.createIndex({ message: 1, targetUser: 1, triggeredBy: 1 }, { background: true });
 }
 
 /**
@@ -124,8 +116,7 @@ if (config.env === 'development') {
     expressWinston.logger({
       winstonInstance,
       meta: true, // optional: log meta data about request (defaults to true)
-      msg:
-        'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
+      msg: 'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
       colorize: true, // Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).
     })
   );
@@ -156,9 +147,7 @@ app.use('/api/v2', routesV2);
 app.use((err: any, req: $Request, res: $Response, next: NextFunction) => {
   if (err instanceof expressValidation.ValidationError) {
     // validation error contains errors which is an array of error each containing message[]
-    const unifiedErrorMessage = err.errors
-      .map(error => error.messages.join('. '))
-      .join(' and ');
+    const unifiedErrorMessage = err.errors.map(error => error.messages.join('. ')).join(' and ');
     const error = new APIError(unifiedErrorMessage, err.status, true);
     return next(error);
   } else if (!(err instanceof APIError)) {
@@ -195,9 +184,7 @@ if (config.env === 'development') {
           json: true,
         }),
       ],
-      exceptionHandlers: [
-        new winston.transports.File({ filename: 'exceptions.log' }),
-      ],
+      exceptionHandlers: [new winston.transports.File({ filename: 'exceptions.log' })],
     })
   );
 }

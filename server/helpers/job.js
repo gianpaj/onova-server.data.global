@@ -40,30 +40,17 @@ export function getOrderUpdateMessage(shippingStatus, trackingNumber) {
 export function sendSystemMessage(order: OrderDoc): Promise<any> {
   return new Promise((resolve, reject) => {
     if (!order.trackingNumber) {
-      reject(
-        new Error(
-          'Invalid trackingNumber for scheduling system message:' +
-            order.shippingStatus
-        )
-      );
+      reject(new Error('Invalid trackingNumber for scheduling system message:' + order.shippingStatus));
       return;
     }
     if (!getOrderUpdateMessage(order.shippingStatus, order.trackingNumber)) {
-      reject(
-        new Error(
-          'Invalid shippingStatus for scheduling system message:' +
-            order.shippingStatus
-        )
-      );
+      reject(new Error('Invalid shippingStatus for scheduling system message:' + order.shippingStatus));
       return;
     }
 
     const msg = {
       order,
-      message: getOrderUpdateMessage(
-        order.shippingStatus,
-        order.trackingNumber
-      ),
+      message: getOrderUpdateMessage(order.shippingStatus, order.trackingNumber),
     };
 
     const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);

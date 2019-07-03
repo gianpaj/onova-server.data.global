@@ -28,10 +28,7 @@ function login(req, res, next) {
     }
     if (!user) {
       debug(info);
-      const APIerr = new APIError(
-        'Authentication error',
-        httpStatus.UNAUTHORIZED
-      );
+      const APIerr = new APIError('Authentication error', httpStatus.UNAUTHORIZED);
       return next(APIerr);
     }
     //?
@@ -141,9 +138,7 @@ function activate(req, res) {
           data.title = 'Drop - Email confirmation';
         }
         data.heading = 'Профіль активовано!';
-        data.paragraph = `${username}, Можеш користуватись додатком на повну (${
-          verDoc.user.emailAddress
-        }).`;
+        data.paragraph = `${username}, Можеш користуватись додатком на повну (${verDoc.user.emailAddress}).`;
 
         //if token exists, activate user
         verDoc.user.accountStatus = 'verified';
@@ -157,9 +152,7 @@ function activate(req, res) {
         // data.paragraph = `Double hi five ${username}! Your account is already activated (${
         //   verDoc.user.emailAddress
         // }).`;
-        data.paragraph = `Вітання, ваш профіль активовано (${
-          verDoc.user.emailAddress
-        }).`;
+        data.paragraph = `Вітання, ваш профіль активовано (${verDoc.user.emailAddress}).`;
       }
       return res.render('activation', data);
     });
@@ -222,8 +215,7 @@ function resetFormSubmit(req, res) {
   if (req.body.password !== req.body.passwordagain) {
     // data.paragraph =
     //   '<div class="alert alert-danger" role="alert">Your passwords did not match.</div>';
-    data.paragraph =
-      '<div class="alert alert-danger" role="alert">Ваші паролі не співпали.</div>';
+    data.paragraph = '<div class="alert alert-danger" role="alert">Ваші паролі не співпали.</div>';
     data.show_form = true;
     return res.render('pass-reset', data);
   }
@@ -267,10 +259,7 @@ function requestPassReset(req, res) {
   User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
     if (err) return next(err);
     if (!existingUser) {
-      console.log(
-        "attempted to reset a user's password with no results:",
-        req.body.emailAddress
-      );
+      console.log("attempted to reset a user's password with no results:", req.body.emailAddress);
       return res.json({ message: 'Password reset email sent.' });
     }
     mailCtrl.sendResetEmail(req.body.emailAddress, existingUser);

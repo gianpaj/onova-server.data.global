@@ -2,13 +2,7 @@
 
 const debug = require('debug')('server-data:suggestedUsers');
 
-import {
-  DiscardedUser,
-  Follow,
-  User,
-  UserDoc,
-  SuggestedUsers,
-} from '../models';
+import { DiscardedUser, Follow, User, UserDoc, SuggestedUsers } from '../models';
 
 const LIMIT_SUGGESTIONS = 100;
 
@@ -24,11 +18,7 @@ declare class session$Request extends express$Request {
  * @property {*} req - express session
  * @property {*} req.params - express session parameters
  */
-async function list(
-  req: session$Request,
-  res: express$Response,
-  next: NextFunction
-) {
+async function list(req: session$Request, res: express$Response, next: NextFunction) {
   // TODO: pagination
   // const { limit = 50, lastId } = req.query;
 
@@ -59,9 +49,7 @@ async function list(
       { _id: 1 }
     )).map(s => s._id.toString());
 
-    freshSuggestions = freshSuggestions.filter(suggestion =>
-      verifiedUserIds.includes(suggestion._id.toString())
-    );
+    freshSuggestions = freshSuggestions.filter(suggestion => verifiedUserIds.includes(suggestion._id.toString()));
 
     // else compute them and save them in the collection
     // TODO: filter also those who have been discarded
@@ -73,17 +61,11 @@ async function list(
       return res.json({ data: [], new: true });
     }
 
-    const discarded = (await DiscardedUser.find({ source: myUserId })).map(d =>
-      d.target.toString()
-    );
+    const discarded = (await DiscardedUser.find({ source: myUserId })).map(d => d.target.toString());
 
-    const filteredSuggestions = freshSuggestions.filter(
-      fresh => -1 === discarded.indexOf(fresh._id.toString())
-    );
+    const filteredSuggestions = freshSuggestions.filter(fresh => -1 === discarded.indexOf(fresh._id.toString()));
 
-    const discard = freshSuggestions.map(sugg =>
-      DiscardedUser.create({ source: myUserId, target: sugg._id })
-    );
+    const discard = freshSuggestions.map(sugg => DiscardedUser.create({ source: myUserId, target: sugg._id }));
     await Promise.all(discard)
       .then(d => debug('discarded', d.length))
       .catch(() => debug('its ok'));
@@ -100,10 +82,7 @@ async function list(
       select: 'username profilePic',
     });
 
-    const suggestions = await getFollowingStatus(
-      populated.suggestions,
-      myUserId
-    );
+    const suggestions = await getFollowingStatus(populated.suggestions, myUserId);
 
     res.json({ data: suggestions, new: true });
   } catch (error) {
@@ -199,20 +178,16 @@ async function getSuggestions(userId): Promise<any> {
 
   const final = [];
 
-  const myEntourage = (await Follow.find(
-    { follower: userId },
-    { following: 1, _id: 0 }
-  )).map(f => f.following.toString());
+  const myEntourage = (await Follow.find({ follower: userId }, { following: 1, _id: 0 })).map(f =>
+    f.following.toString()
+  );
 
   for (const suggestion of newFriends) {
-    const suggestedFollowerEntourage = (await Follow.find(
-      { follower: suggestion },
-      { following: 1, _id: 0 }
-    )).map(f => f.following.toString());
-
-    const intersection = myEntourage.filter(
-      value => -1 !== suggestedFollowerEntourage.indexOf(value)
+    const suggestedFollowerEntourage = (await Follow.find({ follower: suggestion }, { following: 1, _id: 0 })).map(f =>
+      f.following.toString()
     );
+
+    const intersection = myEntourage.filter(value => -1 !== suggestedFollowerEntourage.indexOf(value));
     final.push({ _id: suggestion, numOfConns: intersection.length });
   }
 

@@ -9,10 +9,7 @@ import { getOrderUpdateMessage } from '../helpers/job';
 
 const SandboxMode = config.env === 'test';
 
-const mailjetClient = mailjet.connect(
-  config.mailjet.apikeyPublic,
-  config.mailjet.apikeyPrivate
-);
+const mailjetClient = mailjet.connect(config.mailjet.apikeyPublic, config.mailjet.apikeyPrivate);
 
 const mailjetVersionObj = { version: 'v3.1' };
 
@@ -32,8 +29,7 @@ let mailjetOptions = {
  * @param {User} user
  */
 function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
-  let subject =
-    'Підтвердження профілю - Welcome to Onova, verify your email address';
+  let subject = 'Підтвердження профілю - Welcome to Onova, verify your email address';
   let TemplateID = 343433;
   let domain = 'onova.co';
   mailjetOptions = {
@@ -44,8 +40,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
     },
   };
   if (user.types.includes('reseller')) {
-    subject =
-      'Підтвердження профілю - Welcome to Drop, verify your email address';
+    subject = 'Підтвердження профілю - Welcome to Drop, verify your email address';
     TemplateID = 832474;
     domain = 'drop.uno';
     mailjetOptions = {
@@ -246,8 +241,7 @@ async function sendOrderUpdate({
     };
   }
 
-  if (order.trackingNumber)
-    text = getOrderUpdateMessage(order.shippingStatus, order.trackingNumber);
+  if (order.trackingNumber) text = getOrderUpdateMessage(order.shippingStatus, order.trackingNumber);
 
   const vars = {
     displayName: user.displayName || user.username,

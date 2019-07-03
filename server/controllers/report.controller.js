@@ -73,20 +73,13 @@ function get(
  * @property {string} req.body.text
  * @property {string} req.body.user
  */
-async function create(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { product, text, user } = req.body;
   let slackJSON;
 
   try {
     if (req.user.accountStatus !== 'verified') {
-      throw new APIError(
-        'Please verify your account before making a report',
-        httpStatus.BAD_REQUEST
-      );
+      throw new APIError('Please verify your account before making a report', httpStatus.BAD_REQUEST);
     }
 
     const report = new Report({ text });
@@ -100,22 +93,14 @@ async function create(
         throw new APIError('User not found', httpStatus.NOT_FOUND);
       }
       if (foundUser.accountStatus == 'deleted') {
-        throw new APIError(
-          'Cannot report a deleted user',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('Cannot report a deleted user', httpStatus.BAD_REQUEST);
       }
       slackJSON = {
         attachments: [
           {
             title: 'User reported',
-            pretext: `User (@${foundUser.username}) was reported by @${
-              req.user.username
-            }`,
-            text:
-              `User: @${foundUser.username}\n` +
-              `Reporter: @${req.user.username}\n` +
-              `Message: ${text}`,
+            pretext: `User (@${foundUser.username}) was reported by @${req.user.username}`,
+            text: `User: @${foundUser.username}\n` + `Reporter: @${req.user.username}\n` + `Message: ${text}`,
           },
         ],
       };
@@ -124,34 +109,20 @@ async function create(
     }
 
     if (product) {
-      const foundProduct = await Product.findOne({ uuid: product }).populate(
-        'seller'
-      );
-      if (!foundProduct)
-        throw new APIError('Product not found', httpStatus.NOT_FOUND);
+      const foundProduct = await Product.findOne({ uuid: product }).populate('seller');
+      if (!foundProduct) throw new APIError('Product not found', httpStatus.NOT_FOUND);
 
-      if (
-        foundProduct.status === 'banned' ||
-        foundProduct.status === 'deleted'
-      ) {
-        throw new APIError(
-          'Product is deleted or banned',
-          httpStatus.NOT_FOUND
-        );
+      if (foundProduct.status === 'banned' || foundProduct.status === 'deleted') {
+        throw new APIError('Product is deleted or banned', httpStatus.NOT_FOUND);
       }
       if (foundProduct.seller._id.toString() === req.user._id.toString()) {
-        throw new APIError(
-          'Cannot report your product',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('Cannot report your product', httpStatus.BAD_REQUEST);
       }
       slackJSON = {
         attachments: [
           {
             title: 'Item reported',
-            pretext: `Item (${foundProduct.uuid}) reported from @${
-              req.user.username
-            }`,
+            pretext: `Item (${foundProduct.uuid}) reported from @${req.user.username}`,
             text:
               `Item id: ${foundProduct.uuid}\n` +
               `Owner: @${foundProduct.seller.username}\n` +

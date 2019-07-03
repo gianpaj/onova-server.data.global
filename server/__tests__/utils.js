@@ -31,12 +31,7 @@ import {
 import app from '../index';
 import config from '../config/config';
 import { agenda } from '../config/express';
-import {
-  buyerNeedsToPay,
-  buyerPaidDeal,
-  dealConfirmationResp,
-  sellerConfirmedResponse,
-} from '../helpers/shipping';
+import { buyerNeedsToPay, buyerPaidDeal, dealConfirmationResp, sellerConfirmedResponse } from '../helpers/shipping';
 
 // This sets the mock adapter on the default instance
 export const mock = new MockAdapter(axios);
@@ -125,8 +120,7 @@ export function createUserAndLogin(
       }
       expect(Object.keys(body.data).sort()).toMatchSnapshot();
 
-      const paymentInfo =
-        paymentInfoAs === 'buyer' ? buyerPaymentInfo : sellerPaymentInfo;
+      const paymentInfo = paymentInfoAs === 'buyer' ? buyerPaymentInfo : sellerPaymentInfo;
 
       await request(app)
         .put(`/api/users/${body.data._id}`)
@@ -167,10 +161,7 @@ export function createUserAndLogin(
  * @param {string} jwToken
  * @return {Promise<ProductDoc>}
  */
-export function createProduct(
-  product: ProductDoc,
-  jwToken: string
-): Promise<ProductDoc> {
+export function createProduct(product: ProductDoc, jwToken: string): Promise<ProductDoc> {
   return request(app)
     .post('/api/products')
     .set('Authorization', jwToken)
@@ -191,11 +182,7 @@ export function createProduct(
  * @param {string} jwToken
  * @return {Promise<CommentDoc>}
  */
-export function createComment(
-  comment: CommentDoc,
-  productUuid: string,
-  jwToken: string
-): Promise<CommentDoc> {
+export function createComment(comment: CommentDoc, productUuid: string, jwToken: string): Promise<CommentDoc> {
   return request(app)
     .post(`/api/products/${productUuid}/comment`)
     .set('Authorization', jwToken)
@@ -207,11 +194,7 @@ export function createComment(
     });
 }
 
-export function createManyComments(
-  num: number,
-  productUuid: string,
-  jwtToken: string
-) {
+export function createManyComments(num: number, productUuid: string, jwtToken: string) {
   const comment = {
     text: 'nice pair of socks',
   };
@@ -231,10 +214,7 @@ export function createManyComments(
  * @param {string} jwtToken
  * @returns {Promise<OrderDoc>}
  */
-export function createOrder(
-  product: ProductDoc,
-  jwtToken: string
-): Promise<OrderDoc> {
+export function createOrder(product: ProductDoc, jwtToken: string): Promise<OrderDoc> {
   return request(app)
     .post('/api/orders')
     .set('Authorization', jwtToken)
@@ -261,9 +241,7 @@ export async function createManyProducts(num: number, jwtToken: string) {
     typeIds: [1],
     tags: ['warm', 'bundle'],
     description: 'nice pair of socks',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
     price: '999',
     quantity: 1,
   };
@@ -320,9 +298,7 @@ export function clearJobs() {
   const { RECURRING } = config.JOBNAMES;
 
   return new Promise((resolve, reject) => {
-    const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
-      config.mongo.jobDb
-    }`;
+    const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.jobDb}`;
     MongoClient.connect(jobDb, { useNewUrlParser: true })
       .then(client => {
         mongoClient = client;
@@ -364,27 +340,19 @@ export function findJobs(name: string, extraQuery: Object = {}): Promise<any> {
   });
 }
 
-export async function payOrder(
-  orderId: string,
-  buyerJWTToken: string,
-  dealID: string
-) {
+export async function payOrder(orderId: string, buyerJWTToken: string, dealID: string) {
   mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
   mock.onPost('/deals').reply(200, { data: { id: dealID } });
   mock.onPost(`/deals/${dealID}/payments`).reply(200);
   mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-  mock
-    .onGet('/handlers/NovaPoshta/costs')
-    .reply(200, { data: { handlerPrice: 2500 } });
+  mock.onGet('/handlers/NovaPoshta/costs').reply(200, { data: { handlerPrice: 2500 } });
   await request(app)
     .post(`/api/orders/${orderId}/pay`)
     .set('Authorization', buyerJWTToken)
     .send({ cvc: '123' })
     .expect(httpStatus.CREATED)
     .then(({ body }) => {
-      expect(body.data.payment.redirectUrl).toContain(
-        '.uapay.ua/api/payments/'
-      );
+      expect(body.data.payment.redirectUrl).toContain('.uapay.ua/api/payments/');
       expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
     });
 
@@ -399,14 +367,8 @@ export async function payOrder(
     });
 }
 
-export async function confirmOrder(
-  orderId: string,
-  sellerJwtToken: string,
-  dealID: string
-): Promise<any> {
-  mock
-    .onPost(`/deals/${dealID}/confirmations`)
-    .reply(200, dealConfirmationResp);
+export async function confirmOrder(orderId: string, sellerJwtToken: string, dealID: string): Promise<any> {
+  mock.onPost(`/deals/${dealID}/confirmations`).reply(200, dealConfirmationResp);
   mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
   return request(app)
     .put(`/api/orders/${orderId}`)
@@ -418,9 +380,7 @@ export async function confirmOrder(
       expect(o.status).toBe('confirmed');
       expect(o.transactionStatus).toBe('ua-finished');
       expect(o.transactionId).toBe(dealID);
-      expect(o.trackingNumber).toBe(
-        sellerConfirmedResponse.data.handler.waybillNumber.toString()
-      );
+      expect(o.trackingNumber).toBe(sellerConfirmedResponse.data.handler.waybillNumber.toString());
       expect(!isNaN(Date.parse(o.dateConfirmed))).toBe(true);
     });
 }

@@ -78,15 +78,10 @@ describe('## Default Follow methods', () => {
       debug('default user created:', defaultSellers[i].username);
     }
 
-    const { user: res, jwtToken: resJwttoken } = await createUserAndLogin(
-      reseller
-    );
+    const { user: res, jwtToken: resJwttoken } = await createUserAndLogin(reseller);
     reseller._id = res._id;
     reseller.jwtToken = resJwttoken;
-    await User.updateOne(
-      { _id: reseller._id },
-      { $set: { types: ['reseller'] } }
-    );
+    await User.updateOne({ _id: reseller._id }, { $set: { types: ['reseller'] } });
     await DefaultFollow.create({ user: reseller._id });
 
     const { user, jwtToken } = await createUserAndLogin(firstPerson);

@@ -35,12 +35,7 @@ router
   .get(validate(paramValidation.uuid), dropCtrl.get)
 
   // DELETE /api/v2/drops/:uuid - delete a drop (only Admins)
-  .delete(
-    validate(paramValidation.uuid),
-    requireAuth,
-    isAdmin,
-    dropCtrl.remove
-  );
+  .delete(validate(paramValidation.uuid), requireAuth, isAdmin, dropCtrl.remove);
 
 router
   .route('/:uuid/subscribe')

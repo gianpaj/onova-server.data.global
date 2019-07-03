@@ -49,10 +49,7 @@ export default class Shipping {
           try {
             // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
             const trackingNumberDate = new Date(
-              result.ScheduledDeliveryDate.replace(
-                /(\d{2})-(\d{2})-(\d{4})/,
-                '$2/$1/$3'
-              )
+              result.ScheduledDeliveryDate.replace(/(\d{2})-(\d{2})-(\d{4})/, '$2/$1/$3')
             );
 
             return resolve({
@@ -154,12 +151,10 @@ export const buyerNeedsToPay = {
             PaReq:
               'eJxVUttu2zAMfc5fGP0A6xbLSqAKyJaHBZjTrHUf+lQYDpG4bRxXsre2Xz9SToJUgGCSh6R8DmnLvQdYPkA9eHC2gBCqHSTN9vZms7iH92eRqZnJ9XRmtMpu3MTGsJtM7F/woTm2TqQ8lZadXUS6qnWZ0CbPcqWV4lrJ3DKKIliAr/dV26M9sVX9/mO1dpnUMy0sO7mEHMCvlo6PR44fzBjDlNBWB3AlhD45d0zKKvxu2tfEsghSVn0c2t5/OsOnlp0dAgb/5vZ9380ZEzJHCjwVc4WHFZsVu4fQHdsAG3+sUZKm3aUvobOMqrCYXZGwm4HsML730WxdUT5+3ZU7tX75k90tn77W5eJfsYz31jLKoMxt1YOTXBiBNxFmLs1cGMtiPGpzoN91guuUc9RmdAnp6MXFBSb0OhR5D95DW3+6mUH04hEEH0gNMA+HdrGJ1BUR+/PXaT51j3rjCLMc9VdTTUOKsVOrBvWUkqvYq4niWkbV2C9uCokVlwqtb8v2H1mwumk=',
           },
-          redirectUrl:
-            'https://api.escrowbox.stage.uapay.ua/api/payments/617/confirmations',
+          redirectUrl: 'https://api.escrowbox.stage.uapay.ua/api/payments/617/confirmations',
         },
       },
-      payReceipt:
-        'https://api.stage.uapay.ua/api/receipts/b6789f1b-6d74-4691-b908-f65370b9b1b9.pdf',
+      payReceipt: 'https://api.stage.uapay.ua/api/receipts/b6789f1b-6d74-4691-b908-f65370b9b1b9.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -232,8 +227,7 @@ export const paymentWaitingProcessing = {
       type: 'P2P_ONOVA',
       waitingFor: 'PAY_PROCESSING',
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/4e759953-49fa-4f43-8925-6981eda4d7f9.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/4e759953-49fa-4f43-8925-6981eda4d7f9.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -247,8 +241,7 @@ export const paymentWaitingProcessing = {
       type: 'ECOM',
       waitingFor: 'PAY_PROCESSING',
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/64fe2010-c871-4457-ba32-f43c706a393d.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/64fe2010-c871-4457-ba32-f43c706a393d.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -311,12 +304,10 @@ export const buyerPaidDeal = {
             PaReq:
               'eJxVUttOwzAMfd5fVHxAc+ttUxZpsAcm0WlAeUZVZ7ECy0rSAvt77HSbRqSoto/t9BxbVzsHsHyGZnBgdAne128Qtdv5zWbxBF+vIk245KlKRSKTGzPRIWwmE/0NzrcHa0TMY6nZ2UWkq61JRVbkaa4ypXimZK4ZRREswTW72vZoT3TdfN2u1iaV2TQTmp1cQvbgVkvDxyPHD2aMYUqw9R5MBb6Pzh2jqvYPrf2INAsgZTWHwfbuaAqeaHZ2CBjcp9n1fTdjTMgcKfBYzBQeVm5W7Al8d7AeNu7QoCStfYvffacZVWExuyKhNwPZfnzvt92asnrh5XL1s65KUVaPx/Vy8VOOd64ZZVDmtu7BSC4KwaWMhJol05lAhiEetNnT7xrBs5hz1GZ0CenoxcUFJvQ6FHgPzoFtjmZaIHrxCIJfpAaYh0O72ETqioi+uz/Np+lRb8VzIWWukrSgIYXYqVWLekrJVejVBnE1o2rsFzaFxApLhda/ZfsDipm53Q==',
           },
-          redirectUrl:
-            'https://api.escrowbox.stage.uapay.ua/api/payments/1297/confirmations',
+          redirectUrl: 'https://api.escrowbox.stage.uapay.ua/api/payments/1297/confirmations',
         },
       },
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/8cd4c37a-1278-44b8-8aa6-fe9fe07321ad.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/8cd4c37a-1278-44b8-8aa6-fe9fe07321ad.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -330,8 +321,7 @@ export const buyerPaidDeal = {
       type: 'ECOM_ONOVA',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/1bfcb646-700c-498f-ae38-531105411d1f.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/1bfcb646-700c-498f-ae38-531105411d1f.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -394,12 +384,10 @@ export const sellerConfirmedResponse = {
             PaReq:
               'eJxVUttuwjAMfeYvKj6gudHLUBaJjYdVWhFi7HmqijXKRuiSdoN9/ewUEIsU1T7HdnJOo9dbBzB/gbp3YHQJ3lfvEDWb+/FytoKvN5FMuMxTqSTnk7EZ6QCb0Uh/g/PNwRoR81hqdkmRaStrEpHmWZKpVCmeKplpRiiSJbh6W9kO45Gu6q+HYmESmd6lQrNzSsweXDE3fFhy+GDFAFOBrfZg1uC76DIxWlf+ubEfkWaBpKr60NvOnUzOJ5pdEiJ692m2XddOGRMyQwk8FlOFi5XLgq3AtwfrYekONVrS2Pd451vNqAub2Y0Ivewp9sN5x2ZjyvUrL+fFZLErfsvd7Gcxn/2Uw77XjCqoclN1YCQXueBSRUJORTYV6GPAgzd7uq4RIosl4ueUmJZOnF1pYm+hoLt3Dmx9Mnc5R+GXjCg4ojTAOmy7xiTqRoh+fDr/n7pDvxXPZJ7wXCR0kQE7j2rQTym5CrOaYK5m1I3zwkshs8KjwujfY/sDsLK6AQ==',
           },
-          redirectUrl:
-            'https://api.escrowbox.stage.uapay.ua/api/payments/1343/confirmations',
+          redirectUrl: 'https://api.escrowbox.stage.uapay.ua/api/payments/1343/confirmations',
         },
       },
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/6fb9874e-1825-47b8-9c36-85347e29f0db.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/6fb9874e-1825-47b8-9c36-85347e29f0db.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -413,8 +401,7 @@ export const sellerConfirmedResponse = {
       type: 'ECOM_ONOVA',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/ebb46493-53b5-4496-a795-98bf8644a088.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/ebb46493-53b5-4496-a795-98bf8644a088.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -477,14 +464,11 @@ export const sellerCancelsAPaidDeal = {
             PaReq:
               'eJxVUttOwzAMfd5fVHxAc1svm0KkQR+YRNAE2wNPqOosVmBZSVpgfD12dtGIWsX2sZ2cE+vlxgNUT9AMHoy2EEL9Ckm7vr5azB7h80VkY64mPJc8m6grM9IxbEYj/QU+tDtnRMpTqdnJRaSrnclEXhZZoXKleK5koRlFEbTgm03terRHum4+b+YPJpP5JBeaHV1CtuDnleGHJQ8bZhzClODqLZglhD45dUyWdbhv3XuiWQQpq9kNrvd7U/KxZieHgMF/mE3fd1PGhCyQAk/FVOFidjFnjxC6nQuw8LsGJWnda/oWOs2oCovZBQm9GMgOh/N+2rWxyxW3lc1s9by31Sqzv7NvW8X/WjPKoMx13YORXJSCy3Eiiil+nGsW41GbLV3XCFGkEvU9uoR0dOLsDBN6GYq8B+/BNXszKbHn2SMIfpAaYB6WnW0idUFE394d36fpUW/Fi0zSRcuCHinGjq1a1FNKrmKvNoqrGVVjvzgpJFYcKrT+Ddsfk3G53g==',
           },
-          redirectUrl:
-            'https://api.escrowbox.stage.uapay.ua/api/payments/1373/confirmations',
+          redirectUrl: 'https://api.escrowbox.stage.uapay.ua/api/payments/1373/confirmations',
         },
       },
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/8732b397-45e8-4051-b24c-06dd802c4f94.pdf',
-      reverseReceipt:
-        'https://api.demo.uapay.ua/api/receipts/f607bf95-669c-49f6-95c8-9c7b5c745025.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/8732b397-45e8-4051-b24c-06dd802c4f94.pdf',
+      reverseReceipt: 'https://api.demo.uapay.ua/api/receipts/f607bf95-669c-49f6-95c8-9c7b5c745025.pdf',
       finishReceipt: null,
     },
     handlerPayment: {
@@ -497,8 +481,7 @@ export const sellerCancelsAPaidDeal = {
       type: 'ECOM_ONOVA',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/2955de75-7398-4c33-9cf7-222726457e56.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/2955de75-7398-4c33-9cf7-222726457e56.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -564,8 +547,7 @@ export const sellerBadPhoneNum = {
       type: 'P2P_ONOVA',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/774aa739-0f9c-48d4-8e04-06d0e2096326.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/774aa739-0f9c-48d4-8e04-06d0e2096326.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -579,8 +561,7 @@ export const sellerBadPhoneNum = {
       type: 'ECOM',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/47248767-47d8-4f8e-b66a-a1e33c3d086e.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/47248767-47d8-4f8e-b66a-a1e33c3d086e.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -639,8 +620,7 @@ export const buyerPaymentCVCFailure = {
       type: 'P2P_ONOVA',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/774aa739-0f9c-48d4-8e04-06d0e2096326.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/774aa739-0f9c-48d4-8e04-06d0e2096326.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -655,8 +635,7 @@ export const buyerPaymentCVCFailure = {
       type: 'ECOM',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/47248767-47d8-4f8e-b66a-a1e33c3d086e.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/47248767-47d8-4f8e-b66a-a1e33c3d086e.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -717,8 +696,7 @@ export const buyerPaymentFailureInsufficientFunds = {
       type: 'P2P_ONOVA',
       waitingFor: null,
       details: { confirmation: [Object] },
-      payReceipt:
-        'https://api.uapay.ua/api/receipts/60e4ccbd-bdbf-4f24-89bc-1ec0746ef047.pdf',
+      payReceipt: 'https://api.uapay.ua/api/receipts/60e4ccbd-bdbf-4f24-89bc-1ec0746ef047.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -732,10 +710,8 @@ export const buyerPaymentFailureInsufficientFunds = {
       type: 'ECOM',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.uapay.ua/api/acquiring/receipts/escrowbox/a8c2f39a-bb01-41d7-b0a3-23f47fb1385a.pdf',
-      reverseReceipt:
-        'https://api.uapay.ua/api/acquiring/receipts/escrowbox/a8c2f39a-bb01-41d7-b0a3-23f47fb1385a.pdf',
+      payReceipt: 'https://api.uapay.ua/api/acquiring/receipts/escrowbox/a8c2f39a-bb01-41d7-b0a3-23f47fb1385a.pdf',
+      reverseReceipt: 'https://api.uapay.ua/api/acquiring/receipts/escrowbox/a8c2f39a-bb01-41d7-b0a3-23f47fb1385a.pdf',
       finishReceipt: null,
     },
   },
@@ -791,8 +767,7 @@ export const buyerPaymentFailure = {
       type: 'P2P_ONOVA',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/27a30371-a07d-4991-9d8f-a7f3c94e8edb.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/27a30371-a07d-4991-9d8f-a7f3c94e8edb.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -807,8 +782,7 @@ export const buyerPaymentFailure = {
       type: 'ECOM_ONOVA',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/887db946-6623-42a1-b91d-6229f0aeda80.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/887db946-6623-42a1-b91d-6229f0aeda80.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -872,12 +846,10 @@ const sellerShippedPackage = {
             PaReq:
               'eJxVUttuwjAMfeYvqn1AcyktDQqR2HgY0rox1j1PVbGgbIQuaXf5+9kpIBapqn2O7cTH1uXOASxeoO4dGF2A99UWomYzu1nN1/D5JtKxTJQYcyVzfmNGOsBmNNJf4HxztEbEPJaanV1k2sqaVGQTlaeZ4onKJ7nSjFAkC3D1rrId2iNd1Z+3y0eTykxlQrOTS8wB3HJh+HDk8MOIAaYAWx3AlOC76FwxKiv/0Nj3SLNAUlR97G3nfk3Ox5qdHSJ692F2XddOGRNygi3wWEwTPKxYLdkafHu0HlbuWKMkjd3Ge99qRlmYzK6a0KuebD/c99NsTFG+8mJfpEX5/P1ULsfFYv59+maaUQRFbqoOjOQiF0JkkeRTnkwlyhTwoM2Bnmtkim/jqM3gEtPSjfMLTew1FPrunQNb/xqVI3vxiIIfbA0oVbOLTU1dNaLv7k/zqTvUOxEikTLPJlLSkAJ2KtWgnjgeFWo1QVzNKBvrhU0hscJSofVv2f4AxHG56g==',
           },
-          redirectUrl:
-            'https://api.escrowbox.demo.uapay.ua/api/payments/717/confirmations',
+          redirectUrl: 'https://api.escrowbox.demo.uapay.ua/api/payments/717/confirmations',
         },
       },
-      payReceipt:
-        'https://api.demo.uapay.ua/api/receipts/a102ef28-e6dc-4ec1-8e85-a0e065e5c138.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/receipts/a102ef28-e6dc-4ec1-8e85-a0e065e5c138.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -891,8 +863,7 @@ const sellerShippedPackage = {
       type: 'ECOM',
       waitingFor: null,
       details: null,
-      payReceipt:
-        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/ab11648d-776d-46dd-8ddc-a6c6ae443a38.pdf',
+      payReceipt: 'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/ab11648d-776d-46dd-8ddc-a6c6ae443a38.pdf',
       reverseReceipt: null,
       finishReceipt: null,
     },
@@ -967,8 +938,7 @@ export const novaPoshta = {
     errors: [],
     warnings: [
       {
-        ID_20400106547369:
-          'Please enter a valid phone number from the express invoice to show full information',
+        ID_20400106547369: 'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
     info: [],
@@ -1011,8 +981,7 @@ export const novaPoshta = {
     errors: [],
     warnings: [
       {
-        ID_20400127740025:
-          'Please enter a valid phone number from the express invoice to show full information',
+        ID_20400127740025: 'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
     info: [],
@@ -1053,8 +1022,7 @@ export const novaPoshta = {
         RedeliveryPayer: '',
         AfterpaymentOnGoodsCost: '',
         ServiceType: 'WarehouseWarehouse',
-        WarehouseRecipientInternetAddressRef:
-          '39931b85-e1c2-11e3-8c4a-0050568002cf',
+        WarehouseRecipientInternetAddressRef: '39931b85-e1c2-11e3-8c4a-0050568002cf',
         UndeliveryReasonsSubtypeDescription: '',
         WarehouseRecipientNumber: 15,
         LastCreatedOnTheBasisNumber: '',
@@ -1080,8 +1048,7 @@ export const novaPoshta = {
         AnnouncedPrice: '',
         OwnerDocumentNumber: '',
         RecipientWarehouseTypeRef: '841339c7-591a-42e2-8233-7a0a00f0ed6f',
-        Status:
-          'Відправлення у місті Львів. Очікуйте повідомлення про прибуття',
+        Status: 'Відправлення у місті Львів. Очікуйте повідомлення про прибуття',
         StatusCode: '6',
         RefEW: '5b22917c-dc56-11e8-a8ec-0025b502b06e',
         RedeliveryPaymentCardRef: '',
@@ -1093,8 +1060,7 @@ export const novaPoshta = {
     errors: [],
     warnings: [
       {
-        ID_20400106547369:
-          'Please enter a valid phone number from the express invoice to show full information',
+        ID_20400106547369: 'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
     info: [],
@@ -1135,8 +1101,7 @@ export const novaPoshta = {
         AfterpaymentOnGoodsCost: '',
         ServiceType: 'WarehouseWarehouse',
         WarehouseRecipientRef: '490501cb-a33f-11e2-a57a-d4ae527baec3',
-        WarehouseRecipientInternetAddressRef:
-          '39931b85-e1c2-11e3-8c4a-0050568002cf',
+        WarehouseRecipientInternetAddressRef: '39931b85-e1c2-11e3-8c4a-0050568002cf',
         UndeliveryReasonsSubtypeDescription: '',
         WarehouseRecipientNumber: 15,
         LastCreatedOnTheBasisNumber: '',
@@ -1176,8 +1141,7 @@ export const novaPoshta = {
     errors: [],
     warnings: [
       {
-        ID_20400106547369:
-          'Please enter a valid phone number from the express invoice to show full information',
+        ID_20400106547369: 'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
     info: [],
@@ -1223,8 +1187,7 @@ export const novaPoshta = {
         LastCreatedOnTheBasisDateTime: '',
         LastTransactionStatusGM: '',
         LastTransactionDateTimeGM: '',
-        WarehouseRecipientInternetAddressRef:
-          '39931b85-e1c2-11e3-8c4a-0050568002cf',
+        WarehouseRecipientInternetAddressRef: '39931b85-e1c2-11e3-8c4a-0050568002cf',
         MarketplacePartnerToken: '***REMOVED***',
         DateScan: '10:24 31.10.2018',
         ClientBarcode: '',
@@ -1260,8 +1223,7 @@ export const novaPoshta = {
     errors: [],
     warnings: [
       {
-        ID_20400106547369:
-          'Please enter a valid phone number from the express invoice to show full information',
+        ID_20400106547369: 'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
     info: [],
@@ -1306,8 +1268,7 @@ export const novaPoshta = {
         UndeliveryReasonsSubtypeDescription: '',
         WarehouseRecipientNumber: 15,
         LastCreatedOnTheBasisNumber: '',
-        WarehouseRecipientInternetAddressRef:
-          '39931b85-e1c2-11e3-8c4a-0050568002cf',
+        WarehouseRecipientInternetAddressRef: '39931b85-e1c2-11e3-8c4a-0050568002cf',
         MarketplacePartnerToken: '***REMOVED***',
         ClientBarcode: '',
         SenderAddress: '',
@@ -1345,8 +1306,7 @@ export const novaPoshta = {
     errors: [],
     warnings: [
       {
-        ID_20400106547369:
-          'Please enter a valid phone number from the express invoice to show full information',
+        ID_20400106547369: 'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
     info: [],
@@ -1392,8 +1352,7 @@ export const novaPoshta = {
         LastCreatedOnTheBasisDateTime: '',
         LastTransactionStatusGM: '',
         LastTransactionDateTimeGM: '',
-        WarehouseRecipientInternetAddressRef:
-          '39931b85-e1c2-11e3-8c4a-0050568002cf',
+        WarehouseRecipientInternetAddressRef: '39931b85-e1c2-11e3-8c4a-0050568002cf',
         MarketplacePartnerToken: '***REMOVED***',
         DateScan: '10:24 31.10.2018',
         ClientBarcode: '',
@@ -1429,8 +1388,7 @@ export const novaPoshta = {
     errors: [],
     warnings: [
       {
-        ID_20400106547369:
-          'Please enter a valid phone number from the express invoice to show full information',
+        ID_20400106547369: 'Please enter a valid phone number from the express invoice to show full information',
       },
     ],
     info: [],
@@ -1465,8 +1423,7 @@ let data = {
   CargoType: 'Parcel',
   CitySender: 'Львів',
   CityRecipient: 'Чернівці',
-  WarehouseRecipient:
-    'Відділення №14 (до 30 кг на одне місце): вул. Небесної Сотні, 20',
+  WarehouseRecipient: 'Відділення №14 (до 30 кг на одне місце): вул. Небесної Сотні, 20',
   CounterpartyType: 'PrivatePerson',
   AfterpaymentOnGoodsCost: '',
   ServiceType: 'WarehouseWarehouse',

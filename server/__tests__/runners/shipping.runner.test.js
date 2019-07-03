@@ -27,9 +27,7 @@ import {
 import { novaPoshta } from '../../helpers/shipping';
 
 const photos = {
-  photos: [
-    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-  ],
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
 };
 
 jest.setTimeout(10000);
@@ -65,10 +63,7 @@ describe('## Shipping Runner', () => {
       const { user: u1, jwtToken: j1 } = await createUserAndLogin(user1);
       user1JwtToken = j1;
       user1._id = u1._id;
-      const { user: u2, jwtToken: j2 } = await createUserAndLogin(
-        user2,
-        'buyer'
-      );
+      const { user: u2, jwtToken: j2 } = await createUserAndLogin(user2, 'buyer');
       user2JwtToken = j2;
       user2._id = u2._id;
     } catch (error) {
@@ -101,9 +96,7 @@ describe('## Shipping Runner', () => {
         // seller needs to ships after confirming
         await confirmOrder(o1.id, user1JwtToken, dealID);
 
-        mock
-          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
-          .reply(200, novaPoshta.generated);
+        mock.onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/').reply(200, novaPoshta.generated);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -129,9 +122,7 @@ describe('## Shipping Runner', () => {
           });
           if (jobs.length) {
             expect(jobs).toHaveLength(1);
-            expect(
-              jobs[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
-            ).toBe(true);
+            expect(jobs[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))).toBe(true);
             done();
             clearInterval(timer);
             return;
@@ -157,9 +148,7 @@ describe('## Shipping Runner', () => {
         // seller needs to ships after confirming
         await confirmOrder(o1.id, user1JwtToken, dealID);
 
-        mock
-          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
-          .reply(200, novaPoshta.shipped);
+        mock.onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/').reply(200, novaPoshta.shipped);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -187,9 +176,7 @@ describe('## Shipping Runner', () => {
             });
             expect(jobs).toHaveLength(1);
             const job = jobs[0];
-            expect(job.message.endsWith(i18n.orderShipped.slice(-10))).toBe(
-              true
-            );
+            expect(job.message.endsWith(i18n.orderShipped.slice(-10))).toBe(true);
             done();
             clearInterval(timer);
             return;
@@ -213,9 +200,7 @@ describe('## Shipping Runner', () => {
         // seller needs to ships after confirming
         await confirmOrder(o1.id, user1JwtToken, dealID);
 
-        mock
-          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
-          .reply(200, novaPoshta.delivered);
+        mock.onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/').reply(200, novaPoshta.delivered);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -243,9 +228,7 @@ describe('## Shipping Runner', () => {
             });
             if (jobs.length) {
               expect(jobs).toHaveLength(1);
-              expect(
-                jobs[0].message.endsWith(i18n.orderDelivered.slice(-10))
-              ).toBe(true);
+              expect(jobs[0].message.endsWith(i18n.orderDelivered.slice(-10))).toBe(true);
               done();
               clearInterval(timer);
               return;
@@ -269,9 +252,7 @@ describe('## Shipping Runner', () => {
         // seller needs to ships after confirming
         await confirmOrder(o1.id, user1JwtToken, dealID);
 
-        mock
-          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
-          .reply(200, novaPoshta.collected);
+        mock.onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/').reply(200, novaPoshta.collected);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -299,9 +280,7 @@ describe('## Shipping Runner', () => {
             });
             if (jobs.length) {
               expect(jobs).toHaveLength(1);
-              expect(
-                jobs[0].message.endsWith(i18n.orderCompleted.slice(-10))
-              ).toBe(true);
+              expect(jobs[0].message.endsWith(i18n.orderCompleted.slice(-10))).toBe(true);
               done();
               clearInterval(timer);
               return;
@@ -326,9 +305,7 @@ describe('## Shipping Runner', () => {
         // seller needs to ships after confirming
         await confirmOrder(o1.id, user1JwtToken, dealID);
 
-        mock
-          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
-          .reply(200, novaPoshta.refused);
+        mock.onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/').reply(200, novaPoshta.refused);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -356,9 +333,7 @@ describe('## Shipping Runner', () => {
             });
             if (jobs.length) {
               expect(jobs).toHaveLength(1);
-              expect(
-                jobs[0].message.endsWith(i18n.refusedItem.slice(-10))
-              ).toBe(true);
+              expect(jobs[0].message.endsWith(i18n.refusedItem.slice(-10))).toBe(true);
               done();
               clearInterval(timer);
               return;

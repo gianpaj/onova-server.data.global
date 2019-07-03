@@ -104,9 +104,7 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toContain('Duplicate follower<->following')
-        );
+        .then(res => expect(res.body.message).toContain('Duplicate follower<->following'));
     });
 
     describe('check followers/following counters', () => {
@@ -151,9 +149,7 @@ describe('## Follow APIs', () => {
         .post('/api/users/1123123/follow')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toContain('must be 24 characters long')
-        );
+        .then(res => expect(res.body.message).toContain('must be 24 characters long'));
     });
 
     it('should not follow a user it doesn`t exist', () => {
@@ -161,9 +157,7 @@ describe('## Follow APIs', () => {
         .post('/api/users/5aaaac09336c6735ff0346f9/follow')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toContain('Error following a user')
-        );
+        .then(res => expect(res.body.message).toContain('Error following a user'));
     });
 
     it('should not follow itself', () => {
@@ -207,9 +201,7 @@ describe('## Follow APIs', () => {
         .post('/api/users/2123412d/unfollow')
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toContain('must be 24 characters long')
-        );
+        .then(res => expect(res.body.message).toContain('must be 24 characters long'));
     });
 
     it('should not unfollow a user that doesn`t exist', () => {
@@ -305,9 +297,7 @@ describe('## Follow APIs', () => {
         .get(`/api/users/${userId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toContain('Cannot follow thyself')
-        );
+        .then(res => expect(res.body.message).toContain('Cannot follow thyself'));
     });
   });
 });

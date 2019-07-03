@@ -43,11 +43,7 @@ describe('## Photo Upload APIs', () => {
         .set('Authorization', jwtToken)
         .attach('photo', path.join(__dirname, 'images/boots-1307x1307.jpg'))
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain(
-            'Image too small. Min width and height 1000 px'
-          )
-        );
+        .then(({ body }) => expect(body.message).toContain('Image too small. Min width and height 1000 px'));
     });
 
     it('should upload a square and not resize it', () => {
@@ -58,9 +54,7 @@ describe('## Photo Upload APIs', () => {
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const { data } = body;
-          expect(data).toContain(
-            'https://storage.googleapis.com/temp-uploads.onova.co/'
-          );
+          expect(data).toContain('https://storage.googleapis.com/temp-uploads.onova.co/');
           // expect(data.format).toBe('jpeg');
           // expect(data.width).toBe(1440);
           // expect(data.height).toBe(1440);
@@ -77,9 +71,7 @@ describe('## Photo Upload APIs', () => {
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const { data } = body;
-          expect(data).toContain(
-            'https://storage.googleapis.com/temp-uploads.onova.co/'
-          );
+          expect(data).toContain('https://storage.googleapis.com/temp-uploads.onova.co/');
           // expect(data.format).toBe('jpeg');
           // expect(data.width).toBe(1440);
           // expect(data.height).toBe(1920);
@@ -96,9 +88,7 @@ describe('## Photo Upload APIs', () => {
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const { data } = body;
-          expect(data).toContain(
-            'https://storage.googleapis.com/temp-uploads.onova.co/'
-          );
+          expect(data).toContain('https://storage.googleapis.com/temp-uploads.onova.co/');
           // expect(data.format).toBe('jpeg');
           // expect(data.width).toBe(1920);
           // expect(data.height).toBe(1440);
@@ -115,9 +105,7 @@ describe('## Photo Upload APIs', () => {
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const { data } = body;
-          expect(data).toContain(
-            'https://storage.googleapis.com/temp-uploads.onova.co/'
-          );
+          expect(data).toContain('https://storage.googleapis.com/temp-uploads.onova.co/');
           // expect(data.format).toBe('jpeg');
           // expect(data.width).toBe(1440);
           // expect(data.height).toBe(1707);
@@ -140,13 +128,9 @@ describe('## Photo Upload APIs', () => {
           expect(data.fieldname).toBe('photo');
           expect(data.encoding).toBe('7bit');
           expect(data.mimetype).toBe('image/jpeg');
-          expect(data['thumb.jpeg'].path).toContain(
-            'storage.googleapis.com/chat-images.onova.co/'
-          );
+          expect(data['thumb.jpeg'].path).toContain('storage.googleapis.com/chat-images.onova.co/');
           expect(data['thumb.jpeg'].filename).toContain('thumb');
-          expect(data['.jpeg'].path).toContain(
-            'storage.googleapis.com/chat-images.onova.co/'
-          );
+          expect(data['.jpeg'].path).toContain('storage.googleapis.com/chat-images.onova.co/');
           expect(data['.jpeg'].filename).toContain('-.jpeg');
           // pathImage1 = data['.jpeg'].path;
           expect(Object.keys(data).sort()).toEqual([
@@ -180,11 +164,7 @@ describe('## Photo Upload APIs', () => {
           expect(data.length).toBe(2);
           expect(typeof data[0].photo).toBe('string');
           expect(data[0].photo.length).toBeGreaterThan(5);
-          expect(Object.keys(data[0]).sort()).toEqual([
-            'hash',
-            'photo',
-            'server',
-          ]);
+          expect(Object.keys(data[0]).sort()).toEqual(['hash', 'photo', 'server']);
         });
     });
   });

@@ -40,49 +40,25 @@ router
   .get(authCtrl.requireAuth, orderCtrl.list)
 
   // POST /api/orders - Create new order
-  .post(
-    validate(paramValidation.create),
-    authCtrl.requireAuth,
-    orderCtrl.create
-  );
+  .post(validate(paramValidation.create), authCtrl.requireAuth, orderCtrl.create);
 
 router
   .route('/:orderId')
   // GET /api/orders/:orderId - Get a single order
-  .get(
-    validate(paramValidation.orderId),
-    authCtrl.requireAuth,
-    isAuthorized,
-    orderCtrl.get
-  )
+  .get(validate(paramValidation.orderId), authCtrl.requireAuth, isAuthorized, orderCtrl.get)
 
   // PUT /api/orders/:orderId - Update order
-  .put(
-    validate(paramValidation.orderId),
-    authCtrl.requireAuth,
-    isAuthorized,
-    orderCtrl.update
-  );
+  .put(validate(paramValidation.orderId), authCtrl.requireAuth, isAuthorized, orderCtrl.update);
 
 router
   .route('/:orderId/pay')
   // POST /api/orders/:orderId/pay - Start payment
-  .post(
-    validate(paramValidation.pay),
-    authCtrl.requireAuth,
-    isAuthorizedBuyer,
-    orderCtrl.pay
-  );
+  .post(validate(paramValidation.pay), authCtrl.requireAuth, isAuthorizedBuyer, orderCtrl.pay);
 
 router
   .route('/:orderId/paymentStatus')
   // GET /api/orders/:orderId/paymentStatus - Get payment from UAPAY
-  .get(
-    validate(paramValidation.orderId),
-    authCtrl.requireAuth,
-    isAuthorizedBuyer,
-    orderCtrl.paymentStatus
-  );
+  .get(validate(paramValidation.orderId), authCtrl.requireAuth, isAuthorizedBuyer, orderCtrl.paymentStatus);
 
 // Load user when API with orderId route parameter is hit
 router.param('orderId', orderCtrl.load);

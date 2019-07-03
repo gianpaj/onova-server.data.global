@@ -51,23 +51,13 @@ function get(req: session$Request, res: express$Response) {
  * @property {*} req.body Express body parameters
  * @property {string} req.body.text The text of the comment
  */
-function create(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   if (req.user.accountStatus !== 'verified') {
-    throw new APIError(
-      'Please verify your account before commenting on a product.',
-      httpStatus.BAD_REQUEST
-    );
+    throw new APIError('Please verify your account before commenting on a product.', httpStatus.BAD_REQUEST);
   }
 
   if (req.product.status !== 'forsale' && req.product.status !== 'reserved') {
-    throw new APIError(
-      'Comment cannot be added to a product that`s not forsale or reserved.',
-      httpStatus.BAD_REQUEST
-    );
+    throw new APIError('Comment cannot be added to a product that`s not forsale or reserved.', httpStatus.BAD_REQUEST);
   }
 
   let { text } = req.body;
@@ -123,15 +113,10 @@ function create(
 }
 
 function saveComment(comment, req, res, next) {
-  Product.findOneAndUpdate(
-    { _id: req.product.id },
-    { $push: { comments: comment } },
-    { new: true }
-  )
+  Product.findOneAndUpdate({ _id: req.product.id }, { $push: { comments: comment } }, { new: true })
     .then((product: ProductDoc) => {
       // $FlowFixMe
-      const lastCommment: CommentDoc =
-        product.comments[product.comments.length - 1];
+      const lastCommment: CommentDoc = product.comments[product.comments.length - 1];
       // $FlowFixMe
       const notif: NotifPayload = {
         data: {
@@ -195,9 +180,7 @@ function saveComment(comment, req, res, next) {
       // if (config.env == 'prod') {
       //   mixpanel.track('new_comment', props);
       // }
-      return res
-        .status(httpStatus.CREATED)
-        .json({ data: { comment: lastCommment, uuid: product.uuid } });
+      return res.status(httpStatus.CREATED).json({ data: { comment: lastCommment, uuid: product.uuid } });
     })
     .catch(err => {
       return next(err);
@@ -214,39 +197,23 @@ function saveComment(comment, req, res, next) {
  * @property {string} req.params.uuid The product uuid
  * @property {string} req.params.commentId
  */
-function remove(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function remove(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { product } = req;
 
   // $FlowFixMe
-  const comment: CommentDoc = product.comments.find(
-    c => c._id == req.params.commentId
-  );
+  const comment: CommentDoc = product.comments.find(c => c._id == req.params.commentId);
 
   if (comment === undefined) {
-    const APIerr = new APIError(
-      'Comment not found on specific product.',
-      httpStatus.NOT_FOUND
-    );
+    const APIerr = new APIError('Comment not found on specific product.', httpStatus.NOT_FOUND);
     return next(APIerr);
   }
 
   if (req.user._id.toString() !== comment.user._id.toString()) {
-    const APIerr = new APIError(
-      'Cannot delete other people`s comment',
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError('Cannot delete other people`s comment', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 
-  Product.findOneAndUpdate(
-    { _id: req.product.id },
-    { $pull: { comments: comment } },
-    { new: true }
-  )
+  Product.findOneAndUpdate({ _id: req.product.id }, { $pull: { comments: comment } }, { new: true })
     .then((product: ProductDoc) => {
       // only try to delete a new notification when the comment is not from the seller
       if (product.seller.toString() !== req.user._id.toString()) {

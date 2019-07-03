@@ -31,12 +31,7 @@ declare class session$Request extends express$Request {
 /**
  * Load user and append to req. object
  */
-function load(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction,
-  id: string
-) {
+function load(req: session$Request, res: express$Response, next: express$NextFunction, id: string) {
   // use static method from UserSchema
   // flow-disable-next-line
   User.get(id)
@@ -147,11 +142,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
  * @property {string=} req.body.pushToken
  * @property {string=} req.body.type ('designer' by default)
  */
-async function create(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body } = req;
 
   const existingUser = await User.findOne({
@@ -163,10 +154,7 @@ async function create(
   });
   try {
     if (existingUser) {
-      const APIerr = new APIError(
-        'An account with the same email address or username exists.',
-        httpStatus.BAD_REQUEST
-      );
+      const APIerr = new APIError('An account with the same email address or username exists.', httpStatus.BAD_REQUEST);
       throw APIerr;
     }
 
@@ -178,9 +166,7 @@ async function create(
     });
 
     if (body.mobileNumber) {
-      user.mobileNumber = body.mobileNumber
-        .replace('+380', '0')
-        .replace(/^380/, '0');
+      user.mobileNumber = body.mobileNumber.replace('+380', '0').replace(/^380/, '0');
     }
     if (body.platform) user.platform = body.platform;
     if (body.pushToken) user.pushToken = body.pushToken;
@@ -231,10 +217,7 @@ async function create(
 /**
  * A new user follows the number of users
  */
-function followDefaultUsers(
-  newUser: UserDoc,
-  sellerTypes = ['designer']
-): Promise<null | Error | number> {
+function followDefaultUsers(newUser: UserDoc, sellerTypes = ['designer']): Promise<null | Error | number> {
   return (
     DefaultFollow.find({}, { user: 1 })
       // .then(users => {
@@ -252,11 +235,7 @@ function followDefaultUsers(
           types: { $in: sellerTypes },
         })
       )
-      .then(users =>
-        Promise.all(
-          users.map(u => followController.internalFollow(newUser, u._id))
-        )
-      )
+      .then(users => Promise.all(users.map(u => followController.internalFollow(newUser, u._id))))
       .then(follows => follows.length)
   );
 }
@@ -285,11 +264,7 @@ function followDefaultUsers(
  * @property {*} req.file - Express file parameter - to upload a new profilePic
  * @property {File} req.user
  */
-function update(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function update(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body, user } = req;
 
   if (typeof body.bio === 'string') {
@@ -299,9 +274,7 @@ function update(
       for (let s in socials) {
         user.set(`socials.${s}`, socials[s]);
       }
-      const notFound = ['facebook', 'instagram'].filter(
-        s => !foundSocials.includes(s)
-      );
+      const notFound = ['facebook', 'instagram'].filter(s => !foundSocials.includes(s));
       if (user.socials) notFound.forEach(s => user.socials.delete(s));
     } else {
       user.socials = undefined;
@@ -311,9 +284,7 @@ function update(
 
   if (typeof body.displayName === 'string') user.displayName = body.displayName;
   if (typeof body.mobileNumber === 'string')
-    user.mobileNumber = body.mobileNumber
-      .replace('+380', '0')
-      .replace(/^380/, '0');
+    user.mobileNumber = body.mobileNumber.replace('+380', '0').replace(/^380/, '0');
   // update password (automatically hashed on save() hook)
   if (body.password) user.password = body.password;
   if (body.platform) user.platform = body.platform;
@@ -351,10 +322,7 @@ function update(
       Promises.push(
         User.findOne({ emailAddress }).then(existingUser => {
           if (existingUser)
-            throw new APIError(
-              'An account with the same email address exists.',
-              httpStatus.BAD_REQUEST
-            );
+            throw new APIError('An account with the same email address exists.', httpStatus.BAD_REQUEST);
 
           mailCtrl.resendVerificationEmail(user.emailAddress, user);
           user.accountStatus = 'notverified';
@@ -370,11 +338,7 @@ function update(
     user.username = body.username;
     Promises.push(
       User.findOne({ username: body.username }).then(existingUser => {
-        if (existingUser)
-          throw new APIError(
-            'An account with the same username exists.',
-            httpStatus.BAD_REQUEST
-          );
+        if (existingUser) throw new APIError('An account with the same username exists.', httpStatus.BAD_REQUEST);
       })
     );
   }
@@ -428,9 +392,7 @@ function getSocials(bio: string) {
     };
   }
   if (bio.includes('instagram.com')) {
-    let instagram = bio
-      .match(uri_pattern)
-      .find(uri => uri.includes('instagram'));
+    let instagram = bio.match(uri_pattern).find(uri => uri.includes('instagram'));
     if (!/^https?:\/\//i.test(instagram)) instagram = `https://${instagram}`;
     socials = {
       ...socials,
@@ -451,11 +413,7 @@ function getSocials(bio: string) {
  * @property {string} req.query.username
  * @property {string} req.query.u regex username search
  */
-function list(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function list(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, u, username } = req.query;
 
   if (username) {
@@ -508,16 +466,8 @@ function list(
  * @property {*} req.params - Express params parameters
  * @property {string} req.params.userId
  */
-function remove(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  User.findOneAndUpdate(
-    { _id: req.user._id },
-    { accountStatus: 'deleted', deletedAt: new Date() },
-    { new: true }
-  )
+function remove(req: session$Request, res: express$Response, next: express$NextFunction) {
+  User.findOneAndUpdate({ _id: req.user._id }, { accountStatus: 'deleted', deletedAt: new Date() }, { new: true })
     .then(updatedUser => res.json(updatedUser))
     .catch(e => next(e));
 }
