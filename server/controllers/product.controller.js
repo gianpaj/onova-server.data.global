@@ -456,6 +456,11 @@ async function update(
           'Cannot update a product that has been sold',
           httpStatus.BAD_REQUEST
         );
+      } else if (foundProduct.status === 'deleted') {
+        throw new APIError(
+          'Cannot update a product that has been deleted',
+          httpStatus.BAD_REQUEST
+        );
       } else if (foundProduct.status === 'reserved') {
         throw new APIError(
           'Cannot update a product that is reserved',
