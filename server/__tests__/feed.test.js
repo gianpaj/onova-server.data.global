@@ -28,6 +28,7 @@ const feedFields = [
   'description', // TODO: remove
   'photoURIs',
   'price', // TODO: remove
+  'quantity', // TODO: remove
   'seller',
   'status', // TODO: remove
   'tags', // TODO: remove
@@ -43,8 +44,9 @@ const product = {
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
   // seller comes after the user is created
-  price: '1100.99', // if no decimal points .00 will be added
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  price: '1100.99', // if no decimal points .00 will be added
+  quantity: 1,
 };
 
 let product_shoe = {
@@ -53,6 +55,7 @@ let product_shoe = {
   description: 'nice jacket',
   price: '230.99',
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
 };
 
 const user: UserDoc = {
@@ -102,13 +105,22 @@ const user7_reseller = {
   type: 'reseller',
 };
 
-const notForSaleProduct = {
+const deletedProduct = {
   categoryIds: [2],
-  typeIds: [1, 3],
   tags: ['WINTER'],
-  description: 'nice scarf',
+  description: '(deleted) nice scarf',
   price: '1130',
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
+};
+
+const soldOutProduct = {
+  categoryIds: [2],
+  tags: ['city'],
+  description: '(sold out) backpack',
+  price: '11300',
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
 };
 
 let user1_id, user2_id, user3_id_reseller, user6_id_reseller;
@@ -176,8 +188,8 @@ describe('## Feed APIs', () => {
         const allProducts = await createManyProducts(20, user3_jwttoken_reseller);
         uuids = allProducts.map(p => p.uuid);
 
-        const p3 = await createProduct(notForSaleProduct, user2_jwttoken);
-        expect(p3.description).toBe(notForSaleProduct.description);
+        const p3 = await createProduct(deletedProduct, user2_jwttoken);
+        expect(p3.description).toBe(deletedProduct.description);
         const res = await request(app)
           .delete(`/api/products/${p3.uuid}`)
           .set('Authorization', user2_jwttoken)
@@ -188,6 +200,14 @@ describe('## Feed APIs', () => {
         user5_productuuid = p4.uuid;
         const p5 = await createProduct(product, user6_jwttoken_reseller);
         user6_productuuid = p5.uuid;
+
+        const p6 = await createProduct(soldOutProduct, user2_jwttoken);
+        expect(p6.description).toBe(soldOutProduct.description);
+        await request(app)
+          .put(`/api/products/${p6.uuid}`)
+          .send({ quantity: 0 })
+          .set('Authorization', user2_jwttoken)
+          .expect(httpStatus.OK);
 
         const DEBUG = false;
         if (DEBUG) {
@@ -321,6 +341,7 @@ describe('## Feed APIs', () => {
         description: 'nice hoodie',
         price: '1169',
         photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+        quantity: 1,
       };
       const pp = await createProduct(p, user6_jwttoken_reseller);
       expect(pp.description).toBe(p.description);
@@ -345,11 +366,11 @@ describe('## Feed APIs', () => {
     beforeAll(async () => {
       const p = {
         categoryIds: [2],
-        typeIds: [1, 4],
-        tags: ['cold'],
         description: 'nice socks',
-        price: '1119',
         photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+        price: '1119',
+        quantity: 1,
+        tags: ['cold'],
       };
       const pp = await createProduct(p, user6_jwttoken_reseller);
       expect(pp.description).toBe(p.description);
