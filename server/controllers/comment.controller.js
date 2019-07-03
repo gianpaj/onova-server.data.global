@@ -56,8 +56,8 @@ function create(req: session$Request, res: express$Response, next: express$NextF
     throw new APIError('Please verify your account before commenting on a product.', httpStatus.BAD_REQUEST);
   }
 
-  if (req.product.status !== 'forsale' && req.product.status !== 'reserved') {
-    throw new APIError('Comment cannot be added to a product that`s not forsale or reserved.', httpStatus.BAD_REQUEST);
+  if (req.product.status !== 'forsale') {
+    throw new APIError('Comment cannot be added to a product that`s not forsale.', httpStatus.BAD_REQUEST);
   }
 
   let { text } = req.body;

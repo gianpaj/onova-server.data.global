@@ -92,6 +92,8 @@ function get(req: session$Request, res: express$Response) {
 /**
  * Create a new product
  *
+ * TODO: to deprecate
+ *
  * POST /api/products
  *
  * @property {*} req - Express request
@@ -239,7 +241,7 @@ async function create(req: session$Request, res: express$Response, next: express
 async function list(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { categoryIds, lastId, limit = 50, sellerType, tags, userid, username } = req.query;
   const projection = { comments: 0 };
-  let query = { status: 'forsale' };
+  let query = { status: 'forsale', quantity: { $gt: 0 } };
   let sellerTypes;
 
   if (config.env !== 'test') {
@@ -333,7 +335,7 @@ function remove(req: session$Request, res: express$Response, next: express$NextF
 
   const { uuid } = req.params;
 
-  Product.findOneAndUpdate({ uuid, status: 'forsale' }, { status: 'deleted' })
+  Product.findOneAndUpdate({ uuid }, { status: 'deleted' })
     .then(() => res.status(httpStatus.NO_CONTENT).json())
     .catch(() => {
       const err = new APIError('Error deleting Product', httpStatus.INTERNAL_SERVER_ERROR);
@@ -376,7 +378,7 @@ async function update(req: session$Request, res: express$Response, next: express
         throw new APIError('Cannot update a product that has been sold', httpStatus.BAD_REQUEST);
       } else if (foundProduct.status === 'deleted') {
         throw new APIError('Cannot update a product that has been deleted', httpStatus.BAD_REQUEST);
-      } else if (foundProduct.status === 'reserved') {
+      } else if (foundProduct.carted && foundProduct.carted.length > 0) {
         throw new APIError('Cannot update a product that is reserved', httpStatus.BAD_REQUEST);
       }
 

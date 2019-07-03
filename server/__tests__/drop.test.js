@@ -339,7 +339,7 @@ describe('## Drops feed APIs', () => {
           expect(Array.isArray(body.data));
           expect(body.data).toHaveLength(1);
           const p = body.data[0];
-          expect(p.status).toBe('forsale');
+          expect(p.quantity).toBe(1);
           expect(p.locality).toBe('Lviv');
           expect(Object.keys(p).sort()).toMatchSnapshot('product');
         });
@@ -414,9 +414,9 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .send({
           date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
-          products: [product],
-          longitude: 23.9573617,
           latitude: 49.8134431,
+          longitude: 23.9573617,
+          products: [product],
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -429,6 +429,7 @@ describe('## Drops feed APIs', () => {
           expect(shortid.isValid(d.uuid)).toBe(true);
           return d;
         });
+      console.log('created drop');
       // check that the drop item is not yet listed
       await request(app)
         .get('/api/products/')
@@ -437,6 +438,7 @@ describe('## Drops feed APIs', () => {
           expect(Array.isArray(body.data));
           expect(body.data).toHaveLength(0);
         });
+      console.log('no items posted');
 
       // if (!schedulerIsRunning) return done();
 
@@ -449,7 +451,9 @@ describe('## Drops feed APIs', () => {
         totalTime += interval;
 
         // check the job has run
-        const { body } = await request(app)
+        const {
+          body: { data: products },
+        } = await request(app)
           .get('/api/products/')
           .expect(httpStatus.OK);
 
@@ -457,9 +461,9 @@ describe('## Drops feed APIs', () => {
           notifI18n: i18n.listedDrop,
         });
 
-        if (body.data.length && notif) {
-          expect(body.data).toHaveLength(1);
-          expect(body.data[0].dropId).toEqual(drop._id);
+        if (products.length && notif) {
+          expect(products).toHaveLength(1);
+          expect(products[0].dropId).toEqual(drop._id);
 
           // Check:
           // - a Notification has been created to the seller indicating the Drop was listed

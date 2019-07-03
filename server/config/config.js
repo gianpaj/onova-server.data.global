@@ -143,13 +143,13 @@ export default {
     SHIPPING_STATUS_CHECKER: 'shipping-status-checker',
   },
   settings: {
-    // Reserves products for 15 minutes.
+    // Product stays in the `carted` array for 15 mins
     // TODO: 0 to disable
-    // When time is reached, the order is cancelled. And Product is set back to 'forsale'.
+    // When time is reached, the pending order is cancelled, Product is quantity is removed from `carted` array and quantity increases
     holdProductFor: 60 * 15, // mins
 
     // Wait the seller to confirm the order for 48 hours.
-    // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
+    // When time is reached, the paid order is cancelled, Product is quantity is removed from `carted` array and quantity increases
     cancelPaidOrdersAfter: 60 * 60 * 48, // hours
 
     remindToConfirmOrderEvery: '6 hours',

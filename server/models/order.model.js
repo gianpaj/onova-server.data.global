@@ -99,7 +99,7 @@ const OrderSchema = new Schema(
         'pending',
 
         // (1)
-        // Buyer pays and waiting for seller to confirm – Product status is now 'reserved'
+        // Buyer pays and waiting for seller to confirm – One quantity of the Product is now in carted array
         'paid',
 
         // (1)

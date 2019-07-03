@@ -186,7 +186,7 @@ function create(req: express$Request, res: express$Response, next: express$NextF
         order.transactionFee = transactionFee;
         await order.save();
 
-        await addProductToCheckout(product);
+        await addProductToCheckout(product._id._id, order._id);
         throw { message: 'Duplicate order', order };
       }
 
@@ -198,7 +198,7 @@ function create(req: express$Request, res: express$Response, next: express$NextF
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
       });
 
-      if (product.status !== 'forsale' || blocking > 0) {
+      if (product.status !== 'forsale' || product.quantity < 1 || blocking > 0) {
         throw new APIError('This product is not longer for sale or is reserved.', httpStatus.BAD_REQUEST);
       }
       return product;
@@ -220,7 +220,7 @@ function create(req: express$Request, res: express$Response, next: express$NextF
         // status // 'pending' by default
       });
 
-      await addProductToCheckout(product);
+      await addProductToCheckout(product._id, order._id);
       return order.save();
     })
     .then(savedOrder => res.status(httpStatus.CREATED).json({ data: savedOrder }))
@@ -360,7 +360,7 @@ async function update(req: session$Request, res: express$Response, next: express
     }
 
     foundOrder.dateCancelled = new Date();
-    await removeProductFromCheckout(foundOrder.product._id);
+    await removeProductFromCheckout(foundOrder.product._id, foundOrder._id);
   }
 
   foundOrder.status = newStatus ? newStatus : foundOrder.status;
@@ -875,14 +875,22 @@ async function getCityName(name): Promise<any> {
   }
 }
 
-function addProductToCheckout(product) {
-  product.status = 'reserved';
-  product.reservedDate = new Date();
-  return product.save();
+function addProductToCheckout(productId, orderId) {
+  return Product.updateOne(
+    { _id: productId },
+    {
+      $inc: { quantity: -1 },
+      $push: {
+        carted: { quantity: 1, orderId, timestamp: new Date() },
+      },
+    }
+    // ,{ session }
+  );
 }
 
-function removeProductFromCheckout(productId: string) {
-  return Product.updateOne({ _id: productId }, { status: 'forsale', $unset: { reservedDate: '' } });
+function removeProductFromCheckout(productId: string, orderId: string) {
+  // TODO: if seller doesn't want to sell an item the quantity should not increase
+  return Product.updateOne({ _id: productId }, { $inc: { quantity: 1 }, $pull: { carted: { orderId } } });
 }
 
 const sleep = ms => {

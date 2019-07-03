@@ -48,6 +48,20 @@ const GeoJSON = new Schema({
 /** @namespace */
 export const ProductSchema = new Schema(
   {
+    carted: [
+      {
+        quantity: {
+          min: 1,
+          required: true,
+          type: Number,
+        },
+        timestamp: {
+          required: true,
+          type: Date,
+        },
+        orderId: Schema.Types.ObjectId,
+      },
+    ],
     categoryIds: {
       type: [Number],
       required: true,
@@ -84,7 +98,6 @@ export const ProductSchema = new Schema(
       required: true,
       type: Schema.Types.Number,
     },
-    reservedDate: Date,
     seller: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -94,7 +107,7 @@ export const ProductSchema = new Schema(
       type: String,
       required: true,
       default: 'forsale',
-      enum: ['forsale', 'reserved', 'sold', 'banned', 'deleted', 'ready'],
+      enum: ['forsale', 'sold', 'banned', 'deleted', 'ready'],
     },
     tags: {
       type: [String],
@@ -120,10 +133,15 @@ export const ProductSchema = new Schema(
   }
 );
 
-export type ProductStatus = 'forsale' | 'reserved' | 'sold' | 'banned' | 'deleted';
+export type ProductStatus = 'forsale' | 'sold' | 'banned' | 'deleted';
 
 export class ProductDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
+  carted: Array<{
+    quantity: Number,
+    timestamp: Date,
+    orderId: MongoId,
+  }>;
   categoryIds: Array<Number>;
   comments: ?Array<MongoId>;
   createdAt: Date;
@@ -141,7 +159,6 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   photoURIs: Array<string>;
   price: number;
   quantity: number;
-  reservedDate: Date;
   seller: MongoId;
   status: ProductStatus;
   tags: ?Array<string>;
@@ -224,7 +241,6 @@ ProductSchema.statics = {
           photoURIs: 1,
           price: 1,
           quantity: 1,
-          reservedDate: 1,
           seller: { $arrayElemAt: ['$references', 0] },
           status: 1,
           tags: 1,
@@ -263,8 +279,9 @@ ProductSchema.pre('save', function(next) {
 ProductSchema.set('toJSON', {
   transform: (doc, ret) => {
     if (ret.price) ret.price = ret.price.toString();
-    delete ret.__v;
+    delete ret.carted;
     delete ret.location;
+    delete ret.__v;
     return ret;
   },
 });

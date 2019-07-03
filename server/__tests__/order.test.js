@@ -83,6 +83,7 @@ describe('## Order APIs', () => {
     description: 'nice boots',
     // seller id is the user who creates the product
     price: '1190.99', // if no decimal points .00 will be added
+    quantity: 1,
     ...photos,
   };
 
@@ -92,6 +93,7 @@ describe('## Order APIs', () => {
     tags: ['summer'],
     description: 'nice flipflops',
     price: '190.99',
+    quantity: 1,
     ...photos,
   };
 
@@ -100,6 +102,7 @@ describe('## Order APIs', () => {
     typeIds: [2, 3],
     description: 'nice shorts',
     price: '200.50',
+    quantity: 1,
     ...photos,
   };
 
@@ -193,23 +196,13 @@ describe('## Order APIs', () => {
 
   // create 4 products and delete 1 of them
   beforeAll(done => {
-    let Promises = [];
-    Promises.push(createProduct(productA, firstUserJwtToken).then(p => (firstUserProductAUuid = p.uuid)));
-    Promises.push(
-      createProduct({ ...productC, price: '200.50' }, anotherJwtToken).then(p => (anotherUserProductUuid = p.uuid))
-    );
-    Promises.push(
-      createProduct({ ...productC, price: '300.00' }, anotherJwtToken).then(p => (anotherUserProductUuid2 = p.uuid))
-    );
-    Promises.push(
-      createProduct({ ...productC, price: '400.00' }, anotherJwtToken).then(p => (anotherUserProductUuid3 = p.uuid))
-    );
-    Promises.push(
-      createProduct({ ...productC, price: '9000.00' }, fifthJwtToken).then(p => (fifthUserProductUuid = p.uuid))
-    );
-
-    // create product and delete it
-    Promises.push(
+    const Promises = [
+      createProduct(productA, firstUserJwtToken).then(p => (firstUserProductAUuid = p.uuid)),
+      createProduct({ ...productC, price: '200.50' }, anotherJwtToken).then(p => (anotherUserProductUuid = p.uuid)),
+      createProduct({ ...productC, price: '300.00' }, anotherJwtToken).then(p => (anotherUserProductUuid2 = p.uuid)),
+      createProduct({ ...productC, price: '400.00' }, anotherJwtToken).then(p => (anotherUserProductUuid3 = p.uuid)),
+      createProduct({ ...productC, price: '9000.00' }, fifthJwtToken).then(p => (fifthUserProductUuid = p.uuid)),
+      // create product and delete it
       createProduct(productB, firstUserJwtToken).then(p =>
         request(app)
           .delete(`/api/products/${p.uuid}`)
@@ -220,8 +213,8 @@ describe('## Order APIs', () => {
             ordersByFirstUser++;
             firstUserProductBUuid2 = p.uuid;
           })
-      )
-    );
+      ),
+    ];
 
     Promise.all(Promises)
       .then(() => done())
@@ -358,6 +351,7 @@ describe('## Order APIs', () => {
       typeIds: [1, 2],
       description: 'nice bo0ts',
       price: '900.99',
+      quantity: 1,
       ...photos,
     };
     let orderGET1;
@@ -367,6 +361,7 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'shiny shoes',
       price: '440.99',
+      quantity: 1,
       ...photos,
     };
 
@@ -472,6 +467,7 @@ describe('## Order APIs', () => {
       typeIds: [1, 3],
       description: 'best bo0ts',
       price: '1900.59',
+      quantity: 1,
       ...photos,
     };
     const productPOST2 = {
@@ -479,6 +475,7 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'my old panties',
       price: '99900.59',
+      quantity: 1,
       ...photos,
     };
     let orderPOST1, orderPOST2, orderPOST3;
@@ -686,6 +683,7 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'my old panties',
       price: '99900.59',
+      quantity: 1,
       ...photos,
     };
     let orderPOST3, orderPOST4, orderPOST5;
@@ -723,10 +721,8 @@ describe('## Order APIs', () => {
       await request(app)
         .get(`/api/products/${orderPOST3ProdUUID}`)
         .expect(httpStatus.OK)
-        .then(res => {
-          const p = res.body.data;
-          expect(p.status).toBe('reserved');
-        });
+        .then(({ body }) => expect(body.data.quantity).toBe(0));
+
       await request(app)
         .put(`/api/orders/${orderPOST3}`)
         .set('Authorization', anotherJwtToken)
@@ -741,7 +737,7 @@ describe('## Order APIs', () => {
       await request(app)
         .get(`/api/products/${orderPOST3ProdUUID}`)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data.status).toBe('forsale'));
+        .then(({ body }) => expect(body.data.quantity).toBe(1));
     });
 
     it('should allow another buyer to create an order for the same product (after the previous order cancellation)', () => {
@@ -987,6 +983,7 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'my old panties',
       price: '1000.00',
+      quantity: 1,
       ...photos,
     };
     let orderId, orderId2, orderId3, orderId4;
@@ -1148,7 +1145,7 @@ describe('## Order APIs', () => {
       await request(app)
         .get(`/api/products/${order2ProdUUID}`)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data.status).toBe('forsale'));
+        .then(({ body }) => expect(body.data.quantity).toBe(1));
     });
 
     test('a buyer should NOT cancel an order that has been paid', async () => {
@@ -1203,6 +1200,7 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'my old panties',
       price: '1000.00',
+      quantity: 1,
       ...photos,
     };
     let orderId;

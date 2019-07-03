@@ -35,7 +35,7 @@ function conditionalAuth(req, res, next) {
 
 router
   .route('/')
-  // GET /api/products - Get list of products 'forsale'
+  // GET /api/products - Get list of products that are for sale
   .get(validate(paramValidation.getProducts), conditionalAuth, productCtrl.list)
 
   // POST /api/products - Create new product

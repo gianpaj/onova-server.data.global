@@ -592,12 +592,13 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           const p = body.data;
-          expect(p.description).toBe('amazing boots');
-          expect(p.price).toBe('319.99');
           expect(p.categoryIds).toEqual([3]);
-          expect(p.typeIds).toEqual([3]);
+          expect(p.description).toBe('amazing boots');
           expect(p.photoURIs[0]).not.toContain('thumb');
           expect(p.photoURIs[0]).toContain('/products/');
+          expect(p.price).toBe('319.99');
+          expect(p.quantity).toBe(1);
+          expect(p.typeIds).toEqual([3]);
         });
     });
 

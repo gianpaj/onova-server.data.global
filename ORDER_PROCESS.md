@@ -2,7 +2,7 @@
 
 Rules:
 
-- The product is reserved when buyer presses Buy
+- The one quantity of product SKU is added to a cart when buyer presses Buy
 - The buyer has 15 minutes to make payment
 - The seller then has 48 hours to confirm order
 - The seller has 7 days to ship
@@ -10,11 +10,11 @@ Rules:
 
 ```mermaid
 sequenceDiagram
-    Buyer  ->>  Seller:   Press Buy. 'pending' (no notifications)
-    Note right of Seller: Product 'reserved'
+    Buyer  ->>  Seller:   Press Buy. Order 'pending' (no notifications)
+    Note right of Seller: one quantity of Product is 'carted', available quantity is reduced by 1
 
     opt Buyer Cancels
-        Note right of Seller: Product 'forsale'
+        Note right of Seller: the Product is not longer 'carted'
         Buyer ->>   Seller: Cancels (no notifications)
         Onova  ->>  Onova:  Order is: 'cancelled'
     end
