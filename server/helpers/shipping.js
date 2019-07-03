@@ -1,6 +1,8 @@
 // @flow
 import axios from 'axios';
 
+import config from '../config/config';
+
 const NovaPoshta_URL = 'https://api.novaposhta.ua/v2.0/json';
 
 export const NP = {
@@ -23,6 +25,10 @@ export const NP = {
 export default class Shipping {
   static async getShippingStatus(trackingNumber: string): Promise<any> {
     return new Promise((resolve, reject) => {
+      if (config.env === 'test') {
+        return resolve({ status: NP.generated });
+      }
+
       let result;
       axios
         .post(`${NovaPoshta_URL}/documentsTracking/`, {
@@ -65,7 +71,8 @@ export default class Shipping {
           }
         })
         .catch(error => {
-          console.error(result);
+          console.error('error with getShippingStatus trackingNumber:', trackingNumber);
+          if (result) console.error(result);
           reject(error);
         });
     });

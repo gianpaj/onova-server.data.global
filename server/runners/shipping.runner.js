@@ -102,7 +102,7 @@ export default class ShippingRunner {
   }
 
   defineStatusCheckerJobs() {
-    // define job for checking shipping status that needs to be updated and send system message
+    // check NP shipping status, update Order and send system message
     agenda.define(JOBNAMES.SHIPPING_STATUS_CHECKER, async (job, done) => {
       const { orderId } = job.attrs.data;
 
