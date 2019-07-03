@@ -34,6 +34,7 @@ const product = {
   // seller comes after the user is created
   price: '1100.99', // if no decimal points .00 will be added
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
 };
 
 let anotherProduct = {
@@ -42,6 +43,7 @@ let anotherProduct = {
   description: 'nice jacket',
   price: '230.99',
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
 };
 
 let user = {
@@ -62,13 +64,22 @@ let user5Reseller = {
   password: 'express5',
 };
 
-const notForSaleProduct = {
+const deletedProduct = {
   categoryIds: [2],
-  typeIds: [1, 3],
   tags: ['WINTER'],
   description: 'nice scarf',
   price: '1130',
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
+};
+
+const soldOutProduct = {
+  categoryIds: [2],
+  tags: ['city'],
+  description: '(sold out) backpack',
+  price: '11300',
+  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
 };
 
 let userId;
@@ -90,30 +101,40 @@ describe('## Search APIs', () => {
       })
       .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
       .then(async () => {
-        const { user, jwtToken } = await createUserAndLogin(anotherUser);
-        anotherUserId = user._id;
-        anotherJwtToken = jwtToken;
+        try {
+          const { user, jwtToken } = await createUserAndLogin(anotherUser);
+          anotherUserId = user._id;
+          anotherJwtToken = jwtToken;
 
-        const p1 = await createProduct(product, firstJwtToken);
-        expect(p1.description).toBe(product.description);
+          const p1 = await createProduct(product, firstJwtToken);
+          expect(p1.description).toBe(product.description);
 
-        const p2 = await createProduct(anotherProduct, anotherJwtToken);
-        expect(p2.description).toBe(anotherProduct.description);
+          const p2 = await createProduct(anotherProduct, anotherJwtToken);
+          expect(p2.description).toBe(anotherProduct.description);
 
-        const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(user5Reseller);
-        user5Reseller._id = resUser5._id;
-        jwtToken5Reseller = token5;
-        await User.updateOne({ _id: user5Reseller._id }, { $set: { types: ['reseller'] } });
-        const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
-        expect(p3.description).toBe(notForSaleProduct.description);
-        request(app)
-          .delete(`/api/products/${p3.uuid}`)
-          .set('Authorization', anotherJwtToken)
-          .expect(httpStatus.NO_CONTENT)
-          .then(res => {
-            expect(res.body).toMatchObject({});
-            done();
-          });
+          const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(user5Reseller);
+          user5Reseller._id = resUser5._id;
+          jwtToken5Reseller = token5;
+          await User.updateOne({ _id: user5Reseller._id }, { $set: { types: ['reseller'] } });
+          const p3 = await createProduct(deletedProduct, anotherJwtToken);
+          expect(p3.description).toBe(deletedProduct.description);
+          await request(app)
+            .delete(`/api/products/${p3.uuid}`)
+            .set('Authorization', anotherJwtToken)
+            .expect(httpStatus.NO_CONTENT);
+
+          const p4 = await createProduct(soldOutProduct, anotherJwtToken);
+          expect(p4.description).toBe(soldOutProduct.description);
+          await request(app)
+            .put(`/api/products/${p4.uuid}`)
+            .send({ quantity: 0 })
+            .set('Authorization', anotherJwtToken)
+            .expect(httpStatus.OK);
+          done();
+        } catch (error) {
+          console.error(error);
+          done();
+        }
       });
   });
 
@@ -121,15 +142,17 @@ describe('## Search APIs', () => {
   beforeAll(() => Promise.all([followUser(firstJwtToken, anotherUserId), followUser(anotherJwtToken, userId)]));
 
   describe('# GET /api/search', () => {
-    it('should not find a deleted product', () => {
+    it('should not find deleted or sold out products', () => {
       return request(app)
         .get('/api/search')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].description).not.toBe(notForSaleProduct.description);
-          expect(data[1].description).not.toBe(notForSaleProduct.description);
+          expect(data[0].description).not.toBe(deletedProduct.description);
+          expect(data[0].description).not.toBe(soldOutProduct.description);
+          expect(data[1].description).not.toBe(deletedProduct.description);
+          expect(data[1].description).not.toBe(soldOutProduct.description);
           expect(data).toHaveLength(2);
         });
     });
@@ -142,10 +165,10 @@ describe('## Search APIs', () => {
       const p = {
         categoryIds: [2],
         typeIds: [1, 3],
-        tags: ['WINTER'],
         description: 'nice jumper',
         price: '239',
         photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+        quantity: 1,
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -190,10 +213,10 @@ describe('## Search APIs', () => {
       const p = {
         categoryIds: [1],
         typeIds: [1, 5],
-        tags: ['WINTER'],
         description: 'nice hoodie',
         price: '169',
         photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+        quantity: 1,
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -243,6 +266,7 @@ describe('## Search APIs', () => {
         description: 'nice socks',
         price: '219',
         photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+        quantity: 1,
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -293,10 +317,10 @@ describe('## Search APIs', () => {
       const p = {
         categoryIds: [2],
         typeIds: [1, 3],
-        tags: ['WINTER'],
         description: 'nice hoodie',
         price: '390',
         photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+        quantity: 1,
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -344,7 +368,7 @@ describe('## Search APIs', () => {
     });
   });
 
-  describe('# GET /api/search?categoryIds=&typeIds&tag', () => {
+  describe('# GET /api/search?categoryIds=&typeIds=&tag=', () => {
     let descriptionProductUUID;
 
     beforeAll(async () => {
@@ -355,6 +379,7 @@ describe('## Search APIs', () => {
         description: 'nice hoodie',
         price: '390',
         photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+        quantity: 1,
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);

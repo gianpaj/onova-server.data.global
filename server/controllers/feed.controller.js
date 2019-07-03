@@ -36,6 +36,7 @@ async function flat(req: session$Request, res: express$Response, next: express$N
     // NOTE: no pagination (TODO:?)
     if (req.user.types.includes('designer')) {
       let query = {
+        quantity: { $gt: 0 },
         status: 'forsale',
         seller: req.user._id,
       };
@@ -62,6 +63,7 @@ async function flat(req: session$Request, res: express$Response, next: express$N
     if (blockedBy) blockedByIDs = blockedBy.map(f => f.following);
     if (!following.length) {
       let DBqueryExclusive = {
+        quantity: { $gt: 0 },
         status: 'forsale',
         seller: { $nin: blockedByIDs },
       };
@@ -96,10 +98,12 @@ async function flat(req: session$Request, res: express$Response, next: express$N
     const followingIDs = following.map(f => f.following);
 
     let DBqueryInclusive = {
+      quantity: { $gt: 0 },
       status: 'forsale',
       seller: { $in: followingIDs },
     };
     let DBqueryExclusive = {
+      quantity: { $gt: 0 },
       status: 'forsale',
       seller: { $nin: [...followingIDs, ...blockedByIDs] },
     };

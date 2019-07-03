@@ -37,7 +37,7 @@ function escapeRegex(text: string) {
 async function get(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { categoryIds, description, lastId, limit = 50, sellerType, tag, typeIds } = req.query;
   const projection = { comments: 0 };
-  let query = { status: 'forsale' };
+  let query = { status: 'forsale', quantity: { $gt: 0 } };
   let sellerTypes;
 
   if (config.env !== 'test') {
