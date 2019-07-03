@@ -52,6 +52,7 @@ describe('## Shipping Runner', () => {
     typeIds: [1, 2, 3],
     description: 'A - nice boots',
     price: '190.99',
+    quantity: 1,
     ...photos,
   };
 
@@ -274,6 +275,10 @@ describe('## Shipping Runner', () => {
             expect(orderFound.shippingStatus).toBe(NP.collected);
             expect(orderFound.status).toBe('completed');
             expect(!isNaN(Date.parse(orderFound.dateCompleted))).toBe(true);
+
+            const product = await Product.findById(orderFound.product);
+            expect(product.quantity).toBe(0);
+            expect(product.carted).toHaveLength(0);
 
             const jobs = await findJobs(config.JOBNAMES.SYSTEM_MSG, {
               'data.order.status': 'completed',

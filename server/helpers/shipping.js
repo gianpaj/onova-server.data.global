@@ -25,9 +25,9 @@ export const NP = {
 export default class Shipping {
   static async getShippingStatus(trackingNumber: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      if (config.env === 'test') {
-        return resolve({ status: NP.generated });
-      }
+      // if (config.env === 'test') {
+      //   return resolve({ status: NP.generated });
+      // }
 
       let result;
       axios

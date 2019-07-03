@@ -104,9 +104,7 @@ export default class EscrowRunner {
         });
 
         debug('Unpaid orders cancelled:', ordersUpdated.nModified);
-        const productsToPutBackForSale = orders.map(order => order.product).filter(p => p);
-        debug('productsToPutBackForSale:', productsToPutBackForSale);
-        const updated = await this.removeProductsFromCheckout(productsToPutBackForSale);
+        const updated = await this.returnInventory(orders);
         debug('Products updated:', updated.nModified);
         done();
       } catch (error) {
@@ -149,9 +147,7 @@ export default class EscrowRunner {
         );
 
         debug('Paid orders cancelled:', ordersUpdated.nModified);
-        const productsToPutBackForSale = orders.map(order => order.product).filter(p => p);
-        debug('productsToPutBackForSale:', productsToPutBackForSale);
-        const updated = await this.removeProductsFromCheckout(productsToPutBackForSale);
+        const updated = await this.returnInventory(orders);
         debug('Products updated:', updated.nModified);
 
         const updatedOrders: Array<OrderDoc> = await Order.find({
@@ -233,7 +229,15 @@ export default class EscrowRunner {
     });
   }
 
-  removeProductsFromCheckout(products): Promise<any> {
-    return Product.updateMany({ _id: { $in: products } }, { status: 'forsale', $unset: { reservedDate: '' } });
+  async returnInventory(orders: Array<OrderDoc>): Promise<any> {
+    const productsToPutBackForSale = orders.map(order => order.product).filter(p => p);
+    debug('productsToPutBackForSale:', productsToPutBackForSale);
+    const promises = orders.map(order =>
+      Product.updateOne(
+        { _id: order.product._id },
+        { $inc: { quantity: 1 }, $pull: { carted: { orderId: order._id } } }
+      )
+    );
+    return Promise.all(promises);
   }
 }

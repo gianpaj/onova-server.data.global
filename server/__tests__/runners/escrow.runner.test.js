@@ -55,6 +55,7 @@ describe('## Escrow Manager', () => {
     typeIds: [1, 2, 3],
     description: 'A - nice boots',
     price: '190.99',
+    quantity: 1,
     ...photos,
   };
 
@@ -97,7 +98,7 @@ describe('## Escrow Manager', () => {
 
     afterEach(() => closeDBConnection());
 
-    it('should reserve a product and put back forsale', async done => {
+    it('should add a product to the cart and put back the inventory', async done => {
       try {
         const o = await createOrder({ ...productA, uuid: user1ProductUuidA }, user2JwtToken);
         const o2 = await createOrder({ ...productA, uuid: user1ProductUuidA2 }, user2JwtToken);
@@ -108,17 +109,20 @@ describe('## Escrow Manager', () => {
           .send({ product: user1ProductUuidA })
           .expect(httpStatus.BAD_REQUEST);
 
-        // put the 2nd order 10 minutes back
-        await Order.updateOne({ _id: o2.id }, { $set: { datePending: new Date(Date.now() - 10 * 60 * 1000) } });
-
         expect(body.message).toBe('This product is not longer for sale or is reserved.');
 
-        const { body: product } = await request(app)
+        // put the 2nd order datePending 10 minutes back
+        await Order.updateOne({ _id: o2.id }, { $set: { datePending: new Date(Date.now() - 10 * 60 * 1000) } });
+
+        const {
+          body: { data: product },
+        } = await request(app)
           .get(`/api/products/${user1ProductUuidA}`)
           .set('Authorization', user3JwtToken)
           .expect(httpStatus.OK);
 
-        expect(product.data.status).toBe('reserved');
+        expect(product.status).toBe('forsale');
+        expect(product.quantity).toBe(0);
 
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -128,14 +132,14 @@ describe('## Escrow Manager', () => {
         const timer = setInterval(async () => {
           totalTime += interval;
 
-          const { body: product2 } = await request(app)
+          const {
+            body: { data: product2 },
+          } = await request(app)
             .get(`/api/products/${user1ProductUuidA2}`)
             .set('Authorization', user3JwtToken)
             .expect(httpStatus.OK);
 
-          if (product2.data.status == 'forsale') {
-            // expect(product2.data.status).toBe('forsale');
-
+          if (product2.status === 'forsale' && product2.quantity === 1) {
             const {
               body: { data: orderFound1 },
             } = await request(app)
@@ -205,14 +209,16 @@ describe('## Escrow Manager', () => {
         const timer = setInterval(async () => {
           totalTime += interval;
 
-          const { body: product } = await request(app)
+          const {
+            body: { data: product },
+          } = await request(app)
             .get(`/api/products/${seller.productUUID}`)
             .set('Authorization', user3JwtToken)
             .expect(httpStatus.OK);
 
-          if (product.data.status === 'forsale') {
-            // expect(product.data.status).toBe('forsale');
-            expect(product.data.datePending).toBe(undefined);
+          if (product.status === 'forsale' && product.quantity === 1) {
+            // expect(product.status).toBe('forsale');
+            expect(product.datePending).toBe(undefined);
 
             const { body: orderFound } = await request(app)
               .get(`/api/orders/${o.id}`)
@@ -407,10 +413,7 @@ describe('## Escrow Manager', () => {
             .set('Authorization', user3JwtToken)
             .expect(httpStatus.OK);
 
-          if (product.data.status == 'reserved') {
-            // expect(product.data.status).toBe('reserved');
-            expect(typeof product.data.reservedDate).toBe('string');
-
+          if (product.data.quantity === 0) {
             const { body: orderFound } = await request(app)
               .get(`/api/orders/${o.id}`)
               .set('Authorization', buyer.jwtToken)
