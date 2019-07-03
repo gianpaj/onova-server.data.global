@@ -198,12 +198,7 @@ ProductSchema.statics = {
    * @param {number} obj.limit Limit number of products to be returned
    * @param {Array<string>} obj.sellerTypes
    */
-  list({
-    query = {},
-    projection = {},
-    limit = 50,
-    sellerTypes = ['designer'],
-  }): Promise<ProductDoc[] | APIError> {
+  list({ query = {}, projection = {}, limit = 50, sellerTypes = ['designer'] }): Promise<ProductDoc[] | APIError> {
     return this.aggregate([
       { $match: query },
       {

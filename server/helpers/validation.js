@@ -92,22 +92,11 @@ export const joiCustom = joi => ({
           .min(1),
       },
       validate(params, value, state, options) {
-        const number = PhoneUtil.parseAndKeepRawInput(
-          value,
-          params.opts.defaultCountry
-        );
-        if (
-          PhoneUtil.isValidNumberForRegion(number, params.opts.defaultCountry)
-        )
-          return value;
+        const number = PhoneUtil.parseAndKeepRawInput(value, params.opts.defaultCountry);
+        if (PhoneUtil.isValidNumberForRegion(number, params.opts.defaultCountry)) return value;
 
         // Generate an error, state and options need to be passed
-        return this.createError(
-          'string.phonenumber',
-          { value },
-          state,
-          options
-        );
+        return this.createError('string.phonenumber', { value }, state, options);
       },
     },
   ],

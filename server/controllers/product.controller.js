@@ -7,16 +7,7 @@ import mongoose from 'mongoose';
 
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
-import {
-  Block,
-  Product,
-  ProductDoc,
-  Tag,
-  TagDoc,
-  User,
-  UserDoc,
-  userPopulateFields,
-} from '../models';
+import { Block, Product, ProductDoc, Tag, TagDoc, User, UserDoc, userPopulateFields } from '../models';
 import config from '../config/config';
 import Analytics from '../config/analytics';
 
@@ -48,12 +39,7 @@ declare class session$Request extends express$Request {
 /**
  * Load a product and append to req.
  */
-function load(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction,
-  uuid: string
-) {
+function load(req: session$Request, res: express$Response, next: express$NextFunction, uuid: string) {
   // use static method from ProductSchema
   // flow-disable-next-line
   Product.get(uuid)
@@ -67,12 +53,7 @@ function load(
 /**
  * Load a product with comments (and it's user doc) and append to req.
  */
-function loadWithComments(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction,
-  uuid: string
-) {
+function loadWithComments(req: session$Request, res: express$Response, next: express$NextFunction, uuid: string) {
   Product.findOne({ uuid })
     .populate({
       path: 'seller',
@@ -125,18 +106,11 @@ function get(req: session$Request, res: express$Response) {
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
  */
-async function create(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body } = req;
 
   if (parseFloat(body.price) < minPrice) {
-    const APIerr = new APIError(
-      `Invalid product price. The minimum price is ${minPrice} UAH`,
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError(`Invalid product price. The minimum price is ${minPrice} UAH`, httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 
@@ -176,28 +150,13 @@ async function create(
         throw new APIError('Seller not found', httpStatus.BAD_REQUEST);
       }
       if (seller.accountStatus !== 'verified') {
-        throw new APIError(
-          'Please verify your account before creating a listing',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('Please verify your account before creating a listing', httpStatus.BAD_REQUEST);
       }
-      if (
-        !seller.shippingAddress.departmentNovaposhta ||
-        !seller.shippingAddress.city
-      ) {
-        throw new APIError(
-          'Please enter your shipping address info before listing an item',
-          httpStatus.BAD_REQUEST
-        );
+      if (!seller.shippingAddress.departmentNovaposhta || !seller.shippingAddress.city) {
+        throw new APIError('Please enter your shipping address info before listing an item', httpStatus.BAD_REQUEST);
       }
-      if (
-        !seller.paymentInfo.short.card_token &&
-        !seller.paymentInfo.full.card_token
-      ) {
-        throw new APIError(
-          'Please enter your payment info info before listing an item',
-          httpStatus.BAD_REQUEST
-        );
+      if (!seller.paymentInfo.short.card_token && !seller.paymentInfo.full.card_token) {
+        throw new APIError('Please enter your payment info info before listing an item', httpStatus.BAD_REQUEST);
       }
 
       product.seller = req.user._id;
@@ -207,10 +166,7 @@ async function create(
       );
 
       if (correctPhotos.length < 1) {
-        throw new APIError(
-          'Product photo(s) are required',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('Product photo(s) are required', httpStatus.BAD_REQUEST);
       }
 
       const date = Date.now();
@@ -223,14 +179,10 @@ async function create(
         const thumb = photo.replace('.jpg', '-thumb.jpg');
         const thumb2x = photo.replace('.jpg', '-thumb@2x.jpg');
         promises.push(photos.copyPhoto(thumb, product.uuid, i, date, '-thumb'));
-        promises.push(
-          photos.copyPhoto(thumb2x, product.uuid, i, date, '-thumb@2x')
-        );
+        promises.push(photos.copyPhoto(thumb2x, product.uuid, i, date, '-thumb@2x'));
       }
 
-      correctPhotos.map((p, i) =>
-        promises.push(photos.copyPhoto(p, product.uuid, i, date))
-      );
+      correctPhotos.map((p, i) => promises.push(photos.copyPhoto(p, product.uuid, i, date)));
 
       try {
         const photos = await Promise.all(promises);
@@ -245,10 +197,7 @@ async function create(
         .then(savedProduct => savedProduct)
         .catch(e => {
           console.error(e);
-          throw new APIError(
-            'Error creating Product',
-            httpStatus.INTERNAL_SERVER_ERROR
-          );
+          throw new APIError('Error creating Product', httpStatus.INTERNAL_SERVER_ERROR);
         });
     })
     .then(savedProduct => {
@@ -287,20 +236,8 @@ async function create(
  * @property {string=} req.query.userid (or username)
  * @property {string=} req.query.username (or userid)
  */
-async function list(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  const {
-    categoryIds,
-    lastId,
-    limit = 50,
-    sellerType,
-    tags,
-    userid,
-    username,
-  } = req.query;
+async function list(req: session$Request, res: express$Response, next: express$NextFunction) {
+  const { categoryIds, lastId, limit = 50, sellerType, tags, userid, username } = req.query;
   const projection = { comments: 0 };
   let query = { status: 'forsale' };
   let sellerTypes;
@@ -318,9 +255,7 @@ async function list(
         targetUser: userid,
       });
 
-      const idsB = usersIamBlocking.map(
-        u => new mongoose.Types.ObjectId(u.targetUser)
-      );
+      const idsB = usersIamBlocking.map(u => new mongoose.Types.ObjectId(u.targetUser));
 
       // limit by seller and exclude those blocked
       query = {
@@ -390,11 +325,7 @@ async function list(
  * @property {*} req.query - Express query parameters
  * @property {string} req.query.uuid
  */
-function remove(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function remove(req: session$Request, res: express$Response, next: express$NextFunction) {
   if (req.product.status !== 'forsale') {
     // item could be already sold or deleted, etc.
     throw new APIError('Product not found', httpStatus.BAD_REQUEST);
@@ -405,10 +336,7 @@ function remove(
   Product.findOneAndUpdate({ uuid, status: 'forsale' }, { status: 'deleted' })
     .then(() => res.status(httpStatus.NO_CONTENT).json())
     .catch(() => {
-      const err = new APIError(
-        'Error deleting Product',
-        httpStatus.INTERNAL_SERVER_ERROR
-      );
+      const err = new APIError('Error deleting Product', httpStatus.INTERNAL_SERVER_ERROR);
       next(err);
     });
 }
@@ -430,18 +358,11 @@ function remove(
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
  */
-async function update(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+async function update(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body } = req;
 
   if (parseFloat(body.price) < minPrice) {
-    const APIerr = new APIError(
-      `Invalid product price. The minimum price is ${minPrice} UAH`,
-      httpStatus.BAD_REQUEST
-    );
+    const APIerr = new APIError(`Invalid product price. The minimum price is ${minPrice} UAH`, httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
 
@@ -452,20 +373,11 @@ async function update(
       }
 
       if (foundProduct.status === 'sold') {
-        throw new APIError(
-          'Cannot update a product that has been sold',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('Cannot update a product that has been sold', httpStatus.BAD_REQUEST);
       } else if (foundProduct.status === 'deleted') {
-        throw new APIError(
-          'Cannot update a product that has been deleted',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('Cannot update a product that has been deleted', httpStatus.BAD_REQUEST);
       } else if (foundProduct.status === 'reserved') {
-        throw new APIError(
-          'Cannot update a product that is reserved',
-          httpStatus.BAD_REQUEST
-        );
+        throw new APIError('Cannot update a product that is reserved', httpStatus.BAD_REQUEST);
       }
 
       // create Tag documents
@@ -486,13 +398,7 @@ async function update(
                 const thumb2x = photo.replace('.jpg', '-thumb@2x.jpg');
                 const allPhotos = await Promise.all([
                   photos.copyPhoto(thumb, foundProduct.uuid, i, date, '-thumb'),
-                  photos.copyPhoto(
-                    thumb2x,
-                    foundProduct.uuid,
-                    i,
-                    date,
-                    '-thumb@2x'
-                  ),
+                  photos.copyPhoto(thumb2x, foundProduct.uuid, i, date, '-thumb@2x'),
                   photos.copyPhoto(photo, foundProduct.uuid, i, date),
                 ]);
                 // only store the large size copied photo
@@ -506,20 +412,12 @@ async function update(
         }
       }
 
-      foundProduct.categoryIds = body.categoryIds
-        ? body.categoryIds
-        : foundProduct.categoryIds;
-      foundProduct.description = body.description
-        ? body.description
-        : foundProduct.description;
-      foundProduct.quantity = Number.isInteger(body.quantity)
-        ? body.quantity
-        : foundProduct.quantity;
+      foundProduct.categoryIds = body.categoryIds ? body.categoryIds : foundProduct.categoryIds;
+      foundProduct.description = body.description ? body.description : foundProduct.description;
+      foundProduct.quantity = Number.isInteger(body.quantity) ? body.quantity : foundProduct.quantity;
 
       // always put 2 decimal points
-      foundProduct.price = body.price
-        ? parseFloat(body.price).toFixed(2)
-        : foundProduct.price;
+      foundProduct.price = body.price ? parseFloat(body.price).toFixed(2) : foundProduct.price;
       foundProduct.tags = body.tags ? body.tags : foundProduct.tags;
       foundProduct.typeIds = body.typeIds ? body.typeIds : foundProduct.typeIds;
 
@@ -529,10 +427,7 @@ async function update(
     .catch(err => {
       if (!(err instanceof APIError)) {
         console.error(err);
-        err = new APIError(
-          'Error updating Product',
-          httpStatus.INTERNAL_SERVER_ERROR
-        );
+        err = new APIError('Error updating Product', httpStatus.INTERNAL_SERVER_ERROR);
       }
       next(err);
     });
@@ -540,13 +435,11 @@ async function update(
 
 function createTags(tags: Array<TagDoc>) {
   tags.forEach(tag => {
-    Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true }).catch(
-      err => {
-        if (err.codeName !== 'DuplicateKey') {
-          console.log('error saving tags', err);
-        }
+    Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true }).catch(err => {
+      if (err.codeName !== 'DuplicateKey') {
+        console.log('error saving tags', err);
       }
-    );
+    });
   });
 }
 

@@ -324,7 +324,6 @@ async function create(
         location,
         price: parseFloat(prod.price).toFixed(2),
         quantity: prod.quantity,
-        // status: prod.status, // 'forsale' by default
         tags: prod.tags,
         typeIds: prod.typeIds,
         uuid: shortid.generate(), // needed here for photos' filenames
