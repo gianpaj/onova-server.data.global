@@ -29,16 +29,18 @@ const product = {
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
   // seller comes after the user is created
-  price: '1100.99', // if no decimal points .00 will be added
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  price: '1100.99', // if no decimal points .00 will be added
+  quantity: 1,
 };
 
 let anotherProduct = {
   categoryIds: [1],
   typeIds: [1, 3],
   description: 'nice jacket',
-  price: '230.99',
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  price: '230.99',
+  quantity: 1,
 };
 
 let user = {
@@ -65,18 +67,19 @@ const thirdUser = {
   password: 'express3',
 };
 
-const notForSaleProduct = {
+const deletedProduct = {
   categoryIds: [2],
   typeIds: [1, 3],
   tags: ['WINTER'],
   description: 'nice scarf',
-  price: '1130',
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  price: '1130',
+  quantity: 1,
 };
 
 let productUuid;
 let anotherProductUuid;
-let notForSaleProductUuid;
+let deletedProductUuid;
 let jwtToken;
 let anotherJwtToken;
 let thirdJWTtoken;
@@ -135,9 +138,9 @@ describe('## Comment APIs', () => {
         anotherProductUuid = p2.uuid;
       })
       .then(async () => {
-        const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
-        expect(p3.description).toBe(notForSaleProduct.description);
-        notForSaleProductUuid = p3.uuid;
+        const p3 = await createProduct(deletedProduct, anotherJwtToken);
+        expect(p3.description).toBe(deletedProduct.description);
+        deletedProductUuid = p3.uuid;
         request(app)
           .delete(`/api/products/${p3.uuid}`)
           .set('Authorization', anotherJwtToken)
@@ -239,7 +242,7 @@ describe('## Comment APIs', () => {
 
     it('should not add a comment to a deleted product', () => {
       return request(app)
-        .post(`/api/products/${notForSaleProductUuid}/comment`)
+        .post(`/api/products/${deletedProductUuid}/comment`)
         .set('Authorization', anotherJwtToken)
         .send({ text: 'first!' })
         .expect(httpStatus.BAD_REQUEST)

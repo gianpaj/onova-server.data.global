@@ -55,8 +55,9 @@ describe('## Order APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller id is the user who creates the product
-    price: '1100.99', // if no decimal points .00 will be added
     photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+    price: '1100.99', // if no decimal points .00 will be added
+    quantity: 1,
   };
 
   let productFlipflops = {
@@ -64,16 +65,18 @@ describe('## Order APIs', () => {
     typeIds: [1, 3],
     tags: ['summer'],
     description: 'nice flipflops',
-    price: '800.99',
     photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+    price: '800.99',
+    quantity: 1,
   };
 
   let productShorts = {
     categoryIds: [2],
     typeIds: [2, 3],
     description: 'nice shorts',
-    price: '200.50',
     photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+    price: '200.50',
+    quantity: 1,
   };
 
   let reviewTwo = {
@@ -168,7 +171,10 @@ describe('## Order APIs', () => {
   });
 
   describe('# POST /api/users/:userId/review', () => {
-    let orderOne, orderTwo, orderThreePending, orderSix;
+    let orderOne,
+      orderTwo,
+      // orderThreePending,
+      orderSix;
 
     // user1 orders productShorts (from user2)  [orderOne]
     // user2 orders productBoots  (from user1)  [orderTwo] {reviewTwo}
@@ -563,7 +569,7 @@ describe('## Order APIs', () => {
           const o = res.body.data.find(o => o.id === orderFour.id);
           expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
           expect(o.priceOfItem).toBe(productShorts.price);
-          expect(Object.keys(o.product).sort()).toEqual([...productFields, 'comments', 'reservedDate'].sort());
+          expect(Object.keys(o.product).sort()).toEqual([...productFields, 'comments'].sort());
           expect(Object.keys(o.buyer).sort()).toMatchSnapshot();
           expect(Object.keys(o.seller).sort()).toMatchSnapshot();
           expect(o.reviewFromBuyer.fromUser).toBe(user1._id);
