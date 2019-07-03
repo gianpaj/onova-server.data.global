@@ -19,6 +19,7 @@ import { Drop, DropDoc, Follow, FollowDoc, User, UserDoc, Product, ProductDoc } 
 const { minPrice } = config.settings;
 
 export const i18n = {
+  // TODO: send message based on seller type (for Drop or Onova)
   // listedDrop: 'Your drop has been listed',
   // listedDrop: 'Ваш Дроп виставлено на продаж',
   // listedDrop: 'Your collection is for sale',

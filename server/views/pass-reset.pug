@@ -36,6 +36,7 @@ block content
     h2= heading
     p !{paragraph}
     if show_form
+      //- TODO: show email address and username of account
       input.form-control(type="password", name="password", minlength=8, maxlength=50, placeholder="Пароль", required, autofocus, autocomplete="new-password")
       input.form-control(type="password", name="passwordagain", minlength=8, maxlength=50, placeholder="Продублюй пароль", required, autocomplete="new-password")
       button.btn.btn-primary.btn-block(type="submit") Зберегти
