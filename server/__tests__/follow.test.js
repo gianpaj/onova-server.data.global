@@ -86,7 +86,7 @@ describe('## Follow APIs', () => {
   });
 
   describe('# POST /api/users/:userId/follow', () => {
-    it('should follow another user', async () => {
+    it('should follow another user', () => {
       return request(app)
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
@@ -99,7 +99,7 @@ describe('## Follow APIs', () => {
         });
     });
 
-    it('should not follow the same user more than once', async () => {
+    it('should not follow the same user more than once', () => {
       return request(app)
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
@@ -110,7 +110,7 @@ describe('## Follow APIs', () => {
     });
 
     describe('check followers/following counters', () => {
-      beforeAll(async () => {
+      beforeAll(() => {
         return request(app)
           .post(`/api/users/${thirdUserId}/follow`)
           .set('Authorization', firstJwtToken)
@@ -121,7 +121,7 @@ describe('## Follow APIs', () => {
           });
       });
 
-      it('should increase the followers count of the target user', async () => {
+      it('should increase the followers count of the target user', () => {
         return request(app)
           .get(`/api/users/${userId}`)
           .expect(httpStatus.OK)
@@ -133,7 +133,7 @@ describe('## Follow APIs', () => {
           });
       });
 
-      it('should increase the followers count of the subject user', async () => {
+      it('should increase the followers count of the subject user', () => {
         return request(app)
           .get(`/api/users/${thirdUserId}`)
           .expect(httpStatus.OK)
@@ -146,7 +146,7 @@ describe('## Follow APIs', () => {
       });
     });
 
-    it('should not follow an invalid user', async () => {
+    it('should not follow an invalid user', () => {
       return request(app)
         .post('/api/users/1123123/follow')
         .set('Authorization', anotherJwtToken)
@@ -156,7 +156,7 @@ describe('## Follow APIs', () => {
         );
     });
 
-    it('should not follow a user it doesn`t exist', async () => {
+    it('should not follow a user it doesn`t exist', () => {
       return request(app)
         .post('/api/users/5aaaac09336c6735ff0346f9/follow')
         .set('Authorization', anotherJwtToken)
@@ -166,7 +166,7 @@ describe('## Follow APIs', () => {
         );
     });
 
-    it('should not follow itself', async () => {
+    it('should not follow itself', () => {
       return request(app)
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', anotherJwtToken)
@@ -174,7 +174,7 @@ describe('## Follow APIs', () => {
         .then(res => expect(res.body.message).toBe('Cannot follow thyself'));
     });
 
-    it('should follow back', async () => {
+    it('should follow back', () => {
       return request(app)
         .post(`/api/users/${userId}/follow`)
         .set('Authorization', anotherJwtToken)
@@ -189,7 +189,7 @@ describe('## Follow APIs', () => {
   });
 
   describe('# POST /api/users/:userId/unfollow', () => {
-    it('should unfollow another user', async () => {
+    it('should unfollow another user', () => {
       return request(app)
         .post(`/api/users/${anotherUserId}/unfollow`)
         .set('Authorization', firstJwtToken)
@@ -202,7 +202,7 @@ describe('## Follow APIs', () => {
         });
     });
 
-    it('should not unfollow an invalid user', async () => {
+    it('should not unfollow an invalid user', () => {
       return request(app)
         .post('/api/users/2123412d/unfollow')
         .set('Authorization', firstJwtToken)
@@ -212,7 +212,7 @@ describe('## Follow APIs', () => {
         );
     });
 
-    it('should not unfollow a user that doesn`t exist', async () => {
+    it('should not unfollow a user that doesn`t exist', () => {
       return request(app)
         .post('/api/users/5aaaac09336c6735ff0346f9/unfollow')
         .set('Authorization', firstJwtToken)
@@ -220,7 +220,7 @@ describe('## Follow APIs', () => {
         .then(res => expect(res.body.message).toBe('Error unfollowing a user'));
     });
 
-    it('should not unfollow itself', async () => {
+    it('should not unfollow itself', () => {
       return request(app)
         .post(`/api/users/${anotherUserId}/unfollow`)
         .set('Authorization', anotherJwtToken)
@@ -233,7 +233,7 @@ describe('## Follow APIs', () => {
     // ThirdU -- follows --> User
     beforeAll(() => followUser(thirdJwtToken, anotherUserId));
 
-    it('should get all the followers of user and if amIAFollower', async () => {
+    it('should get all the followers of user and if amIAFollower', () => {
       return request(app)
         .get(`/api/users/${userId}/followers`)
         .set('Authorization', thirdJwtToken)
@@ -263,7 +263,7 @@ describe('## Follow APIs', () => {
       return followUser(anotherJwtToken, thirdUserId);
     });
 
-    it('should get a list of who the user is following and if amIAFollower', async () => {
+    it('should get a list of who the user is following and if amIAFollower', () => {
       return request(app)
         .get(`/api/users/${userId}/following`)
         .set('Authorization', anotherJwtToken)
@@ -278,9 +278,9 @@ describe('## Follow APIs', () => {
   });
 
   describe('# GET /api/users/:userId/follow', () => {
-    beforeAll(async () => followUser(firstJwtToken, anotherUserId));
+    beforeAll(() => followUser(firstJwtToken, anotherUserId));
 
-    it('should get that i am following a user', async () => {
+    it('should get that i am following a user', () => {
       return request(app)
         .get(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
@@ -292,7 +292,7 @@ describe('## Follow APIs', () => {
         });
     });
 
-    it('should get that i am not following a user', async () => {
+    it('should get that i am not following a user', () => {
       return request(app)
         .get(`/api/users/5aaaac09336c6735ff0346f9/follow`)
         .set('Authorization', firstJwtToken)
@@ -300,7 +300,7 @@ describe('## Follow APIs', () => {
         .then(res => expect(res.body.message).toContain('Not following'));
     });
 
-    it('should not able to check if your`re following yourself', async () => {
+    it('should not able to check if your`re following yourself', () => {
       return request(app)
         .get(`/api/users/${userId}/follow`)
         .set('Authorization', firstJwtToken)

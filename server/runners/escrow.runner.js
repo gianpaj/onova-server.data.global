@@ -1,6 +1,12 @@
 //@flow
 
-import { Order, OrderDoc, Product } from '../models';
+import {
+  Order,
+  OrderDoc,
+  Product,
+  userPopulateFields,
+  productPopulateFields,
+} from '../models';
 import {
   createOrderNotification,
   rejectPayment,
@@ -227,7 +233,19 @@ export default class EscrowRunner {
           transactionStatus: 'ua-finished',
           datePaid: { $gt: previousDate },
         };
-        const orders: Array<OrderDoc> = await Order.find(query);
+        const orders: Array<OrderDoc> = await Order.find(query)
+          .populate({
+            path: 'buyer',
+            select: userPopulateFields,
+          })
+          .populate({
+            path: 'seller',
+            select: userPopulateFields,
+          })
+          .populate({
+            path: 'product',
+            select: productPopulateFields,
+          });
         if (!orders.length) return done();
 
         const notifications = orders.map(order =>

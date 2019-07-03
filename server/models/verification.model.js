@@ -19,7 +19,7 @@ const VerificationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
     required: true,
-    expires: '24h',
+    expires: '72h',
   },
 });
 

@@ -7,7 +7,7 @@ import { OrderDoc } from '../models';
 import { i18n } from '../controllers/order.controller';
 import { NP } from '../helpers/shipping';
 
-export function prepareMessage(shippingStatus, trackingNumber) {
+export function getOrderUpdateMessage(shippingStatus, trackingNumber) {
   let message;
   switch (shippingStatus) {
     // shipping status is still generated after a deal has been confirmed
@@ -48,7 +48,7 @@ export function sendSystemMessage(order: OrderDoc): Promise<any> {
       );
       return;
     }
-    if (!prepareMessage(order.shippingStatus, order.trackingNumber)) {
+    if (!getOrderUpdateMessage(order.shippingStatus, order.trackingNumber)) {
       reject(
         new Error(
           'Invalid shippingStatus for scheduling system message:' +
@@ -60,7 +60,10 @@ export function sendSystemMessage(order: OrderDoc): Promise<any> {
 
     const msg = {
       order,
-      message: prepareMessage(order.shippingStatus, order.trackingNumber),
+      message: getOrderUpdateMessage(
+        order.shippingStatus,
+        order.trackingNumber
+      ),
     };
 
     const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);

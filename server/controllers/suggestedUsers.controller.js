@@ -39,7 +39,7 @@ async function list(
       path: 'suggestions._id',
       select: 'username profilePic',
     });
-    // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
+    // if suggested users are "fresh" (already stored in DB; generated in the last 72 hours)
     if (found) {
       if (!found.suggestions.length) return res.json({ data: [], new: false });
 
@@ -48,10 +48,23 @@ async function list(
       return res.json({ data: suggestions, new: false });
     }
 
+    let freshSuggestions = await getSuggestions(myUserId);
+
+    // filter users that are not verified
+    var verifiedUserIds = (await User.find(
+      {
+        _id: { $in: freshSuggestions.map(s => s._id) },
+        accountStatus: 'verified',
+      },
+      { _id: 1 }
+    )).map(s => s._id.toString());
+
+    freshSuggestions = freshSuggestions.filter(suggestion =>
+      verifiedUserIds.includes(suggestion._id.toString())
+    );
+
     // else compute them and save them in the collection
     // TODO: filter also those who have been discarded
-    const freshSuggestions = await getSuggestions(myUserId);
-
     if (!freshSuggestions.length) {
       await SuggestedUsers.create({
         user: myUserId,
@@ -135,12 +148,10 @@ async function getFollowingStatus(users, myUserId): Promise<any> {
  */
 async function getSuggestions(userId): Promise<any> {
   const res = await User.aggregate([
-    { $match: { _id: userId } },
-    { $project: { _id: '$_id' } },
     {
       $graphLookup: {
         from: 'follows',
-        startWith: '$_id',
+        startWith: userId,
         connectFromField: 'following',
         connectToField: 'follower',
         maxDepth: 1,
@@ -170,7 +181,10 @@ async function getSuggestions(userId): Promise<any> {
       },
     },
     {
-      $match: { isFollowedBy: { $nin: [userId] }, _id: { $ne: userId } },
+      $match: {
+        isFollowedBy: { $nin: [userId] },
+        _id: { $ne: userId },
+      },
     },
     {
       $group: {

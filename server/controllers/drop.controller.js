@@ -33,8 +33,11 @@ import {
 const { minPrice } = config.settings;
 
 export const i18n = {
-  // listedDrop: 'Your drop has been posted',
-  listedDrop: 'Ваш Дроп виставлено на продаж',
+  // listedDrop: 'Your drop has been listed',
+  // listedDrop: 'Ваш Дроп виставлено на продаж',
+  // listedDrop: 'Your collection is for sale',
+  listedDrop: 'Вашу колекцію виставлено на продаж',
+  sellerDropIsAboutToDrop: 'дроп скоро в продажу!',
 };
 
 declare class session$Request extends express$Request {
@@ -265,6 +268,7 @@ async function myFeed(
  * @property {Array<number>} req.body.products.categoryIds
  * @property {Array<string>=} req.body.products.photos
  * @property {string} req.body.products.price
+ * @property {string} req.body.products.quantity
  * @property {Array<string>=} req.body.products.tags
  * @property {Array<number>} req.body.products.typeIds
  */
@@ -297,7 +301,7 @@ async function create(
     const geodata = await geocoder.reverse(body.latitude, body.longitude);
     const locality = geodata.admin1.name;
 
-    // if the date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
+    // if the drop date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
     // but for testing only is not further thatn 3 seconds in the future
     const secondsDiff = config.env === 'test' ? 2 : 30;
     const posted =
@@ -319,7 +323,7 @@ async function create(
         locality,
         location,
         price: parseFloat(prod.price).toFixed(2),
-        // status: prod.status, // 'forsale' by default
+        quantity: prod.quantity,
         tags: prod.tags,
         typeIds: prod.typeIds,
         uuid: shortid.generate(), // needed here for photos' filenames
@@ -565,7 +569,10 @@ function validateSeller(seller) {
       httpStatus.BAD_REQUEST
     );
   }
-  if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
+  if (
+    !seller.paymentInfo.short.card_token &&
+    !seller.paymentInfo.full.card_token
+  ) {
     throw new APIError(
       'Please enter your payment info before creating a drop',
       httpStatus.BAD_REQUEST

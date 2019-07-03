@@ -1,10 +1,10 @@
 // @flow
 
 import httpStatus from 'http-status';
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
 import path from 'path';
 import request from 'supertest';
+import superagent from 'superagent';
+import mockSuperagent from 'superagent-mock';
 
 import { agenda } from '../config/express';
 import config from '../config/config';
@@ -15,19 +15,23 @@ import { Tag, Order } from '../models';
 import { i18n } from '../controllers/order.controller';
 import {
   beforeAllTests,
+  confirmOrder,
   createOrder,
   createProduct,
   createUserAndLogin,
+  mock,
   orderFields,
+  payOrder,
 } from './utils';
 import {
   buyerNeedsToPay,
   buyerPaidDeal,
-  buyerPaymentFailure,
   buyerPaymentCVCFailure,
+  buyerPaymentFailure,
+  dealConfirmationResp,
+  sellerBadPhoneNum,
   sellerCancelsAPaidDeal,
   sellerConfirmedResponse,
-  dealConfirmationResp,
 } from '../helpers/shipping';
 
 const photos = {
@@ -36,20 +40,17 @@ const photos = {
   ],
 };
 
-// This sets the mock adapter on the default instance
-const mock = new MockAdapter(axios);
-
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
 
-  let firstUser = {
+  const firstUser = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
     mobileNumber: '380677929197',
   };
 
-  let anotherUser = {
+  const anotherUser = {
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
     password: 'express2',
@@ -58,16 +59,23 @@ describe('## Order APIs', () => {
     mobileNumber: '380977414301',
   };
 
-  let nonActiveUser = {
+  const nonActiveUser = {
     username: 'thirdperson',
     emailAddress: 'gianpa+test3@gmail.com',
     password: 'expressos',
   };
 
-  let forthUser = {
+  const forthUser = {
     username: 'forthperson',
     emailAddress: 'gianpa+test4@gmail.com',
     password: 'expressos4',
+  };
+
+  const fifthUser = {
+    username: 'fifthuser',
+    emailAddress: 'gianpa+fifthuser@gmail.com',
+    password: 'express5',
+    type: 'reseller',
   };
 
   let productA = {
@@ -100,18 +108,40 @@ describe('## Order APIs', () => {
   let firstUserProductAUuid,
     firstUserProductBUuid2,
     anotherUserProductUuid,
-    anotherUserProductUuid2;
+    anotherUserProductUuid2,
+    anotherUserProductUuid3,
+    fifthUserProductUuid;
   let firstUserJwtToken,
     anotherJwtToken,
     nonActiveUserJwtToken,
     forthJwtToken,
-    userWebToken;
+    fifthJwtToken,
+    userWebToken1,
+    userWebToken2;
   let ordersByFirstUser = 0,
     ordersToFirstUser = 0,
     ordersByAnotherUser = 0,
     ordersToAnotherUser = 0;
 
-  // create 3 users. 1 not activated. 1 web user
+  let superagentMock;
+  let mailJetParams;
+
+  const mailjetServerEndPoint = 'https://api.mailjet.com/v3.1';
+
+  beforeAll(() => {
+    superagentMock = mockSuperagent(superagent, [
+      {
+        pattern: mailjetServerEndPoint,
+        fixtures: (match, params) => {
+          mailJetParams = params;
+          return {};
+        },
+        post: (match, data) => ({ body: data }),
+      },
+    ]);
+  });
+
+  // create 3 users. 1 not activated + 2 web users
   beforeAll(async () => {
     const { user: resUser, jwtToken: token } = await createUserAndLogin(
       firstUser
@@ -136,6 +166,11 @@ describe('## Order APIs', () => {
     );
     forthUser._id = resUser4._id;
     forthJwtToken = token4;
+    const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
+      fifthUser
+    );
+    fifthUser._id = resUser5._id;
+    fifthJwtToken = token5;
     await request(app)
       .post('/api/users')
       .send(nonActiveUser)
@@ -153,30 +188,46 @@ describe('## Order APIs', () => {
         nonActiveUser._id = resUser._id;
       });
     const {
-      body: { token: token5 },
+      body: { token: token6 },
     } = await request(app)
       .post('/api/users-web')
       .expect(httpStatus.CREATED);
-    userWebToken = token5;
+    userWebToken1 = token6;
+    const {
+      body: { token: token7 },
+    } = await request(app)
+      .post('/api/users-web')
+      .expect(httpStatus.CREATED);
+    userWebToken2 = token7;
   });
 
-  // create 3 products and delete 1 of them
+  // create 4 products and delete 1 of them
   beforeAll(done => {
     let Promises = [];
     Promises.push(
-      createProduct(productA, firstUserJwtToken).then(p => {
-        firstUserProductAUuid = p.uuid;
-      })
+      createProduct(productA, firstUserJwtToken).then(
+        p => (firstUserProductAUuid = p.uuid)
+      )
     );
     Promises.push(
-      createProduct(productC, anotherJwtToken).then(p => {
-        anotherUserProductUuid = p.uuid;
-      })
+      createProduct({ ...productC, price: '200.50' }, anotherJwtToken).then(
+        p => (anotherUserProductUuid = p.uuid)
+      )
     );
     Promises.push(
-      createProduct(productC, anotherJwtToken).then(p => {
-        anotherUserProductUuid2 = p.uuid;
-      })
+      createProduct({ ...productC, price: '300.00' }, anotherJwtToken).then(
+        p => (anotherUserProductUuid2 = p.uuid)
+      )
+    );
+    Promises.push(
+      createProduct({ ...productC, price: '400.00' }, anotherJwtToken).then(
+        p => (anotherUserProductUuid3 = p.uuid)
+      )
+    );
+    Promises.push(
+      createProduct({ ...productC, price: '9000.00' }, fifthJwtToken).then(
+        p => (fifthUserProductUuid = p.uuid)
+      )
     );
 
     // create product and delete it
@@ -197,6 +248,10 @@ describe('## Order APIs', () => {
     Promise.all(Promises)
       .then(() => done())
       .catch(e => console.error(e));
+  });
+
+  afterAll(() => {
+    superagentMock.unset();
   });
 
   describe('# POST /api/orders', () => {
@@ -608,19 +663,19 @@ describe('## Order APIs', () => {
         });
     });
 
-    it.skip('should change the paymentMethod to `paypal`', () => {
-      return request(app)
-        .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', firstUserJwtToken)
-        .send({ paymentMethod: 'paypal' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toMatchSnapshot();
-          expect(o.priceOfItem).toBe(productPOST1.price);
-          expect(o.paymentMethod).toBe('paypal');
-        });
-    });
+    // it('should change the paymentMethod to `paypal`', () => {
+    //   return request(app)
+    //     .put(`/api/orders/${orderPOST1}`)
+    //     .set('Authorization', firstUserJwtToken)
+    //     .send({ paymentMethod: 'paypal' })
+    //     .expect(httpStatus.OK)
+    //     .then(res => {
+    //       const o = res.body.data;
+    //       expect(Object.keys(o).sort()).toMatchSnapshot();
+    //       expect(o.priceOfItem).toBe(productPOST1.price);
+    //       expect(o.paymentMethod).toBe('paypal');
+    //     });
+    // });
 
     it('should NOT change the paymentMethod if invalid', () => {
       return request(app)
@@ -786,12 +841,28 @@ describe('## Order APIs', () => {
   });
 
   describe('# Web Payments', () => {
-    let orderIdWeb1;
-    it('should create an order by a web user', () => {
-      const price = parseFloat(productC.price);
+    let orderIdWeb1, orderIdWeb2, orderIdWeb3;
+
+    const UserWeb = {
+      emailAddress: 'gianpa+autotestwebuser1@gmail.com',
+      paymentInfoPayload:
+        '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
+      short: false,
+      shippingAddress: {
+        firstName: 'Джанфранко',
+        lastName: 'Палумбо',
+        // Київ
+        city: '8d5a980d-391c-11dd-90d9-001a92567626',
+        // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
+        departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      },
+    };
+
+    test('a web user creates an order from a designer', () => {
+      const price = parseFloat('300.00');
       return request(app)
         .post('/api/orders')
-        .set('Authorization', userWebToken)
+        .set('Authorization', userWebToken1)
         .send({ product: anotherUserProductUuid2 })
         .expect(httpStatus.CREATED)
         .then(res => {
@@ -802,65 +873,44 @@ describe('## Order APIs', () => {
           expect(o.onovaFee).toBe((price * 0.085).toString()); // 8.5 %
           expect(o.total).toBe(price.toString()); // for buyer
           expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
-          expect(o.priceOfItem).toBe(productC.price);
+          expect(o.priceOfItem).toBe('300.00');
           orderIdWeb1 = o.id;
           ordersToAnotherUser++;
         });
     });
 
-    test('a seller should confirm the order from the web', async done => {
+    test('a seller confirms the order from the web (designer)', async done => {
       const dealID = '9B27M6F';
-
-      const userShippingAddress = {
-        shippingAddress: {
-          firstName: 'Джанфранко',
-          lastName: 'Палумбо',
-          city: '8d5a980d-391c-11dd-90d9-001a92567626', // Київ
-          departmentNovaposhta: '1ec09d88-e1c2-11e3-8c4a-0050568002cf', // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
-        },
-      };
-
-      const userPaymentInfo = {
-        paymentInfoPayload:
-          '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
-      };
 
       await request(app)
         .put('/api/users-web/me')
-        .set('Authorization', userWebToken)
-        .send({ ...userPaymentInfo, ...userShippingAddress })
+        .set('Authorization', userWebToken1)
+        .send(UserWeb)
         .expect(httpStatus.OK);
-      await payOrder(orderIdWeb1, userWebToken, dealID);
+      await payOrder(orderIdWeb1, userWebToken1, dealID);
 
-      // FYI: we're skipping the step where the seller confirms the order
+      const emailMsg = mailJetParams.Messages[0];
+      expect(emailMsg.Subject).toBe(i18n.orderPaidForSeller);
+      expect(emailMsg.To[0].Email).toBe(anotherUser.emailAddress);
+      expect(emailMsg.From.Email).toBe('noreply@onova.co');
 
-      mock
-        .onPost(`/deals/${dealID}/confirmations`)
-        .reply(200, dealConfirmationResp);
-      mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
-      await request(app)
-        .put(`/api/orders/${orderIdWeb1}`)
-        .set('Authorization', anotherJwtToken)
-        .send({ status: 'confirmed' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(o.priceOfItem).toBe(productC.price);
-          expect(o.status).toBe('confirmed');
-          expect(o.transactionStatus).toBe('ua-finished');
-          expect(o.transactionId).toBe(dealID);
-          expect(o.cityRecipient).toBe('Львів');
-          expect(o.citySender).toBe('Київ');
-          expect(o.trackingNumber).toBe(
-            sellerConfirmedResponse.data.handler.waybillNumber.toString()
-          );
-          expect(o.shippingProvider).toBe('novaposhta');
-          expect(typeof o.dateConfirmed).toBe('string');
-        });
+      // FIXME: email to the buyer
+      // setTimeout(() => {
+      //   expect(mailJetParams.Messages[0].Subject).toBe(i18n.orderPaidForBuyer);
+      //   expect(mailJetParams.Messages[0].To[0].Email).toBe(
+      //     UserWeb.emailAddress
+      //   );
+      // }, 50);
+
+      await confirmOrder(orderIdWeb1, anotherJwtToken, dealID);
       await request(app)
         .get(`/api/products/${anotherUserProductUuid2}`)
         .expect(httpStatus.OK)
         .then(res => expect(res.body.data.status).toBe('sold'));
+
+      const emailMsg2 = mailJetParams.Messages[0];
+      expect(emailMsg2.To[0].Email).toBe(UserWeb.emailAddress);
+      expect(emailMsg2.Subject).toContain(i18n.orderConfirmed.slice(0, -20));
 
       // order confirmation should schedule a System message
       setTimeout(() => {
@@ -877,6 +927,122 @@ describe('## Order APIs', () => {
           done();
         });
       }, 10);
+    });
+
+    test('a web user creates an order from a reseller', () => {
+      const price = parseFloat('9000.00');
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', userWebToken1)
+        .send({ product: fifthUserProductUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields);
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((price * 0.035).toString()); // 3.5 %
+          expect(o.total).toBe(price.toString()); // for buyer
+          expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
+          expect(o.priceOfItem).toBe('9000.00');
+          orderIdWeb3 = o.id;
+        });
+    });
+
+    test('a seller confirms the order from the web (reseller)', async done => {
+      const dealID = '9B27M6G';
+
+      await request(app)
+        .put('/api/users-web/me')
+        .set('Authorization', userWebToken1)
+        .send(UserWeb)
+        .expect(httpStatus.OK);
+      await payOrder(orderIdWeb3, userWebToken1, dealID);
+
+      const emailMsg = mailJetParams.Messages[0];
+      expect(emailMsg.Subject).toBe(i18n.orderPaidForSeller);
+      expect(emailMsg.To[0].Email).toBe(fifthUser.emailAddress);
+      expect(emailMsg.From.Email).toBe('noreply@drop.uno');
+
+      await confirmOrder(orderIdWeb3, fifthJwtToken, dealID);
+      await request(app)
+        .get(`/api/products/${fifthUserProductUuid}`)
+        .expect(httpStatus.OK)
+        .then(res => expect(res.body.data.status).toBe('sold'));
+
+      const emailMsg2 = mailJetParams.Messages[0];
+      expect(emailMsg2.To[0].Email).toBe(UserWeb.emailAddress);
+      expect(emailMsg2.Subject).toContain(i18n.orderConfirmed.slice(0, -20));
+
+      // order confirmation should schedule a System message
+      setTimeout(() => {
+        agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+          if (err) return done(err);
+          expect(jobs).toHaveLength(1);
+          const { data } = jobs.map(j => j.attrs)[0];
+          expect(data.order._id.toString()).toBe(orderIdWeb3);
+          expect(data.order.shippingProvider).toBe('novaposhta');
+          expect(data.order.trackingNumber).toBe(
+            sellerConfirmedResponse.data.handler.waybillNumber.toString()
+          );
+          expect(data.message).toContain(i18n.orderConfirmed.slice(0, 30));
+          done();
+        });
+      }, 10);
+    });
+
+    test('a seller cancels the order from the web', async () => {
+      const dealID = '7B27M6A';
+
+      const UserWeb2 = {
+        ...UserWeb,
+        emailAddress: 'gianpa+autotestwebuser2@gmail.com',
+      };
+
+      await request(app)
+        .post('/api/orders')
+        .set('Authorization', userWebToken2)
+        .send({ product: anotherUserProductUuid3 })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.status).toBe('pending');
+          expect(o.priceOfItem).toBe('400.00');
+          orderIdWeb2 = o.id;
+          ordersToAnotherUser++;
+        });
+
+      await request(app)
+        .put('/api/users-web/me')
+        .set('Authorization', userWebToken2)
+        .send(UserWeb2)
+        .expect(httpStatus.OK);
+      await payOrder(orderIdWeb2, userWebToken2, dealID);
+
+      const emailMsg = mailJetParams.Messages[0];
+      expect(emailMsg.Subject).toBe(i18n.orderPaidForSeller);
+      expect(emailMsg.To[0].Email).toBe(anotherUser.emailAddress);
+
+      mock
+        .onPost(`/deals/${dealID}/rejections`)
+        .reply(200, sellerCancelsAPaidDeal);
+      await request(app)
+        .put(`/api/orders/${orderIdWeb2}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'cancelled', reason: 'already sold on the dark web' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.status).toBe('cancelled');
+          expect(o.transactionStatus).toBe('ua-finished');
+          expect(o.transactionId).toBe(dealID);
+          expect(typeof o.dateCancelled).toBe('string');
+          expect(o.reason).toBe('already sold on the dark web');
+        });
+
+      const emailMsg2 = mailJetParams.Messages[0];
+      expect(emailMsg2.To[0].Email).toBe(UserWeb2.emailAddress);
+      expect(emailMsg2.Subject).toContain(i18n.orderCancelled);
     });
   });
 
@@ -1001,9 +1167,9 @@ describe('## Order APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send({ cvc: '123' })
         .expect(httpStatus.INTERNAL_SERVER_ERROR)
-        .then(({ body }) => {
-          expect(body.message).toBe('Internal server error'); // coming from UAPAY
-        });
+        .then(
+          ({ body }) => expect(body.message).toBe('Internal server error') // coming from UAPAY
+        );
     });
 
     it('should return wrong CVC error', () => {
@@ -1016,9 +1182,20 @@ describe('## Order APIs', () => {
         .set('Authorization', anotherJwtToken)
         .send({ cvc: '123' })
         .expect(httpStatus.INTERNAL_SERVER_ERROR)
-        .then(({ body }) => {
-          expect(body.message).toBe('Wrong CVV2 value');
-        });
+        .then(({ body }) => expect(body.message).toBe('Wrong CVV2 value'));
+    });
+
+    it('should return wrong phone number error', () => {
+      mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
+      mock.onPost('/deals').reply(200, { data: { id: '9F17M6E' } });
+      mock.onPost(`/deals/9F17M6E/payments`).reply(200);
+      mock.onGet(`/deals/9F17M6E`).reply(200, sellerBadPhoneNum);
+      return request(app)
+        .post(`/api/orders/${orderId}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .send({ cvc: '123' })
+        .expect(httpStatus.INTERNAL_SERVER_ERROR)
+        .then(({ body }) => expect(body.message).toBe('Payment error'));
     });
 
     test('a seller should cancel an order that has been paid', async () => {
@@ -1077,25 +1254,7 @@ describe('## Order APIs', () => {
         .onPost(`/deals/${dealID}/confirmations`)
         .reply(200, dealConfirmationResp);
       mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
-      await request(app)
-        .put(`/api/orders/${orderId3}`)
-        .set('Authorization', firstUserJwtToken)
-        .send({ status: 'confirmed' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(o.priceOfItem).toBe(productPOST2.price);
-          expect(o.status).toBe('confirmed');
-          expect(o.transactionStatus).toBe('ua-finished');
-          expect(o.transactionId).toBe(dealID);
-          expect(o.cityRecipient).toBe('Львів');
-          expect(o.citySender).toBe('Київ');
-          expect(o.trackingNumber).toBe(
-            sellerConfirmedResponse.data.handler.waybillNumber.toString()
-          );
-          expect(o.shippingProvider).toBe('novaposhta');
-          expect(typeof o.dateConfirmed).toBe('string');
-        });
+      await confirmOrder(orderId3, firstUserJwtToken, dealID);
       await request(app)
         .get(`/api/products/${order3ProdUUID}`)
         .expect(httpStatus.OK)
@@ -1207,34 +1366,3 @@ describe('## Order APIs', () => {
     });
   });
 });
-
-async function payOrder(orderId: string, buyerJWTToken, dealID) {
-  mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
-  mock.onPost('/deals').reply(200, { data: { id: dealID } });
-  mock.onPost(`/deals/${dealID}/payments`).reply(200);
-  mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-  mock
-    .onGet('/handlers/NovaPoshta/costs')
-    .reply(200, { data: { handlerPrice: 2500 } });
-  await request(app)
-    .post(`/api/orders/${orderId}/pay`)
-    .set('Authorization', buyerJWTToken)
-    .send({ cvc: '123' })
-    .expect(httpStatus.CREATED)
-    .then(({ body }) => {
-      expect(body.data.payment.redirectUrl).toContain(
-        '.uapay.ua/api/payments/'
-      );
-      expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
-    });
-
-  mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
-  return request(app)
-    .get(`/api/orders/${orderId}/paymentStatus`)
-    .set('Authorization', buyerJWTToken)
-    .expect(httpStatus.OK)
-    .then(({ body }) => {
-      expect(body.data.status).toBe('ua-finished');
-      expect(body.data.rawStatus).toBe('FINISHED');
-    });
-}

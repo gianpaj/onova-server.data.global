@@ -1,39 +1,49 @@
 apps:
-  - script : npm
+  - script: npm
     args: start
     cwd: ./server.data
-    name   : 'server.data'
+    name: 'server.data'
     # autorestart: true
-    env    :
+    env:
       NODE_ENV: production
       PORT: 4040
-  - script : npm
+  - script: npm
     args: start
     cwd: ./server.push
-    name   : 'server.push'
+    name: 'server.push'
     # autorestart: true
-    env    :
+    env:
       NODE_ENV: production
-  - script : npm
+  - script: npm
     args: start
     cwd: ./server.chat
-    name   : 'server.chat'
+    name: 'server.chat'
     # autorestart: true
-    env    :
+    env:
       NODE_ENV: production
       PORT: 8142
-  - script : npm
+  - script: npm
     args: 'run start-push'
     cwd: ./server.chat
-    name   : 'server.chat-push'
+    name: 'server.chat-push'
     # autorestart: true
-    env    :
+    env:
       NODE_ENV: production
-  - script : ./server.js
-    cwd: ./webapp
-    name   : webapp
+  - script: ./server.js
+    cwd: ./webapp-onova
+    name: webapp-onova
     autorestart: true
     wait_ready: true
     listen_timeout: 3000
-    env    :
+    env:
       NODE_ENV: production
+      PORT: 3001
+  - script: ./server.js
+    cwd: ./webapp-drop
+    name: webapp-drop
+    autorestart: true
+    wait_ready: true
+    listen_timeout: 3000
+    env:
+      NODE_ENV: production
+      PORT: 3002

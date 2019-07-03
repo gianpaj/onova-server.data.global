@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`## UserWeb APIs # Create Web user # POST & GET /api/users-web should create a new web user 1`] = `
+exports[`## UserWeb APIs # Create Web user # POST, PUT & GET /api/users-web should create a new web user 1`] = `
 Array [
   "_id",
   "createdAt",
@@ -9,7 +9,7 @@ Array [
 ]
 `;
 
-exports[`## UserWeb APIs # Create Web user # POST & GET /api/users-web should get a user info with valid JWT token 1`] = `
+exports[`## UserWeb APIs # Create Web user # POST, PUT & GET /api/users-web should get a user info with valid JWT token 1`] = `
 Array [
   "_id",
   "createdAt",
@@ -18,12 +18,22 @@ Array [
 ]
 `;
 
-exports[`## UserWeb APIs # Create Web user # POST & GET /api/users-web should get my user info with valid JWT token 1`] = `
+exports[`## UserWeb APIs # Create Web user # POST, PUT & GET /api/users-web should get my user info with valid JWT token 1`] = `
 Array [
   "_id",
   "createdAt",
   "id",
   "type",
+  "updatedAt",
+]
+`;
+
+exports[`## UserWeb APIs # Create Web user # POST, PUT & GET /api/users-web should update my user info 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "emailAddress",
+  "id",
   "updatedAt",
 ]
 `;

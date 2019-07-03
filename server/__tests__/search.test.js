@@ -5,7 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import { Tag, Product } from '../models';
+import { Tag, Product, User } from '../models';
 import {
   beforeAllTests,
   createManyProducts,
@@ -60,6 +60,12 @@ let anotherUser = {
   password: 'express2',
 };
 
+let user5Reseller = {
+  username: 'fifthperson',
+  emailAddress: 'gianpa+test5@gmail.com',
+  password: 'express5',
+};
+
 const notForSaleProduct = {
   categoryIds: [2],
   typeIds: [1, 3],
@@ -75,39 +81,40 @@ let userId;
 let anotherUserId;
 let firstJwtToken;
 let anotherJwtToken;
+let jwtToken5Reseller;
 
 describe('## Search APIs', () => {
   // TODO: reset the collections beforeEach
   beforeAll(beforeAllTests);
 
-  // create 2 users/sellers + 2 products
+  // create 2 users/sellers + 3 products (1 deleted)
   beforeAll(done => {
     createUserAndLogin(user)
       .then(({ user, jwtToken }) => {
         userId = user._id;
         firstJwtToken = jwtToken;
       })
+      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
       .then(async () => {
-        await Tag.create([{ _id: 'winter' }, { _id: 'summer' }]);
-      })
-      .then(async () => {
-        try {
-          const { user, jwtToken } = await createUserAndLogin(anotherUser);
-          anotherUserId = user._id;
-          anotherJwtToken = jwtToken;
-        } catch (err) {
-          console.error(err);
-        }
-      })
-      .then(async () => {
+        const { user, jwtToken } = await createUserAndLogin(anotherUser);
+        anotherUserId = user._id;
+        anotherJwtToken = jwtToken;
+
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
-      })
-      .then(async () => {
+
         const p2 = await createProduct(anotherProduct, anotherJwtToken);
         expect(p2.description).toBe(anotherProduct.description);
-      })
-      .then(async () => {
+
+        const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(
+          user5Reseller
+        );
+        user5Reseller._id = resUser5._id;
+        jwtToken5Reseller = token5;
+        await User.updateOne(
+          { _id: user5Reseller._id },
+          { $set: { types: ['reseller'] } }
+        );
         const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
         expect(p3.description).toBe(notForSaleProduct.description);
         request(app)
@@ -130,14 +137,7 @@ describe('## Search APIs', () => {
   );
 
   describe('# GET /api/search', () => {
-    it('should not allow me to search without authentication', async () => {
-      return request(app)
-        .get('/api/search')
-        .expect(httpStatus.UNAUTHORIZED)
-        .then();
-    });
-
-    it('should not find a deleted product', async () => {
+    it('should not find a deleted product', () => {
       return request(app)
         .get('/api/search')
         .set('Authorization', anotherJwtToken)
@@ -170,7 +170,7 @@ describe('## Search APIs', () => {
       categoryProductUUID = pp.uuid;
     });
 
-    it('should find products by categoryIds', async () => {
+    it('should find products by categoryIds', () => {
       return request(app)
         .get('/api/search?categoryIds[]=2')
         .set('Authorization', anotherJwtToken)
@@ -182,7 +182,7 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should not find products by categoryIds (no product match)', async () => {
+    it('should not find products by categoryIds (no product match)', () => {
       return request(app)
         .get('/api/search?categoryIds[]=3')
         .set('Authorization', anotherJwtToken)
@@ -193,7 +193,7 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should not search by invalid categoryIds', async () => {
+    it('should not search by invalid categoryIds', () => {
       return request(app)
         .get('/api/search?categoryIds[]=55')
         .set('Authorization', anotherJwtToken)
@@ -220,7 +220,7 @@ describe('## Search APIs', () => {
       typeIdProductUUID = pp.uuid;
     });
 
-    it('should find products by typeIds', async () => {
+    it('should find products by typeIds', () => {
       return request(app)
         .get('/api/search?typeIds[]=5')
         .set('Authorization', anotherJwtToken)
@@ -233,7 +233,7 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should not search by invalid typeIds', async () => {
+    it('should not search by invalid typeIds', () => {
       return request(app)
         .get('/api/search?typeIds[]=55')
         .set('Authorization', anotherJwtToken)
@@ -241,7 +241,7 @@ describe('## Search APIs', () => {
     });
 
     // TODO:
-    // it('should **not** work with multiple query fields', async () => {
+    // it('should **not** work with multiple query fields', () => {
     //   return (
     //     request(app)
     //       .get('/api/search?typeIds[]=5&categoryIds[]=1')
@@ -272,7 +272,7 @@ describe('## Search APIs', () => {
       await createProduct({ ...p, tags: ['WARM'] }, firstJwtToken);
     });
 
-    it('should find products by a tag (warm)', async () => {
+    it('should find products by a tag (warm)', () => {
       return request(app)
         .get('/api/search?tag=warm')
         .set('Authorization', anotherJwtToken)
@@ -284,18 +284,23 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should not find products by tag (no product match)', async () => {
+    it('should not find products by tag (no product match)', () => {
       return request(app)
         .get('/api/search?tag=freezing')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
-    it('should not search products by invalid tag', async () => {
+    test('reseller should not find products from designers if I am a reseller', () => {
+      return request(app)
+        .get('/api/search?tag=warm')
+        .set('Authorization', jwtToken5Reseller)
+        .expect(httpStatus.OK)
+        .then(res => expect(res.body.data).toHaveLength(0));
+    });
+
+    it('should not search products by invalid tag', () => {
       return request(app)
         .get('/api/search?tag=freezingfreezingfreezingfreezingfreezing')
         .set('Authorization', anotherJwtToken)
@@ -322,7 +327,7 @@ describe('## Search APIs', () => {
       descriptionProductUUID = pp.uuid;
     });
 
-    it('should find products by text description (hoodie)', async () => {
+    it('should find products by text description (hoodie)', () => {
       return request(app)
         .get('/api/search?description=hoodie')
         .set('Authorization', anotherJwtToken)
@@ -334,7 +339,7 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should find products by text description (hoo)', async () => {
+    it('should find products by text description (hoo)', () => {
       return request(app)
         .get('/api/search?description=hoo')
         .set('Authorization', anotherJwtToken)
@@ -346,18 +351,15 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should not find products by text description (no product match)', async () => {
+    it('should not find products by text description (no product match)', () => {
       return request(app)
         .get('/api/search?description=how')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
-    it('should not search products by invalid text description', async () => {
+    it('should not search products by invalid text description', () => {
       const really_long_string = new Array(52).join('x');
       return request(app)
         .get(`/api/search?description=${really_long_string}`)
@@ -385,7 +387,7 @@ describe('## Search APIs', () => {
       descriptionProductUUID = pp.uuid;
     });
 
-    it('should find products by tag & categoryIds', async () => {
+    it('should find products by tag & categoryIds', () => {
       return request(app)
         .get('/api/search?tag=summer&categoryIds=2')
         .set('Authorization', anotherJwtToken)
@@ -397,18 +399,23 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should not find products by tag & categoryIds (no match)', async () => {
+    it('should not find products by tag & categoryIds (from designers)', () => {
+      return request(app)
+        .get('/api/search?tag=summer&categoryIds=2')
+        .set('Authorization', jwtToken5Reseller)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data).toHaveLength(0));
+    });
+
+    it('should not find products by tag & categoryIds (no match)', () => {
       return request(app)
         .get('/api/search?tag=summer&categoryIds=1')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
-    it('should find products by tag & typeIds', async () => {
+    it('should find products by tag & typeIds', () => {
       return request(app)
         .get('/api/search?tag=summer&typeIds=3')
         .set('Authorization', anotherJwtToken)
@@ -420,18 +427,15 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should not find products by tag & typeIds (no match)', async () => {
+    it('should not find products by tag & typeIds (no match)', () => {
       return request(app)
         .get('/api/search?tag=summer&typeIds=2')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(0);
-        });
+        .then(res => expect(res.body.data).toHaveLength(0));
     });
 
-    it('should find products by categoryIds & typeIds', async () => {
+    it('should find products by categoryIds & typeIds', () => {
       return request(app)
         .get('/api/search?categoryIds=2&typeIds=3')
         .set('Authorization', anotherJwtToken)
@@ -458,14 +462,11 @@ describe('## Search APIs', () => {
       });
     });
 
-    beforeAll(async () => {
-      const a = await createManyProducts(105, anotherJwtToken);
-      if (a instanceof Error) console.error(a);
-    });
+    beforeAll(() => createManyProducts(105, anotherJwtToken));
 
     let lastId;
 
-    it('should search without pagination', async () => {
+    it('should search without pagination', () => {
       return request(app)
         .get('/api/search/?categoryIds=2')
         .set('Authorization', anotherJwtToken)
@@ -477,7 +478,7 @@ describe('## Search APIs', () => {
         });
     });
 
-    it('should get feed with load more', async () => {
+    it('should get feed with load more', () => {
       return request(app)
         .get(`/api/search/?categoryIds=2&lastId=${lastId}`)
         .set('Authorization', anotherJwtToken)

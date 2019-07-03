@@ -98,7 +98,7 @@ describe('## Report methods', () => {
       .then(({ body }) => {
         expect(body.data.username).toBe(nonActiveUser.username);
         expect(body.data.accountStatus).toBe('notverified');
-        expect(body.token).toHaveLength(436);
+        expect(body.token.length).toBeGreaterThan(400);
         nonActiveUser.jwtToken = body.token;
       });
   });

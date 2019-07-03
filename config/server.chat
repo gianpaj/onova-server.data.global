@@ -1,5 +1,4 @@
 server {
-#    listen [::]:443 ssl http2 ipv6only=on; # managed by Certbot
     listen 443 ssl http2; # managed by Certbot
     ssl_certificate /etc/letsencrypt/live/onova.co/fullchain.pem; # managed by Certbot
     ssl_certificate_key /etc/letsencrypt/live/onova.co/privkey.pem; # managed by Certbot

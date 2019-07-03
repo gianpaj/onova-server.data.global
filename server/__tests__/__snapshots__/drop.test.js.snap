@@ -11,6 +11,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -26,6 +27,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -41,6 +43,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -56,6 +59,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -128,10 +132,10 @@ Array [
   "currency",
   "description",
   "dropId",
-  "likes",
   "locality",
   "photoURIs",
   "price",
+  "quantity",
   "seller",
   "status",
   "tags",

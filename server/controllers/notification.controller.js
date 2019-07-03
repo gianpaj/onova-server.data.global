@@ -160,7 +160,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
         await mailController.sendOrderUpdate({
           notifI18n,
           targetUser,
-          data,
+          order: data,
           actionMsg,
         });
         resolve();

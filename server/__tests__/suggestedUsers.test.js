@@ -48,25 +48,32 @@ let users: Array<User> = [
     emailAddress: 'gianpa+test3@gmail.com',
     password: 'express4',
   },
-  {
-    username: 'user4',
-    emailAddress: 'gianpa+test4@gmail.com',
-    password: 'express5',
-  },
 ];
+
+let user4;
 
 describe('## Suggested Users APIs', () => {
   beforeAll(beforeAllTests);
 
   // let users: Array<{ _id: MongoId, token: string }>;
 
-  // create 4 users and follow
+  // create 4 users (one not verified) and follow
   beforeAll(async () => {
     const usersAndTokens = await Promise.all(users.map(createUserAndLogin));
     users = usersAndTokens.map(user => ({
       ...user.user,
       token: user.jwtToken,
     }));
+
+    const { body } = await request(app)
+      .post('/api/users')
+      .send({
+        username: 'user4',
+        emailAddress: 'gianpa+test4@gmail.com',
+        password: 'express5',
+      })
+      .expect(httpStatus.CREATED);
+    user4 = body.data;
 
     await Promise.all([
       request(app)
@@ -76,10 +83,10 @@ describe('## Suggested Users APIs', () => {
         .expect(httpStatus.OK),
       followUser(users[0].token, users[1]._id),
       followUser(users[0].token, users[3]._id),
-      followUser(users[1].token, users[0]._id),
+      // followUser(users[1].token, users[0]._id),
       followUser(users[1].token, users[2]._id),
       followUser(users[1].token, users[3]._id),
-      followUser(users[1].token, users[4]._id),
+      followUser(users[1].token, user4._id),
       followUser(users[2].token, users[3]._id),
     ]);
 
@@ -131,10 +138,9 @@ describe('## Suggested Users APIs', () => {
       .set('Authorization', users[0].token)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data).toHaveLength(2);
-        const [firstSuggestion, secondSuggestion] = body.data;
+        expect(body.data).toHaveLength(1);
+        const [firstSuggestion] = body.data;
         expect(firstSuggestion._id.username).toBe('user2');
-        expect(secondSuggestion._id.username).toBe('user4');
         expect(Object.keys(firstSuggestion._id).sort()).toEqual([
           '_id',
           'amIAFollower',
@@ -158,7 +164,7 @@ describe('## Suggested Users APIs', () => {
           'profilePic',
           'username',
         ]);
-        expect(body.data).toHaveLength(2);
+        expect(body.data).toHaveLength(1);
         expect(body.data[0].numOfConns).toBe(1);
         expect(body.new).toBe(false);
       });

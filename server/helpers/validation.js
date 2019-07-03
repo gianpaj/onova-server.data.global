@@ -27,7 +27,7 @@ export default {
     .items(
       Joi.number()
         .min(0)
-        .max(5)
+        .max(29)
     )
     .single(),
   description: Joi.string()
@@ -43,6 +43,11 @@ export default {
     .regex(price)
     .invalid('0')
     .invalid('0.00'),
+  quantity: Joi.number()
+    .min(1)
+    .max(99)
+    .default(1),
+  sellerType: Joi.string().valid(['designer', 'reseller']),
   tag,
   tags: Joi.array()
     .max(30)
@@ -87,22 +92,11 @@ export const joiCustom = joi => ({
           .min(1),
       },
       validate(params, value, state, options) {
-        const number = PhoneUtil.parseAndKeepRawInput(
-          value,
-          params.opts.defaultCountry
-        );
-        if (
-          PhoneUtil.isValidNumberForRegion(number, params.opts.defaultCountry)
-        )
-          return value;
+        const number = PhoneUtil.parseAndKeepRawInput(value, params.opts.defaultCountry);
+        if (PhoneUtil.isValidNumberForRegion(number, params.opts.defaultCountry)) return value;
 
         // Generate an error, state and options need to be passed
-        return this.createError(
-          'string.phonenumber',
-          { value },
-          state,
-          options
-        );
+        return this.createError('string.phonenumber', { value }, state, options);
       },
     },
   ],

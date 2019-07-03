@@ -28,21 +28,19 @@ afterAll(done => {
 // GET /api/feed/ should only return these fields
 const feedFields = [
   '_id',
-  'categoryIds',
-  'comments',
-  'createdAt',
-  'currency',
-  'description',
-  'likes',
+  'categoryIds', // TODO: remove
+  'createdAt', // TODO: remove
+  'currency', // TODO: remove
+  'description', // TODO: remove
   'photoURIs',
-  'price',
+  'price', // TODO: remove
   'seller',
-  'status',
-  'tags',
-  'typeIds',
-  'updatedAt',
+  'status', // TODO: remove
+  'tags', // TODO: remove
+  'typeIds', // TODO: remove
+  'updatedAt', // TODO: remove
   'uuid',
-  'weight',
+  'weight', // TODO: remove
 ];
 
 const product = {
@@ -57,7 +55,7 @@ const product = {
   ],
 };
 
-let anotherProduct = {
+let product_shoe = {
   categoryIds: [1],
   typeIds: [1, 3],
   description: 'nice jacket',
@@ -67,30 +65,51 @@ let anotherProduct = {
   ],
 };
 
-// $FlowFixMe
-let user: UserDoc = {
+const user: UserDoc = {
   username: 'firstperson',
   emailAddress: 'gianpa+test@gmail.com',
   password: 'expressos',
 };
 
-// $FlowFixMe
-let anotherUser: UserDoc = {
-  username: 'anotherperson',
+const user2: UserDoc = {
+  username: 'secondperson',
   emailAddress: 'gianpa+test2@gmail.com',
   password: 'express2',
 };
 
-let user3: UserDoc = {
+const user3_reseller: UserDoc = {
   username: 'thirdperson',
   emailAddress: 'gianpa+test3@gmail.com',
   password: 'express3',
+  type: 'reseller',
 };
 
-let user4: UserDoc = {
+const user4_reseller: UserDoc = {
   username: 'fourthperson',
   emailAddress: 'gianpa+test4@gmail.com',
   password: 'express4',
+  type: 'reseller',
+};
+
+const user5_reseller: UserDoc = {
+  username: 'fifthperson_reseller',
+  emailAddress: 'gianpa+test5@gmail.com',
+  password: 'express5',
+  type: 'reseller',
+};
+
+const user6_reseller: UserDoc = {
+  username: 'sixthperson_reseller',
+  emailAddress: 'gianpa+test6@gmail.com',
+  password: 'express6',
+  type: 'reseller',
+};
+
+const user7_reseller = {
+  username: 'seventhperson',
+  emailAddress: 'gianpa+test7@gmail.com',
+  password: 'express7',
+  type: 'reseller',
 };
 
 const notForSaleProduct = {
@@ -104,98 +123,135 @@ const notForSaleProduct = {
   ],
 };
 
-let userId;
-let anotherUserId;
-let productUuid;
-let anotherProductUuid;
-let firstJwtToken;
-let anotherJwtToken;
-let user3_id;
-let user3_jwtToken;
-let user4_jwtToken;
+let user1_id, user2_id, user3_id_reseller, user6_id_reseller;
+let user1_productuuid, user2_productuuid, user5_productuuid, user6_productuuid;
+let user1_jwttoken,
+  user2_jwttoken,
+  user3_jwttoken_reseller,
+  user4_jwttoken_reseller,
+  user5_jwttoken_reseller,
+  user6_jwttoken_reseller,
+  user7_jwttoken_reseller;
 let uuids;
 
 describe('## Feed APIs', () => {
   beforeAll(beforeAllTests);
 
   // TODO: refactor to async/await
-  // create 4 users/sellers + 23 products (1 deleted)
+  // create 6 users/sellers (2 resellers) + 24 products (1 deleted, 1 from a reseller)
   beforeAll(done => {
     createUserAndLogin(user)
       .then(({ user, jwtToken }) => {
-        userId = user._id;
-        firstJwtToken = jwtToken;
+        user1_id = user._id;
+        user1_jwttoken = jwtToken;
       })
       .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
       .then(() =>
-        createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
-          anotherUserId = user._id.toString();
-          anotherJwtToken = jwtToken;
+        createUserAndLogin(user2).then(({ user, jwtToken }) => {
+          user2_id = user._id.toString();
+          user2_jwttoken = jwtToken;
         })
       )
       .then(() =>
-        createUserAndLogin(user3).then(({ user, jwtToken }) => {
-          user3_id = user._id.toString();
-          user3_jwtToken = jwtToken;
+        createUserAndLogin(user3_reseller).then(({ user, jwtToken }) => {
+          user3_id_reseller = user._id.toString();
+          user3_jwttoken_reseller = jwtToken;
         })
       )
       .then(() =>
-        createUserAndLogin(user4).then(({ jwtToken }) => {
-          user4_jwtToken = jwtToken;
+        createUserAndLogin(user4_reseller).then(({ jwtToken }) => {
+          user4_jwttoken_reseller = jwtToken;
         })
       )
       .then(async () => {
-        const p1 = await createProduct(product, firstJwtToken);
+        const { jwtToken: token5 } = await createUserAndLogin(user5_reseller);
+        user5_jwttoken_reseller = token5;
+        const { user: resUser6, jwtToken: token6 } = await createUserAndLogin(
+          user6_reseller
+        );
+        user6_id_reseller = resUser6._id;
+        user6_jwttoken_reseller = token6;
+        const { user: resUser7, jwtToken: token7 } = await createUserAndLogin(
+          user7_reseller
+        );
+        user7_reseller._id = resUser7._id;
+        user7_jwttoken_reseller = token7;
+
+        // const p6 = await createProduct(product, jwtToken6);
+        // expect(p6.description).toBe(product.description);
+        // productUuid = p6.uuid;
+
+        const p1 = await createProduct(product, user1_jwttoken);
         expect(p1.description).toBe(product.description);
-        productUuid = p1.uuid;
+        user1_productuuid = p1.uuid;
 
-        const p2 = await createProduct(anotherProduct, anotherJwtToken);
-        expect(p2.description).toBe(anotherProduct.description);
-        anotherProductUuid = p2.uuid;
+        const p2 = await createProduct(product_shoe, user2_jwttoken);
+        expect(p2.description).toBe(product_shoe.description);
+        user2_productuuid = p2.uuid;
 
-        const allProducts = await createManyProducts(20, user3_jwtToken);
+        const allProducts = await createManyProducts(
+          20,
+          user3_jwttoken_reseller
+        );
         uuids = allProducts.map(p => p.uuid);
 
-        const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
+        const p3 = await createProduct(notForSaleProduct, user2_jwttoken);
         expect(p3.description).toBe(notForSaleProduct.description);
-        request(app)
+        const res = await request(app)
           .delete(`/api/products/${p3.uuid}`)
-          .set('Authorization', anotherJwtToken)
-          .expect(httpStatus.NO_CONTENT)
-          .then(res => {
-            expect(res.body).toMatchObject({});
-            done();
-          });
+          .set('Authorization', user2_jwttoken)
+          .expect(httpStatus.NO_CONTENT);
+        expect(res.body).toMatchObject({});
+
+        const p4 = await createProduct(product_shoe, user5_jwttoken_reseller);
+        user5_productuuid = p4.uuid;
+        const p5 = await createProduct(product, user6_jwttoken_reseller);
+        user6_productuuid = p5.uuid;
+
+        const DEBUG = false;
+        if (DEBUG) {
+          console.log('user1_id', user1_id);
+          console.log('user2_id', user2_id);
+          console.log('user3_id', user3_id_reseller);
+          console.log('user6_id_reseller', user6_id_reseller);
+          console.log('user1_productuuid', user1_productuuid);
+          console.log('user2_productuuid', user2_productuuid);
+          console.log('user5_productuuid', user5_productuuid);
+          console.log('user6_productuuid', user6_productuuid);
+        }
+
+        done();
       });
   });
 
-  // both accounts follow each other
   beforeAll(() =>
     Promise.all([
-      followUser(firstJwtToken, anotherUserId),
-      followUser(anotherJwtToken, userId),
-      followUser(user4_jwtToken, user3_id),
+      followUser(user1_jwttoken, user2_id),
+      followUser(user5_jwttoken_reseller, user6_id_reseller),
+      followUser(user2_jwttoken, user1_id),
+      followUser(user4_jwttoken_reseller, user3_id_reseller),
+      followUser(user2_jwttoken, user6_id_reseller),
     ])
   );
 
   describe('# GET /api/feed/flat', () => {
-    it('should get the first user`s feed with 2 products', () => {
+    it("should get a reseller's product feed", () => {
       return request(app)
         .get('/api/feed/flat')
-        .set('Authorization', firstJwtToken)
+        .set('Authorization', user5_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.data).toHaveLength(22);
-          expect(body.data[0].uuid).toBe(anotherProductUuid);
-          expect(body.data[1].uuid).toBe(uuids[0]);
+          expect(body.data[0].uuid).toBe(user6_productuuid);
+          expect(body.data[1].uuid).toBe(user5_productuuid);
           expect(Object.keys(body.data[0]).sort()).toEqual(feedFields.sort());
         });
     });
 
-    it('should get the 4th user`s feed with 10 products + 0 an addition (of a non following)', () => {
+    it("should get the 4th user's feed with 10 products + 0 an addition (of a non following)", () => {
       return request(app)
         .get('/api/feed/flat/?limit=10')
-        .set('Authorization', user4_jwtToken)
+        .set('Authorization', user4_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(({ body: { data } }) => {
           expect(data).toHaveLength(10);
@@ -206,16 +262,23 @@ describe('## Feed APIs', () => {
         });
     });
 
-    it('should get another user`s feed', () => {
+    it("should get user 2's feed (designer)", () => {
       return request(app)
         .get('/api/feed/flat')
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user2_jwttoken)
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data[0].uuid).toBe(productUuid);
-          expect(body.data[body.data.length - 1].uuid).toBe(anotherProductUuid);
-          expect(body.data).toHaveLength(22);
+          expect(body.data).toHaveLength(1);
+          expect(body.data[0].uuid).toBe(user2_productuuid);
         });
+    });
+
+    it("should get user's feed (reseller) when she doesn't follow anybody", () => {
+      return request(app)
+        .get('/api/feed/flat')
+        .set('Authorization', user7_jwttoken_reseller)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data).toHaveLength(22));
     });
 
     it('should not get my feed if i am not authenticated', () => {
@@ -229,27 +292,40 @@ describe('## Feed APIs', () => {
     let lastId,
       _ids = [];
     beforeAll(async () => {
-      const allProducts = await createManyProducts(105, firstJwtToken);
+      const allProducts = await createManyProducts(
+        105,
+        user6_jwttoken_reseller
+      );
       _ids = allProducts.map(p => p._id);
     });
 
-    it('should get feed by categoryIds', () => {
+    it('should get only my items in the feed by categoryIds (if i am a designer)', () => {
+      return request(app)
+        .get('/api/feed/flat?categoryIds=1')
+        .set('Authorization', user2_jwttoken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(1);
+          expect(body.data[0].uuid).toBe(user2_productuuid);
+        });
+    });
+
+    it('should get feed by categoryIds (if i am a reseller)', () => {
       return request(app)
         .get('/api/feed/flat?categoryIds=2')
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user5_jwttoken_reseller)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(50);
-          expect(data.map(p => p._id)).toEqual(_ids.slice(0, 50));
-          lastId = data[data.length - 1]._id;
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(50);
+          expect(body.data.map(p => p._id)).toEqual(_ids.slice(0, 50));
+          lastId = body.data[body.data.length - 1]._id;
         });
     });
 
     it('should get feed by categoryIds with load more', () => {
       return request(app)
         .get(`/api/feed/flat?categoryIds=2&lastId=${lastId}&limit=5`)
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user5_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.data[0]._id).toBe(_ids.splice(50, 1)[0]);
@@ -272,7 +348,7 @@ describe('## Feed APIs', () => {
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
       };
-      const pp = await createProduct(p, firstJwtToken);
+      const pp = await createProduct(p, user6_jwttoken_reseller);
       expect(pp.description).toBe(p.description);
       typeIdProductUUID = pp.uuid;
     });
@@ -280,7 +356,7 @@ describe('## Feed APIs', () => {
     it('should get feed by typeIds', () => {
       return request(app)
         .get('/api/feed/flat?typeIds=5')
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user5_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.data[0].uuid).toBe(typeIdProductUUID);
@@ -303,7 +379,7 @@ describe('## Feed APIs', () => {
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
       };
-      const pp = await createProduct(p, firstJwtToken);
+      const pp = await createProduct(p, user6_jwttoken_reseller);
       expect(pp.description).toBe(p.description);
       tagProductUUID = pp.uuid;
     });
@@ -311,7 +387,7 @@ describe('## Feed APIs', () => {
     it('should get feed of tag', () => {
       return request(app)
         .get('/api/feed/flat?tag=cold')
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user5_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.data[0].uuid).toBe(tagProductUUID);
@@ -329,8 +405,14 @@ describe('## Feed APIs', () => {
 
     beforeAll(async () => {
       try {
-        const allProducts = await createManyProducts(105, firstJwtToken);
-        const otherProducts = await createManyProducts(105, user4_jwtToken);
+        const allProducts = await createManyProducts(
+          105,
+          user6_jwttoken_reseller
+        );
+        const otherProducts = await createManyProducts(
+          105,
+          user4_jwttoken_reseller
+        );
         _ids = allProducts.map(p => p._id);
         other_ids = otherProducts.map(p => p._id);
       } catch (err) {
@@ -344,7 +426,7 @@ describe('## Feed APIs', () => {
     it('should get feed without pagination', () => {
       return request(app)
         .get(`/api/feed/flat?limit=${limit}`)
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user5_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
@@ -357,7 +439,7 @@ describe('## Feed APIs', () => {
     it('should get feed with load more', () => {
       return request(app)
         .get(`/api/feed/flat?lastId=${lastId}&limit=50`)
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user6_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
@@ -371,7 +453,7 @@ describe('## Feed APIs', () => {
     it.skip('should get feed with load more again', () => {
       return request(app)
         .get(`/api/feed/flat?lastId=${lastId}&limit=50`)
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user6_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
@@ -386,7 +468,7 @@ describe('## Feed APIs', () => {
     it('should not get feed with load more with a missing lastId', () => {
       return request(app)
         .get(`/api/feed/flat?lastId=5ff999999147a8bd32ea35f6`)
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', user6_jwttoken_reseller)
         .expect(httpStatus.NOT_FOUND)
         .then(({ body }) =>
           expect(body.message).toContain('Product not found')

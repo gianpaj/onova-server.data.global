@@ -101,9 +101,16 @@ const UserSchema = new Schema(
         type: String,
         enum: ['paypal', 'uapay'],
       },
-      card_token: String,
-      first_four: String,
-      last_four: String,
+      short: {
+        card_token: String,
+        first_four: String,
+        last_four: String,
+      },
+      full: {
+        card_token: String,
+        first_four: String,
+        last_four: String,
+      },
     },
     profilePic: String,
     pushToken: String,
@@ -129,6 +136,10 @@ const UserSchema = new Schema(
       city: String,
       departmentNovaposhta: String,
     },
+    socials: {
+      type: Map,
+      of: String,
+    },
     username: {
       type: String,
       unique: true,
@@ -137,6 +148,11 @@ const UserSchema = new Schema(
       maxlength: 30,
       trim: true,
       lowercase: true,
+    },
+    types: {
+      type: [{ type: String, enum: ['designer', 'admin', 'reseller'] }],
+      default: ['designer'],
+      // required: true,
     },
     deletedAt: Date,
   },
@@ -168,6 +184,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   tokens: Array<any>;
   updatedAt: Date;
   username: string;
+  types: Array<string>;
 }
 
 UserSchema.loadClass(UserDoc);
@@ -195,9 +212,7 @@ UserSchema.statics = {
   get(id: string): Promise<UserDoc | APIError> {
     return this.findById(id)
       .then((user: UserDoc) => {
-        if (!user) {
-          return Promise.reject();
-        }
+        if (!user) return Promise.reject();
         return user;
       })
       .catch(() => {
@@ -219,9 +234,7 @@ UserSchema.statics = {
       .skip(+skip)
       .limit(+limit)
       .then((users: UserDoc[]) => {
-        if (!users) {
-          return Promise.reject();
-        }
+        if (!users) return Promise.reject();
         return users;
       })
       .catch(() => {
@@ -265,7 +278,9 @@ UserSchema.post('save', function(error: Error, doc, next) {
 // This doesn't effect `toObject` method
 UserSchema.set('toJSON', {
   transform: (doc, ret) => {
-    if (doc.paymentInfo.card_token) delete ret.paymentInfo.card_token;
+    if (doc.paymentInfo.short.card_token)
+      delete ret.paymentInfo.short.card_token;
+    if (doc.paymentInfo.full.card_token) delete ret.paymentInfo.full.card_token;
     delete ret.password;
     delete ret.__v;
     return ret;

@@ -145,6 +145,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
  * @property {string} req.body.password (it's salted and hashed)
  * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
+ * @property {string=} req.body.type ('designer' by default)
  */
 async function create(
   req: session$Request,
@@ -153,84 +154,87 @@ async function create(
 ) {
   const { body } = req;
 
-  User.findOne({
+  const existingUser = await User.findOne({
     $or: [
       // mongoose changes the email to lowercase
       { emailAddress: body.emailAddress.toLowerCase() },
       { username: body.username },
     ],
-  })
-    .then((existingUser: UserDoc) => {
-      if (existingUser) {
-        const APIerr = new APIError(
-          'An account with the same email address or username exists.',
-          httpStatus.BAD_REQUEST
-        );
-        throw APIerr;
+  });
+  try {
+    if (existingUser) {
+      const APIerr = new APIError(
+        'An account with the same email address or username exists.',
+        httpStatus.BAD_REQUEST
+      );
+      throw APIerr;
+    }
+
+    const user = new User({
+      username: body.username,
+      emailAddress: body.emailAddress,
+      password: body.password,
+      types: [body.type],
+    });
+
+    if (body.mobileNumber) {
+      user.mobileNumber = body.mobileNumber
+        .replace('+380', '0')
+        .replace(/^380/, '0');
+    }
+    if (body.platform) user.platform = body.platform;
+    if (body.pushToken) user.pushToken = body.pushToken;
+
+    if (body.emailAddress.startsWith('onovaapp')) {
+      user.accountStatus = 'verified';
+    }
+
+    const savedUser = await user.save();
+    // if we should Auto Follow certain users by default
+    if (config.DEFAULT_FOLLOW) {
+      followDefaultUsers(savedUser)
+        .then(num => {
+          if (typeof num == 'number') debug(`followed ${num} default users`);
+        })
+        .catch(e => console.error(e));
+    }
+
+    if (config.env !== 'production') {
+      debug('skipping pusher createUser()');
+    } else {
+      try {
+        await ckInst.createUser({
+          id: savedUser._id,
+          name: savedUser.username,
+        });
+        console.log('chatkit user created');
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
+    }
 
-      const user = new User({
-        username: body.username,
-        emailAddress: body.emailAddress,
-        password: body.password,
-      });
-
-      if (body.mobileNumber)
-        user.mobileNumber = body.mobileNumber.replace('+380', '0');
-      if (body.platform) user.platform = body.platform;
-      if (body.pushToken) user.pushToken = body.pushToken;
-
-      if (body.emailAddress.startsWith('onovaapp')) {
-        user.accountStatus = 'verified';
-      }
-
-      return user.save();
-    })
-    .then(async (savedUser: UserDoc) => {
-      // if we should Auto Follow certain users by default
-      if (config.DEFAULT_FOLLOW) {
-        followDefaultUsers(savedUser)
-          .then(num => {
-            if (typeof num == 'number') debug(`followed ${num} default users`);
-          })
-          .catch(e => console.error(e));
-      }
-
-      if (config.env !== 'production') {
-        debug('skipping pusher createUser()');
-      } else {
-        try {
-          await ckInst.createUser({
-            id: savedUser._id,
-            name: savedUser.username,
-          });
-          console.log('chatkit user created');
-        } catch (err) {
-          console.error(err);
-          throw err;
-        }
-      }
-
-      // do not send verification email
-      if (body.emailAddress.startsWith('onovaapp')) return savedUser;
-
+    // do not send verification email
+    if (!body.emailAddress.startsWith('onovaapp'))
       await mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
-      return savedUser;
-    })
-    .then(savedUser => {
-      const payload = _prepareUserJson(savedUser);
-      return res.status(httpStatus.CREATED).json({
-        data: payload,
-        token: `JWT ${authCtrl.generateToken(payload)}`,
-      });
-    })
-    .catch(e => next(e));
+
+    const payload = _prepareUserJson(savedUser);
+    return res.status(httpStatus.CREATED).json({
+      data: payload,
+      token: `JWT ${authCtrl.generateToken(payload)}`,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 /**
  * A new user follows the number of users
  */
-function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
+function followDefaultUsers(
+  newUser: UserDoc,
+  sellerTypes = ['designer']
+): Promise<null | Error | number> {
   return (
     DefaultFollow.find({}, { user: 1 })
       // .then(users => {
@@ -241,17 +245,19 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
       //   }
       //   return users;
       // })
-      .then(async follows => {
-        const promises = follows.map(f =>
-          followController.internalFollow(newUser, f.user)
-        );
-        try {
-          await Promise.all(promises);
-        } catch (err) {
-          console.error(err);
-        }
-        return follows.length;
-      })
+      .then(follows => follows.map(f => f.user))
+      .then(follows =>
+        User.find({
+          _id: { $in: follows },
+          types: { $in: sellerTypes },
+        })
+      )
+      .then(users =>
+        Promise.all(
+          users.map(u => followController.internalFollow(newUser, u._id))
+        )
+      )
+      .then(follows => follows.length)
   );
 }
 
@@ -262,19 +268,22 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
+ * @property {string=} req.body.accessToken - Facebook (TODO: remove)
  * @property {string=} req.body.bio
  * @property {string=} req.body.displayName
  * @property {string=} req.body.emailAddress
+ * @property {string=} req.body.facebook
+ * @property {boolean=} req.body.increaseShare
  * @property {string=} req.body.mobileNumber
  * @property {string=} req.body.password
+ * @property {string=} req.body.paymentInfoPayload
  * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
- * @property {string=} req.body.facebook
- * @property {string=} req.body.tokens
- * @property {string=} req.body.accessToken
- * @property {string=} req.body.username
- * @property {string=} req.body.paymentInfoPayload
  * @property {any=} req.body.shippingAddress
+ * @property {string=} req.body.tokens
+ * @property {string=} req.body.username
+ * @property {*} req.file - Express file parameter - to upload a new profilePic
+ * @property {File} req.user
  */
 function update(
   req: session$Request,
@@ -283,10 +292,28 @@ function update(
 ) {
   const { body, user } = req;
 
-  if (typeof body.bio === 'string') user.bio = body.bio;
+  if (typeof body.bio === 'string') {
+    const socials = getSocials(body.bio);
+    if (socials) {
+      const foundSocials = Object.keys(socials);
+      for (let s in socials) {
+        user.set(`socials.${s}`, socials[s]);
+      }
+      const notFound = ['facebook', 'instagram'].filter(
+        s => !foundSocials.includes(s)
+      );
+      if (user.socials) notFound.forEach(s => user.socials.delete(s));
+    } else {
+      user.socials = undefined;
+    }
+    user.bio = body.bio;
+  }
+
   if (typeof body.displayName === 'string') user.displayName = body.displayName;
   if (typeof body.mobileNumber === 'string')
-    user.mobileNumber = body.mobileNumber.replace('+380', '0');
+    user.mobileNumber = body.mobileNumber
+      .replace('+380', '0')
+      .replace(/^380/, '0');
   // update password (automatically hashed on save() hook)
   if (body.password) user.password = body.password;
   if (body.platform) user.platform = body.platform;
@@ -304,10 +331,13 @@ function update(
   if (body.paymentInfoPayload) {
     const bytes = bs58.decode(body.paymentInfoPayload);
     const payload = JSON.parse(bytes.toString());
-    user.paymentInfo.first_four = payload.panMasked.slice(0, 4);
-    user.paymentInfo.last_four = payload.panMasked.slice(-4);
-    user.paymentInfo.card_token = payload.id;
-    user.paymentInfo.method = 'uapay';
+    let key = 'short';
+    if (!body.short) key = 'full';
+    user.paymentInfo[key] = {
+      first_four: payload.panMasked.slice(0, 4),
+      last_four: payload.panMasked.slice(-4),
+      card_token: payload.id,
+    };
   }
 
   let Promises = [];
@@ -319,22 +349,18 @@ function update(
       // mongoose changes the email to lowercase
       user.emailAddress = emailAddress;
       Promises.push(
-        new Promise((resolve, reject) =>
-          User.findOne({ emailAddress }).then(existingUser => {
-            if (existingUser) {
-              const APIerr = new APIError(
-                'An account with the same email address exists.',
-                httpStatus.BAD_REQUEST
-              );
-              return reject(APIerr);
-            }
-            mailCtrl.resendVerificationEmail(user.emailAddress, user);
-            user.accountStatus = 'notverified';
-            debug(`account ${user._id} is awaiting for email verification`);
-            // save user with new email address only if there is no duplicate key error
-            resolve();
-          })
-        )
+        User.findOne({ emailAddress }).then(existingUser => {
+          if (existingUser)
+            throw new APIError(
+              'An account with the same email address exists.',
+              httpStatus.BAD_REQUEST
+            );
+
+          mailCtrl.resendVerificationEmail(user.emailAddress, user);
+          user.accountStatus = 'notverified';
+          debug(`account ${user._id} is awaiting for email verification`);
+          // save user with new email address only if there is no duplicate key error
+        })
       );
     }
   }
@@ -343,53 +369,34 @@ function update(
   if (body.username && user.username != body.username) {
     user.username = body.username;
     Promises.push(
-      new Promise((resolve, reject) => {
-        User.findOne({ username: body.username }).then(existingUser => {
-          if (existingUser) {
-            const APIerr = new APIError(
-              'An account with the same username exists.',
-              httpStatus.BAD_REQUEST
-            );
-            return reject(APIerr);
-          }
-          resolve();
-        });
+      User.findOne({ username: body.username }).then(existingUser => {
+        if (existingUser)
+          throw new APIError(
+            'An account with the same username exists.',
+            httpStatus.BAD_REQUEST
+          );
       })
     );
   }
 
   if (req.file) {
     Promises.push(
-      new Promise((resolve, reject) => {
-        photos
-          .uploadProfilePic(req.user, req.file)
-          .then(async cloudStoragePublicUrl => {
-            const doc = await User.findByIdAndUpdate(req.user._id, {
-              $set: { profilePic: cloudStoragePublicUrl },
+      photos
+        .uploadProfilePic(user, req.file)
+        .then(cloudStoragePublicUrl => {
+          user.profilePic = cloudStoragePublicUrl;
+          debug('profilePic updated for user:', user._id);
+          if (config.env === 'production') {
+            return ckInst.updateUser({
+              id: user._id,
+              avatarURL: cloudStoragePublicUrl,
             });
-            if (doc) {
-              debug('profilePic updated for user:', doc._id);
-              if (config.env === 'production') {
-                try {
-                  await ckInst.updateUser({
-                    id: doc._id,
-                    avatarURL: cloudStoragePublicUrl,
-                  });
-                  console.log('chatkit user updated');
-                } catch (err) {
-                  console.error(err);
-                  return reject(err);
-                }
-              }
-              return resolve(doc);
-            }
-            reject('error updating profilePic');
-          })
-          .catch(err => {
-            debug('Error saving user profilePic', err);
-            reject(err);
-          });
-      })
+          }
+        })
+        .catch(err => {
+          console.error('Error saving user profilePic', err);
+          throw err;
+        })
     );
   }
 
@@ -404,6 +411,35 @@ function escapeRegex(text) {
   return text.replace(/[^A-Za-z0-9_]/g, '\\$&');
 }
 
+// 'gruber revised' http://rodneyrehm.de/t/url-regex.html
+const uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/gi;
+
+function getSocials(bio: string) {
+  if (!uri_pattern.test(bio)) return null;
+
+  let socials = {};
+  if (bio.includes('facebook.com')) {
+    let facebook = bio.match(uri_pattern).find(uri => uri.includes('facebook'));
+    if (!/^https?:\/\//i.test(facebook)) {
+      facebook = `https://${facebook}`;
+    }
+    socials = {
+      facebook,
+    };
+  }
+  if (bio.includes('instagram.com')) {
+    let instagram = bio
+      .match(uri_pattern)
+      .find(uri => uri.includes('instagram'));
+    if (!/^https?:\/\//i.test(instagram)) instagram = `https://${instagram}`;
+    socials = {
+      ...socials,
+      instagram,
+    };
+  }
+  return socials;
+}
+
 /**
  * Get list of users.
  *
@@ -413,7 +449,7 @@ function escapeRegex(text) {
  * @property {*} req.query - Express query parameters
  * @property {number} req.query.limit Limit number of users to be returned.
  * @property {string} req.query.username
- * @property {string} req.query.u
+ * @property {string} req.query.u regex username search
  */
 function list(
   req: session$Request,
@@ -426,9 +462,7 @@ function list(
     // flow-disable-next-line
     return User.findOne({ username })
       .then((user: UserDoc) => {
-        if (!user) {
-          return Promise.reject();
-        }
+        if (!user) return Promise.reject();
         return user;
       })
       .then(user => res.json(_prepareUserJson(user)))
@@ -438,27 +472,31 @@ function list(
       });
   }
 
-  if (!u) {
-    // use static method from UserSchema
-    // flow-disable-next-line
-    return User.list({ limit })
-      .then(users => res.json(users.map(_prepareUserJson)))
-      .catch(e => next(e));
+  if (u) {
+    const regex = new RegExp(escapeRegex(u), 'gi');
+    User.find({
+      username: regex,
+      accountStatus: { $nin: ['deleted', 'banned'] },
+    })
+      .select('_id accountStatus displayName username profilePic bio')
+      .then(users => {
+        if (!users) {
+          return res.json({});
+        }
+        return res.json(users);
+      })
+      .catch(e => {
+        const APIerr = new APIError(e, httpStatus.INTERNAL_SERVER_ERROR);
+        next(APIerr);
+      });
+    return;
   }
 
-  const regex = new RegExp(escapeRegex(u), 'gi');
-  User.find({ username: regex, accountStatus: { $nin: ['deleted', 'banned'] } })
-    .select('_id accountStatus displayName username profilePic bio')
-    .then(users => {
-      if (!users) {
-        return res.json({});
-      }
-      return res.json(users);
-    })
-    .catch(e => {
-      const APIerr = new APIError(e, httpStatus.INTERNAL_SERVER_ERROR);
-      next(APIerr);
-    });
+  // use static method from UserSchema
+  // flow-disable-next-line
+  return User.list({ limit })
+    .then(users => res.json(users.map(_prepareUserJson)))
+    .catch(e => next(e));
 }
 
 /**
@@ -503,7 +541,9 @@ function _prepareUserJson(user: UserDoc): Object {
     ratingsTotal: user.ratingsTotal,
     reviewsCount: user.reviewsCount,
     sharedCount: user.sharedCount,
+    socials: user.socials,
     tokens: user.tokens,
+    types: user.types,
     username: user.username,
   };
 }

@@ -161,13 +161,11 @@ describe('## Comment APIs', () => {
   });
 
   describe('# POST /api/products/:uuid/comment', () => {
-    beforeAll(done => {
-      Product.collection.updateMany({}, { $unset: { comments: '' } }, () => {
-        done();
-      });
-    });
+    beforeAll(() =>
+      Product.collection.updateMany({}, { $unset: { comments: '' } })
+    );
 
-    it('should add a comment to a product', async () => {
+    it('should add a comment to a product', () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', anotherJwtToken)
@@ -182,7 +180,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should add a comment to a product with a @mention', async () => {
+    it('should add a comment to a product with a @mention', () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', anotherJwtToken)
@@ -198,7 +196,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should add a comment to a product with a non existant user @mention', async () => {
+    it('should add a comment to a product with a non existant user @mention', () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', anotherJwtToken)
@@ -214,7 +212,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should add a comment to a product with a 3 @mention s', async () => {
+    it('should add a comment to a product with a 3 @mention s', () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', anotherJwtToken)
@@ -233,7 +231,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should add a comment to a product with a 2 equal @mention s', async () => {
+    it('should add a comment to a product with a 2 equal @mention s', () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', anotherJwtToken)
@@ -250,7 +248,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should add a comment to a product with a 2 equal non-existant @mention s', async () => {
+    it('should add a comment to a product with a 2 equal non-existant @mention s', () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', anotherJwtToken)
@@ -268,7 +266,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should not add a comment to a deleted product', async () => {
+    it('should not add a comment to a deleted product', () => {
       return request(app)
         .post(`/api/products/${notForSaleProductUuid}/comment`)
         .set('Authorization', anotherJwtToken)
@@ -279,7 +277,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should not add a comment to a invalid product', async () => {
+    it('should not add a comment to a invalid product', () => {
       return request(app)
         .post(`/api/products/1234/comment`)
         .set('Authorization', anotherJwtToken)
@@ -290,7 +288,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should not add a comment without a verified account', async () => {
+    it('should not add a comment without a verified account', () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', thirdJWTtoken)
@@ -320,7 +318,7 @@ describe('## Comment APIs', () => {
       commentIdFirst = data.comment._id;
     });
 
-    it('should get the first product`s comments', async () => {
+    it('should get the first product`s comments', () => {
       return request(app)
         .get(`/api/products/${productUuid}/comment`)
         .set('Authorization', jwtToken)
@@ -341,7 +339,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should not get comments if i am not authenticated', async () => {
+    it('should not get comments if i am not authenticated', () => {
       return request(app)
         .get(`/api/products/${productUuid}/comment`)
         .expect(httpStatus.UNAUTHORIZED)
@@ -381,7 +379,7 @@ describe('## Comment APIs', () => {
       commentIdReply = data4.comment._id;
     });
 
-    it('should delete the first product`s comment', async () => {
+    it('should delete the first product`s comment', () => {
       return request(app)
         .delete(`/api/products/${productUuid}/comment/${commentIdSecond}`)
         .set('Authorization', anotherJwtToken)
@@ -394,7 +392,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should not delete a comment that doesn`t exist', async () => {
+    it('should not delete a comment that doesn`t exist', () => {
       return request(app)
         .delete(`/api/products/${productUuid}/comment/${commentIdSecond}`)
         .set('Authorization', anotherJwtToken)
@@ -404,14 +402,14 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should not get comments if i am not authenticated', async () => {
+    it('should not get comments if i am not authenticated', () => {
       return request(app)
         .get(`/api/products/${productUuid}/comment`)
         .expect(httpStatus.UNAUTHORIZED)
         .then();
     });
 
-    it('should not delete the comment of another user', async () => {
+    it('should not delete the comment of another user', () => {
       return request(app)
         .delete(`/api/products/${anotherProductUuid}/comment/${commentIdThird}`)
         .set('Authorization', anotherJwtToken)
@@ -423,7 +421,7 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should delete a product`s seller`s reply comment', async () => {
+    it('should delete a product`s seller`s reply comment', () => {
       return request(app)
         .delete(`/api/products/${anotherProductUuid}/comment/${commentIdReply}`)
         .set('Authorization', anotherJwtToken)
@@ -458,7 +456,7 @@ describe('## Comment APIs', () => {
 
   //   let lastId;
 
-  //   it('should get feed with pagination', async () => {
+  //   it('should get feed with pagination', () => {
   //     return request(app)
   //       .get('/api/feed/flat')
   //       .set('Authorization', anotherJwtToken)
@@ -470,7 +468,7 @@ describe('## Comment APIs', () => {
   //       });
   //   });
 
-  //   it('should get feed with load more', async () => {
+  //   it('should get feed with load more', () => {
   //     return request(app)
   //       .get(`/api/feed/flat?lastId=${lastId}`)
   //       .set('Authorization', anotherJwtToken)

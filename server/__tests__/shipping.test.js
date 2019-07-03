@@ -62,7 +62,7 @@ describe('## Shipping', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
-          expect(body.data).toHaveLength(1173);
+          expect(body.data.length).toBeGreaterThan(1100);
         });
     });
   });
@@ -74,13 +74,13 @@ describe('## Shipping', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
-          expect(body.data).toHaveLength(261);
+          expect(body.data.length).toBeGreaterThan(250);
         });
     });
 
     it('should NOT get the list of departments for an invalid city', () => {
       return request(app)
-        .get(`/api/shipping/departments/8d5a980d-391c-11dd-90d9-001a92567699`)
+        .get('/api/shipping/departments/8d5a980d-391c-11dd-90d9-001a92567699')
         .expect(httpStatus.SERVICE_UNAVAILABLE)
         .then(res =>
           expect(res.body.message).toContain(
@@ -91,7 +91,7 @@ describe('## Shipping', () => {
 
     it('should NOT get the list of departments for an invalid city uuid', () => {
       return request(app)
-        .get(`/api/shipping/departments/8d5a980d-391c-11dd-90d9`)
+        .get('/api/shipping/departments/8d5a980d-391c-11dd-90d9')
         .expect(httpStatus.BAD_REQUEST)
         .then(res =>
           expect(res.body.message).toBe('"city" must be a valid GUID')

@@ -110,22 +110,19 @@ describe('## Notification APIs', () => {
         userId = user._id;
         firstJwtToken = jwtToken;
       })
-      .then(() => {
-        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
-      })
-      .then(() => {
-        return createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
+      .then(() =>
+        createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
           anotherUserId = user._id;
           anotherJwtToken = jwtToken;
-        });
-      })
+        })
+      )
       .then(async () => {
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
         productUuid = p1.uuid;
         productId = p1._id;
-      })
-      .then(async () => {
+
         const p2 = await createProduct(anotherProduct, anotherJwtToken);
         expect(p2.description).toBe(anotherProduct.description);
         anotherProductUuid = p2.uuid;
@@ -154,7 +151,7 @@ describe('## Notification APIs', () => {
       numberOfNotifForFirstUser += 40;
     });
 
-    it('should get anotherUser`s notifications', async () => {
+    it('should get anotherUser`s notifications', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', anotherJwtToken)
@@ -169,7 +166,7 @@ describe('## Notification APIs', () => {
         });
     });
 
-    it('should get my notifications', async () => {
+    it('should get my notifications', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', firstJwtToken)
@@ -183,7 +180,7 @@ describe('## Notification APIs', () => {
         });
     });
 
-    it('should get my first 20 notifications', async () => {
+    it('should get my first 20 notifications', () => {
       return request(app)
         .get('/api/users/notifications?limit=20')
         .set('Authorization', firstJwtToken)
@@ -197,7 +194,7 @@ describe('## Notification APIs', () => {
         });
     });
 
-    it('should load more notifications', async () => {
+    it('should load more notifications', () => {
       return request(app)
         .get(`/api/users/notifications?lastId=${lastNotifId}`)
         .set('Authorization', firstJwtToken)
@@ -209,24 +206,24 @@ describe('## Notification APIs', () => {
         });
     });
 
-    it('should not load more notifications with a missing lastId', async () => {
+    it('should not load more notifications with a missing lastId', () => {
       return request(app)
         .get(`/api/users/notifications?lastId=5ff8ef0e9147a8bd32ea35f6`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.NOT_FOUND)
-        .then(res => {
-          expect(res.body.message).toContain('Notification not found');
-        });
+        .then(res =>
+          expect(res.body.message).toContain('Notification not found')
+        );
     });
 
-    it('should not get notifications without authorization', async () => {
+    it('should not get notifications without authorization', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', 'asdf')
         .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it('should not create a new notification when a comment is inserted by the seller', async () => {
+    it('should not create a new notification when a comment is inserted by the seller', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', anotherJwtToken)
@@ -265,7 +262,7 @@ describe('## Notification APIs', () => {
         });
     });
 
-    it('should not get the deleted comment notification', async () => {
+    it('should not get the deleted comment notification', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', anotherJwtToken)
@@ -301,7 +298,7 @@ describe('## Notification APIs', () => {
       numberOfNotifForAnotherUser++;
     });
 
-    it('should create a notification for the person being followed', async () => {
+    it('should create a notification for the person being followed', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', anotherJwtToken)
@@ -369,7 +366,7 @@ describe('## Notification APIs', () => {
           });
       });
 
-      it('a cancellation order notification should have been created to the buyer', async () => {
+      it('a cancellation order notification should have been created to the buyer', () => {
         return request(app)
           .get('/api/users/notifications')
           .set('Authorization', anotherJwtToken)
@@ -435,7 +432,7 @@ describe('## Notification APIs', () => {
                 expect(data.targetUser.toString()).toBe(userId);
                 expect(data.triggeredBy.toString()).toBe(orderId);
                 expect(data.triggeredType).toBe('Order');
-                expect(data.message).toContain(i18n.orderPaid);
+                expect(data.message).toContain(i18n.orderPaidForSeller);
                 expect(typeof data.random).toBe('string');
                 done();
               });
@@ -451,7 +448,7 @@ describe('## Notification APIs', () => {
           .then(res => {
             const { data } = res.body;
             expect(data[0].triggeredBy.id).toBe(orderId);
-            expect(data[0].notifI18n).toContain(i18n.orderPaid);
+            expect(data[0].notifI18n).toContain(i18n.orderPaidForSeller);
             expect(data).toHaveLength(numberOfNotifForFirstUser);
           });
       });
@@ -484,7 +481,7 @@ describe('## Notification APIs', () => {
               const notifs = data.filter(
                 n => n.notifI18n !== i18n.orderPaidReminder
               );
-              expect(notifs[0].notifI18n).toContain(i18n.orderPaid);
+              expect(notifs[0].notifI18n).toContain(i18n.orderPaidForSeller);
               expect(notifs).toHaveLength(numberOfNotifForFirstUser);
               done();
             });
@@ -553,7 +550,7 @@ describe('## Notification APIs', () => {
       }, 10);
     });
 
-    it('should get my @anotheruser`s notifications', async () => {
+    it('should get my @anotheruser`s notifications', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', anotherJwtToken)
@@ -567,7 +564,7 @@ describe('## Notification APIs', () => {
         });
     });
 
-    it('should get my @firstperson`s notifications excluding mine', async () => {
+    it('should get my @firstperson`s notifications excluding mine', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', firstJwtToken)

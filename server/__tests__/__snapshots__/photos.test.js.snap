@@ -11,6 +11,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;

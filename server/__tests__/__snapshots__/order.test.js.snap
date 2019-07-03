@@ -11,6 +11,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -26,6 +27,7 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
   "username",
 ]
 `;
@@ -41,6 +43,23 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "types",
+  "username",
+]
+`;
+
+exports[` 4`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
   "username",
 ]
 `;
@@ -50,6 +69,7 @@ Array [
   "_id",
   "accountStatus",
   "shippingAddress",
+  "types",
   "username",
 ]
 `;
@@ -60,6 +80,7 @@ Array [
   "accountStatus",
   "profilePic",
   "shippingAddress",
+  "types",
   "username",
 ]
 `;
@@ -118,25 +139,6 @@ Array [
   "priceOfItem",
   "product",
   "reason",
-  "seller",
-  "status",
-  "total",
-  "transactionFee",
-  "updatedAt",
-]
-`;
-
-exports[`## Order APIs # PUT /api/orders should change the paymentMethod to \`paypal\` 1`] = `
-Array [
-  "buyer",
-  "createdAt",
-  "currency",
-  "datePending",
-  "id",
-  "onovaFee",
-  "paymentMethod",
-  "priceOfItem",
-  "product",
   "seller",
   "status",
   "total",

@@ -18,7 +18,15 @@ import UserWeb, { UserWebDoc } from './userWeb.model';
 import Verification, { VerificationDoc } from './verification.model';
 
 const userPopulateFields =
-  'username accountStatus profilePic displayName shippingAddress';
+  'username accountStatus profilePic displayName shippingAddress types';
+const userPopulateFieldsObj = {
+  username: 0,
+  accountStatus: 0,
+  profilePic: 0,
+  displayName: 0,
+  shippingAddress: 0,
+  types: 0,
+};
 
 const productPopulateFields = 'currency photoURIs price status uuid';
 
@@ -68,6 +76,7 @@ export {
   UserWeb,
   UserWebDoc,
   userPopulateFields,
+  userPopulateFieldsObj,
   Verification,
   VerificationDoc,
 };

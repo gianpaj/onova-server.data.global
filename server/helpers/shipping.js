@@ -6,6 +6,8 @@ const NovaPoshta_URL = 'https://api.novaposhta.ua/v2.0/json';
 export const NP = {
   // 1
   generated: 'np-generated',
+  // 2
+  cancelled: 'np-deleted',
   // 4, 6 or 101
   shipped: 'np-shipped',
   // 7 or 8
@@ -21,6 +23,7 @@ export const NP = {
 export default class Shipping {
   static async getShippingStatus(trackingNumber: string): Promise<any> {
     return new Promise((resolve, reject) => {
+      let result;
       axios
         .post(`${NovaPoshta_URL}/documentsTracking/`, {
           modelName: 'TrackingDocument',
@@ -32,30 +35,42 @@ export default class Shipping {
         .then(({ data }) => {
           if (!data.success) return reject(data);
 
-          const result = data.data[0];
+          result = data.data[0];
 
-          // Number not found
-          if (result.StatusCode === '3') {
-            return resolve(false);
+          if (
+            // Number not found
+            result.StatusCode === '3' ||
+            // Deleted
+            result.StatusCode === '2'
+          ) {
+            return resolve({ status: false });
           }
 
-          // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
-          const trackingNumberDate = new Date(
-            result.ScheduledDeliveryDate.replace(
-              /(\d{2})-(\d{2})-(\d{4})/,
-              '$2/$1/$3'
-            )
-          );
+          try {
+            // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
+            const trackingNumberDate = new Date(
+              result.ScheduledDeliveryDate.replace(
+                /(\d{2})-(\d{2})-(\d{4})/,
+                '$2/$1/$3'
+              )
+            );
 
-          return resolve({
-            raw: result,
-            scheduledDeliveryDate: trackingNumberDate,
-            status: this.getInternalStatus(result.StatusCode),
-            statusCode: result.StatusCode,
-            statusMessage: result.Status,
-          });
+            return resolve({
+              raw: result,
+              scheduledDeliveryDate: trackingNumberDate,
+              status: this.getInternalStatus(result.StatusCode),
+              statusCode: result.StatusCode,
+              statusMessage: result.Status,
+            });
+          } catch (error) {
+            console.error(result);
+            reject(error);
+          }
         })
-        .catch(error => reject(error));
+        .catch(error => {
+          console.error(result);
+          reject(error);
+        });
     });
   }
 
@@ -497,6 +512,81 @@ export const dealConfirmationResp = {
   },
 };
 
+export const sellerBadPhoneNum = {
+  data: {
+    id: '9F17M6E',
+    externalId: null,
+    sellerUserId: null,
+    buyerUserId: null,
+    cartId: 480,
+    productTitle: '2000 UAH price item',
+    productPrice: 200000,
+    productWeight: 3000,
+    handlerPrice: 4100,
+    status: 'NEW',
+    reasonStep: null,
+    buyerFirstName: 'Олександр',
+    buyerLastName: 'Костінський',
+    buyerPatronymic: '',
+    buyerPhone: '380977414301',
+    buyerEmail: 'gianpa+test@gmail.com',
+    sellerFirstName: 'жанфранко',
+    sellerLastName: 'Палумбо',
+    sellerPatronymic: '',
+    sellerPhone: '380977414301',
+    sellerEmail: 'gianpa+test3@gmail.com',
+    lg: 'uk',
+    createdAt: '2018-12-11T15:15:20.000Z',
+    adId: null,
+    handler: {
+      status: 'NEW',
+      statusCode: null,
+      statusText: null,
+      waybillNumber: null,
+      senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      senderCityName: null,
+      senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      senderOfficeName: null,
+      recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      recipientCityName: null,
+      recipientOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      recipientOfficeName: null,
+      type: 'NovaPoshta',
+    },
+    productPayment: {
+      id: 831,
+      amount: 189524,
+      commissionAmount: 10476,
+      status: 'REJECTED',
+      statusCode: 'REJECTED',
+      statusText:
+        '{"error":{"fields":{"handler":{"senderPhone":"WRONG_PHONE"},"sellerPhone":"WRONG_PHONE"},"code":"FORMAT_ERROR"}}',
+      type: 'P2P_ONOVA',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/receipts/774aa739-0f9c-48d4-8e04-06d0e2096326.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+    handlerPayment: {
+      id: 830,
+      amount: 4100,
+      commissionAmount: 0,
+      status: 'REJECTED',
+      statusCode: 'REJECTED',
+      // statusText:
+      type: 'ECOM',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/47248767-47d8-4f8e-b66a-a1e33c3d086e.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+  },
+};
+
 export const buyerPaymentCVCFailure = {
   data: {
     id: '4Y3KDER',
@@ -878,6 +968,50 @@ export const novaPoshta = {
     warnings: [
       {
         ID_20400106547369:
+          'Please enter a valid phone number from the express invoice to show full information',
+      },
+    ],
+    info: [],
+    messageCodes: [],
+    errorCodes: [],
+    warningCodes: [],
+    infoCodes: [],
+  },
+
+  // 2- Cancelled
+  cancelled: {
+    success: true,
+    data: [
+      {
+        Number: '20400127740025',
+        CounterpartySenderDescription: '',
+        ActualDeliveryDate: '',
+        Status: 'Видалено',
+        StatusCode: '2',
+        RefEW: '00000000-0000-0000-0000-000000000000',
+        RecipientFullName: '',
+        CargoDescriptionString: '',
+        RedeliverySum: '',
+        RedeliveryPayer: '',
+        AfterpaymentOnGoodsCost: '',
+        LastCreatedOnTheBasisPayerType: '',
+        LastTransactionDateTimeGM: '',
+        CounterpartyRecipientDescription: '',
+        SenderAddress: '',
+        RecipientAddress: '',
+        AnnouncedPrice: '',
+        RedeliveryPaymentCardRef: '',
+        RedeliveryPaymentCardDescription: '',
+        CreatedOnTheBasis: '',
+        DatePayedKeeping: '',
+        OnlineCreditStatusCode: '',
+        OnlineCreditStatus: '',
+      },
+    ],
+    errors: [],
+    warnings: [
+      {
+        ID_20400127740025:
           'Please enter a valid phone number from the express invoice to show full information',
       },
     ],

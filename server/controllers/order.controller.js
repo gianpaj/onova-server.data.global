@@ -37,11 +37,21 @@ const axiosConfig = {
   },
 };
 
-// TODO: move function to User model
-function useCanTransact(user) {
+function buyerCanTransact(user) {
   const { paymentInfo, shippingAddress } = user;
   return (
-    paymentInfo.card_token &&
+    paymentInfo.full.card_token &&
+    shippingAddress.firstName &&
+    shippingAddress.lastName &&
+    shippingAddress.city &&
+    shippingAddress.departmentNovaposhta
+  );
+}
+
+function sellerCanTransact(user) {
+  const { paymentInfo, shippingAddress } = user;
+  return (
+    (paymentInfo.short.card_token || paymentInfo.full.card_token) &&
     shippingAddress.firstName &&
     shippingAddress.lastName &&
     shippingAddress.city &&
@@ -55,8 +65,9 @@ declare class express$Request extends express$Request {
 }
 
 export const i18n = {
-  // push notifications
-  orderPaid: 'Вітаємо, підтвердіть нове замовлення!',
+  orderPaidForBuyer:
+    'Ваше замовлення зареєстровано. Продавець має найближчим часом підтвердити його.',
+  orderPaidForSeller: 'Вітаємо, підтвердіть нове замовлення!',
   orderPaidReminder: 'Замовлення чекає вашого підтвердження',
   orderCancelled: 'Ваше замовлення скасовано, ваші кошти повернуться вам',
   orderNotConfirmedToBuyer: 'Шкода, продавець не підтвердив замовлення вчасно',
@@ -83,7 +94,8 @@ export const i18n = {
 };
 
 // export const i18n = {
-//   orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
+//   orderPaidForBuyer: 'Your order has been placed. The seller should confirm shortly',
+//   orderPaidForSeller: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
 //   orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
 //   orderCancelled: 'Your order has been cancelled. Your money will be returned', // 33 chars
 //   orderNotConfirmedToBuyer:
@@ -214,7 +226,7 @@ function create(
 
       const seller = await User.findById(product.seller._id);
 
-      if (!useCanTransact(seller))
+      if (!sellerCanTransact(seller))
         throw new Error('Seller is missing payment or shipping info');
 
       const blocking = await Block.countDocuments({
@@ -360,7 +372,7 @@ async function update(
       } catch (error) {
         if (error.response && error.response.data)
           console.error(error.response.data);
-        else console.log(error);
+        else console.error(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
@@ -376,7 +388,7 @@ async function update(
       // development
       // foundOrder.shippingStatus = NP.generated;
 
-      foundOrder.status = newStatus; // now status is 'confirmed'
+      foundOrder.status = 'confirmed';
       foundOrder.dateConfirmed = new Date();
 
       setTimeout(
@@ -418,7 +430,7 @@ async function update(
       try {
         await rejectPayment(foundOrder);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         const err = new APIError(
           'Error with payment provider',
           httpStatus.INTERNAL_SERVER_ERROR
@@ -437,11 +449,8 @@ async function update(
     : foundOrder.paymentMethod;
 
   if (newStatus) {
-    createOrderNotification(foundOrder, iAmTheSeller)
-      .then(() => {
-        debug('notification(s) created for order:', newStatus);
-      })
-      .catch(e => console.error(e));
+    await createOrderNotification(foundOrder, iAmTheSeller);
+    debug('notification(s) created for order:', newStatus);
   }
 
   return foundOrder.save().then(order => {
@@ -570,10 +579,10 @@ function createPaymentUAPAY(
       }
       const seller = await User.findById(order.seller);
 
-      if (!useCanTransact(seller))
+      if (!sellerCanTransact(seller))
         throw new Error('Seller is missing payment or shipping info');
 
-      if (!useCanTransact(buyer))
+      if (!buyerCanTransact(buyer))
         throw new Error('Buyer is missing payment or shipping info');
 
       const { shippingAddress: Bship } = buyer;
@@ -611,7 +620,9 @@ function createPaymentUAPAY(
           lg: 'uk',
           payment: {
             type: 'P2P_ONOVA',
-            cardToId: seller.paymentInfo.card_token,
+            cardToId:
+              seller.paymentInfo.short.card_token ||
+              seller.paymentInfo.full.card_token,
           },
           handler: {
             type: 'NovaPoshta',
@@ -643,7 +654,7 @@ function createPaymentUAPAY(
         {
           remoteIP,
           card: {
-            id: buyer.paymentInfo.card_token,
+            id: buyer.paymentInfo.full.card_token,
             securityCode: cvc,
           },
         },
@@ -656,10 +667,8 @@ function createPaymentUAPAY(
       let newDeal;
       do {
         retryNum++;
-        const {
-          data: { data },
-        } = await axios.get(`/deals/${deal.id}`, axiosConfig);
-        newDeal = data;
+        const body = await axios.get(`/deals/${deal.id}`, axiosConfig);
+        newDeal = body.data.data;
         // console.log(deal.id, newDeal.productPayment.waitingFor);
         await sleep(500);
       } while (
@@ -803,9 +812,9 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             order.trackingNumber = handler.waybillNumber;
             order.shippingProvider = 'novaposhta';
 
-            // the following is done by newStatus when seller send API request - update()
-            // order.dateConfirmed = new Date();
-            // order.status = 'confirmed';
+            // the 'dateConfirmed' and 'status' are updated in the setTimeout() by newStatus
+            // when seller send API request - update()
+            // Also, the order notification is done there
           }
           // check needed because payment status is still PAID if deal has been confirmed
           else if (data.status === 'PAID') {
@@ -815,9 +824,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             order.shippingUpdatedAt = new Date();
             // only update first time we check
             if (!order.datePaid) order.datePaid = new Date();
-            createOrderNotification(order)
-              .then(() => debug('notification(s) created for order:', 'paid'))
-              .catch(e => console.error(e));
+            await createOrderNotification(order);
+            debug('notification(s) created for order:', 'paid');
           }
           break;
         // The bank has not been able to make debit for technical reasons
@@ -885,7 +893,9 @@ export async function createOrderNotification(
     triggeredBy: order._id,
     triggeredType: 'Order',
   };
+  const isBuyerFromTheWeb = order.buyerType === 'UserWeb';
   switch (order.status) {
+    // to seller and buyer
     case 'paid':
       // check if notification already exists
       const notifExists = await Notification.findOne({
@@ -896,27 +906,41 @@ export async function createOrderNotification(
       });
       if (notifExists) return Promise.resolve();
       // seller needs to confirm order after receiving a notification and opening the 'confirmOrder' screen on mobile app
-      notif = {
+      const Promises = [];
+      const notifForSeller = {
         ...notif,
-        notifI18n: i18n.orderPaid,
+        notifI18n: i18n.orderPaidForSeller,
         targetUser: order.seller._id,
         sourceUser: order.buyer._id,
         actionMsg: i18n.openApp,
       };
+      Promises.push(notifCtrl.createNotification(notifForSeller));
+      if (isBuyerFromTheWeb) {
+        const notifForBuyerFromTheWeb = {
+          ...notif,
+          notifI18n: i18n.orderPaidForBuyer,
+          targetUser: order.buyer._id,
+          sourceUser: order.seller._id,
+          onlyEmail: true,
+        };
+        Promises.push(notifCtrl.createNotification(notifForBuyerFromTheWeb));
+      }
+      return Promise.all(Promises);
       break;
 
+    // to buyer
     case 'confirmed':
       // seller can ship item. we send a system message + email to buyer
       notif = {
         ...notif,
         notifI18n: i18n.orderConfirmed,
+        sourceUser: order.seller._id,
         targetUser: order.buyer._id,
-        onlyEmail: true,
       };
       break;
 
+    // to buyer
     case 'shipped':
-      // notify the buyer
       notif = {
         ...notif,
         notifI18n: i18n.orderShipped,
@@ -925,6 +949,7 @@ export async function createOrderNotification(
       };
       break;
 
+    // to buyer
     case 'cancelled':
       if (!iAmTheSeller) return Promise.resolve();
       // cancelled by seller. there is no notification if the buyer cancels
@@ -933,10 +958,13 @@ export async function createOrderNotification(
         notifI18n: i18n.orderCancelled,
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
-        actionMsg: order.reason,
+        actionMsg: `Причина скасування замовлення продавцем ${
+          order.seller.username
+        }: ${order.reason}`,
       };
       break;
 
+    // to buyer or seller
     case 'failed_by_seller':
       if (iAmTheSeller) {
         notif = {
@@ -956,6 +984,12 @@ export async function createOrderNotification(
       }
       break;
   }
+
+  // only try to send an order email update to a buyer UserWeb
+  if (isBuyerFromTheWeb && notif.targetUser == order.buyer._id) {
+    notif = { ...notif, onlyEmail: true };
+  }
+
   return notifCtrl.createNotification(notif);
 }
 

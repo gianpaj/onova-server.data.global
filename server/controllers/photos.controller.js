@@ -15,13 +15,14 @@ import photos from '../helpers/photos';
 const debug = require('debug')('server-data:index');
 const download = require('image-downloader');
 
-const MIN_WIDTH = 1440;
-const MIN_HEIGHT = 1440;
+const MIN_WIDTH = 1000;
+const MIN_HEIGHT = 1000;
 const MIN_WIDTH_AP = (MIN_WIDTH / 3) * 4;
 const MIN_HEIGHT_AP = (MIN_WIDTH / 3) * 4;
-const THUMB_WIDTH = 350;
-const THUMB_HEIGHT = 350;
+const THUMB_WIDTH = 280;
+const THUMB_HEIGHT = 280;
 const TEMP_PATH = '/tmp';
+const JPEG_COMPRESSION = { progressive: true, chromaSubsampling: '4:2:0' };
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
@@ -59,11 +60,11 @@ async function tempUploadProductImage(
     height = MIN_HEIGHT;
     width = MIN_HEIGHT;
   } else if (metadata.width < metadata.height) {
-    // if portrait pic, resize to width of 1440 and height of up to aspect ratio of 3:4
+    // if portrait pic, resize to width of 1000 and height of up to aspect ratio of 3:4
     height = Math.min(metadata.height, MIN_HEIGHT_AP);
     width = MIN_WIDTH;
   } else {
-    // if landscape pic, resize to height of 1440 and width of up to aspect ratio of 4:3
+    // if landscape pic, resize to height of 1000 and width of up to aspect ratio of 4:3
     height = MIN_HEIGHT;
     width = Math.min(metadata.width, MIN_WIDTH_AP);
   }
@@ -71,8 +72,13 @@ async function tempUploadProductImage(
   // save locally for test
   if (config.env === 'test') {
     pipeline
-      .resize(THUMB_WIDTH, THUMB_HEIGHT)
-      .crop(sharp.strategy.entropy)
+      .resize({
+        width: THUMB_WIDTH,
+        height: THUMB_HEIGHT,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
+      .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
       })
@@ -89,8 +95,13 @@ async function tempUploadProductImage(
       });
 
     pipeline
-      .resize(THUMB_WIDTH * 2, THUMB_HEIGHT * 2)
-      .crop(sharp.strategy.entropy)
+      .resize(THUMB_WIDTH, THUMB_HEIGHT, {
+        width: THUMB_WIDTH * 2,
+        height: THUMB_HEIGHT * 2,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
+      .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
       })
@@ -109,8 +120,13 @@ async function tempUploadProductImage(
     const tempFilePath = `${TEMP_PATH}/${uploadDate}.jpg`;
 
     pipeline
-      .resize(width, height)
-      .crop(sharp.strategy.entropy)
+      .resize({
+        width,
+        height,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
+      .jpeg(JPEG_COMPRESSION)
       .on('error', err => {
         console.log('Error cropping', err);
       })
@@ -124,55 +140,75 @@ async function tempUploadProductImage(
         console.error(err);
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
       });
-  } else {
-    // generate 2 square thumbnails
-    const gcsname = `${uploadDate}.jpg`;
-    photos.uploadThumbnailToGCS(
-      THUMB_WIDTH,
-      THUMB_HEIGHT,
-      file,
-      gcsname.replace('.jpg', '-thumb.jpg'),
-      tempBucket
-    );
-    photos.uploadThumbnailToGCS(
-      THUMB_WIDTH * 2,
-      THUMB_HEIGHT * 2,
-      file,
-      gcsname.replace('.jpg', '-thumb@2x.jpg'),
-      tempBucket
-    );
-
-    // upload temp image
-    const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
-    const gcsFile = tempBucket.file(gcsname);
-    const stream = gcsFile.createWriteStream({
-      metadata: {
-        contentType: file.mimetype,
-      },
-    });
-    stream.on('error', err => {
-      console.log('Error uploading image');
-      console.error(err);
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
-    });
-
-    sharp(file.buffer)
-      .resize(width, height)
-      .crop(sharp.strategy.entropy)
-      .pipe(stream);
-
-    stream.on('finish', () => {
-      gcsFile
-        .makePublic()
-        .then(() => {
-          debug('temp product image uploaded to:', cloudStoragePublicUrl);
-          res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
-        })
-        .catch(err => {
-          console.log('Error makePublic product image', err);
-        });
-    });
+    return;
   }
+  // generate 2 square thumbnails
+  const gcsname = `${uploadDate}.jpg`;
+  photos.uploadThumbnailToGCS(
+    THUMB_WIDTH,
+    THUMB_HEIGHT,
+    file,
+    gcsname.replace('.jpg', '-thumb.jpg'),
+    tempBucket
+  );
+  photos.uploadThumbnailToGCS(
+    THUMB_WIDTH * 2,
+    THUMB_HEIGHT * 2,
+    file,
+    gcsname.replace('.jpg', '-thumb@2x.jpg'),
+    tempBucket
+  );
+
+  // upload temp image
+  const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
+  const gcsFile = tempBucket.file(gcsname);
+  const stream = gcsFile.createWriteStream({
+    metadata: {
+      contentType: file.mimetype,
+    },
+  });
+  stream.on('error', err => {
+    console.log('Error uploading image');
+    console.error(err);
+    const APIerr = new APIError(
+      'Error uploading image',
+      httpStatus.INTERNAL_SERVER_ERROR
+    );
+    next(APIerr);
+  });
+
+  try {
+    sharp(file.buffer)
+      .resize({
+        width,
+        height,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
+      .jpeg(JPEG_COMPRESSION)
+      .pipe(stream);
+  } catch (error) {
+    console.log('Error resize, compression or cropping image');
+    console.error(error);
+    const APIerr = new APIError(
+      'Error uploading image',
+      httpStatus.INTERNAL_SERVER_ERROR
+    );
+    next(APIerr);
+    return;
+  }
+
+  stream.on('finish', () => {
+    gcsFile
+      .makePublic()
+      .then(() => {
+        debug('temp product image uploaded to:', cloudStoragePublicUrl);
+        res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
+      })
+      .catch(err => {
+        console.log('Error makePublic product image', err);
+      });
+  });
 }
 
 const storageForChatImages = gcsSharp({
@@ -183,8 +219,7 @@ const storageForChatImages = gcsSharp({
   acl: 'publicRead',
   filename: (req, file, cb) => {
     // TODO: name files with the room id
-    const uploadDate = Date.now();
-    cb(null, uploadDate.toString());
+    cb(null, Date.now().toString());
   },
   sizes: [
     {
@@ -199,7 +234,7 @@ const storageForChatImages = gcsSharp({
     },
   ],
   // crop: 16, // sharp.strategy.entropy
-  toFormat: 'jpeg',
+  toFormat: { type: 'jpeg', options: JPEG_COMPRESSION },
   withoutEnlargement: true,
 });
 const uploadChatImage = multer({ storage: storageForChatImages });

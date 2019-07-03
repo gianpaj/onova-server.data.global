@@ -13,8 +13,10 @@ import { UserDoc } from '../models';
 import APIError from './APIError';
 import config from '../config/config';
 
-// const THUMB_MAX_WIDTH = 350;
-// const THUMB_MAX_HEIGHT = 350;
+const PROFILE_PIC_WIDTH = 350;
+const PROFILE_PIC_HEIGHT = 350;
+const JPEG_COMPRESSION = { progressive: true, chromaSubsampling: '4:2:0' };
+const filetypes = /jpg|jpeg|png/;
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
@@ -29,21 +31,19 @@ const uploadMulter = multer({
     fileSize: 15 * 1024 * 1024, // 15 MB limit
   },
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpg|jpeg|png/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(
+    const validMimeType = filetypes.test(file.mimetype);
+    const validExtension = filetypes.test(
       path.extname(file.originalname).toLowerCase()
     );
 
-    if (mimetype && extname) {
-      return cb(null, true);
+    if (!validMimeType || !validExtension) {
+      const APIerr = new APIError(
+        `File upload only supports the following filetypes: ${filetypes.toString()}`,
+        httpStatus.BAD_REQUEST
+      );
+      return cb(APIerr);
     }
-
-    const APIerr = new APIError(
-      `File upload only supports the following filetypes: ${filetypes.toString()}`,
-      httpStatus.BAD_REQUEST
-    );
-    return cb(APIerr);
+    cb(null, true);
   },
 });
 
@@ -126,7 +126,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
 /**
  * Upload profile image to GCS
  */
-function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
+function uploadProfilePic(user: UserDoc, file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     if (config.env === 'test')
       return resolve(
@@ -134,10 +134,10 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
       );
 
     const gcspath = `users/${user._id.toString()}-${Date.now()}.jpg`;
-    const file = bucket.file(gcspath);
-    const stream = file.createWriteStream({
+    const gcsFile = bucket.file(gcspath);
+    const stream = gcsFile.createWriteStream({
       metadata: {
-        contentType: image.mimetype,
+        contentType: file.mimetype,
       },
     });
     stream.on('error', err => {
@@ -145,7 +145,7 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
       reject(err);
     });
     stream.on('finish', () => {
-      file
+      gcsFile
         .makePublic()
         .then(() => {
           const path = `${config.CLOUD_BUCKET}/${gcspath}`;
@@ -160,7 +160,15 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
           reject(err);
         });
     });
-    stream.end(image.buffer);
+    try {
+      sharp(file.buffer)
+        .resize(PROFILE_PIC_WIDTH, PROFILE_PIC_HEIGHT)
+        .jpeg(JPEG_COMPRESSION)
+        .pipe(stream);
+    } catch (error) {
+      console.error(object);
+      reject(new Error('Error uploading profilePic'));
+    }
   });
 }
 
@@ -227,8 +235,13 @@ function uploadThumbnailToGCS(
     });
 
     sharp(file.buffer)
-      .resize(width, height)
-      .crop(sharp.strategy.entropy)
+      .resize({
+        width,
+        height,
+        fit: sharp.fit.cover,
+        position: sharp.strategy.entropy,
+      })
+      .jpeg(JPEG_COMPRESSION)
       .pipe(thumbnailUploadStream);
 
     thumbnailUploadStream.on('finish', () => {

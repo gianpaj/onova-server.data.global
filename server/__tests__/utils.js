@@ -1,21 +1,25 @@
 // @flow
 
 import httpStatus from 'http-status';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import request from 'supertest';
 import { MongoClient } from 'mongodb';
 
 import {
   Block,
-  DiscardedUser,
-  Drop,
   CommentDoc,
   DefaultFollow,
+  DiscardedUser,
+  Drop,
   Follow,
   Notification,
   Order,
   OrderDoc,
   Product,
   ProductDoc,
+  Report,
+  Review,
   SuggestedUsers,
   Tag,
   User,
@@ -27,6 +31,15 @@ import {
 import app from '../index';
 import config from '../config/config';
 import { agenda } from '../config/express';
+import {
+  buyerNeedsToPay,
+  buyerPaidDeal,
+  dealConfirmationResp,
+  sellerConfirmedResponse,
+} from '../helpers/shipping';
+
+// This sets the mock adapter on the default instance
+export const mock = new MockAdapter(axios);
 
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
@@ -62,9 +75,9 @@ export const productFields = [
   'createdAt',
   'currency',
   'description',
-  'likes',
   'photoURIs',
   'price',
+  'quantity',
   'seller',
   'status',
   'tags',
@@ -83,9 +96,15 @@ const userShippingAddress = {
   },
 };
 
-const userPaymentInfo = {
+const sellerPaymentInfo = {
   paymentInfoPayload:
     '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
+  short: true,
+};
+
+const buyerPaymentInfo = {
+  ...sellerPaymentInfo,
+  short: false,
 };
 
 /**
@@ -93,7 +112,8 @@ const userPaymentInfo = {
  */
 // TODO: return a tuple so it's shorter to rename
 export function createUserAndLogin(
-  user: UserDoc
+  user: UserDoc,
+  paymentInfoAs: 'buyer' | 'seller' = 'buyer'
 ): Promise<{ user: UserDoc, jwtToken: string }> {
   return request(app)
     .post('/api/users')
@@ -105,32 +125,35 @@ export function createUserAndLogin(
       }
       expect(Object.keys(body.data).sort()).toMatchSnapshot();
 
+      const paymentInfo =
+        paymentInfoAs === 'buyer' ? buyerPaymentInfo : sellerPaymentInfo;
+
       await request(app)
         .put(`/api/users/${body.data._id}`)
         .set('Authorization', body.token)
-        .send({ ...userPaymentInfo, ...userShippingAddress })
+        .send({ ...paymentInfo, ...userShippingAddress })
         .expect(httpStatus.OK);
 
       return { resUser: body.data, jwtToken: body.token };
     })
-    .then(({ resUser, jwtToken }) => {
+    .then(({ resUser, jwtToken }) =>
       // flow-disable-next-line
-      return Verification.findOne({ user: resUser._id }).then(verDoc => {
+      Verification.findOne({ user: resUser._id }).then(verDoc => {
         if (!verDoc) {
           throw Error('no verification token found');
         }
         return { resetToken: verDoc.resetToken, resUser, jwtToken };
-      });
-    })
-    .then(({ resetToken, resUser, jwtToken }) => {
-      return request(app)
+      })
+    )
+    .then(({ resetToken, resUser, jwtToken }) =>
+      request(app)
         .get(`/api/auth/activate/${resetToken}`)
         .expect(httpStatus.OK)
         .then(({ text }) => {
           expect(text).toContain('Профіль активовано');
           return { user: resUser, jwtToken };
-        });
-    })
+        })
+    )
     .catch(e => {
       console.error(e);
       throw e;
@@ -153,10 +176,10 @@ export function createProduct(
     .set('Authorization', jwToken)
     .send(product)
     .expect(httpStatus.CREATED)
-    .then(res => {
-      if (!res.body.data) console.error(res.body);
-      expect(typeof res.body.data).toBe('object');
-      return res.body.data;
+    .then(({ body }) => {
+      if (!body.data) console.error(body);
+      expect(typeof body.data).toBe('object');
+      return body.data;
     });
 }
 
@@ -178,9 +201,9 @@ export function createComment(
     .set('Authorization', jwToken)
     .send(comment)
     .expect(httpStatus.CREATED)
-    .then(res => {
-      expect(res.body.data.uuid).toBe(productUuid);
-      return res.body.data;
+    .then(({ body }) => {
+      expect(body.data.uuid).toBe(productUuid);
+      return body.data;
     });
 }
 
@@ -242,6 +265,7 @@ export async function createManyProducts(num: number, jwtToken: string) {
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
     price: '999',
+    quantity: 1,
   };
 
   const res = [];
@@ -264,13 +288,15 @@ export async function createManyProducts(num: number, jwtToken: string) {
 export function beforeAllTests(done: () => void) {
   const collections = [
     Block.collection,
-    Drop.collection,
+    DefaultFollow.collection,
     DiscardedUser.collection,
+    Drop.collection,
     Follow.collection,
     Notification.collection,
-    DefaultFollow.collection,
     Order.collection,
     Product.collection,
+    Report.collection,
+    Review.collection,
     SuggestedUsers.collection,
     Tag.collection,
     User.collection,
@@ -297,10 +323,7 @@ export function clearJobs() {
     const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
       config.mongo.jobDb
     }`;
-    MongoClient.connect(
-      jobDb,
-      { useNewUrlParser: true }
-    )
+    MongoClient.connect(jobDb, { useNewUrlParser: true })
       .then(client => {
         mongoClient = client;
         const mongoDb = client.db(config.mongo.jobDb);
@@ -339,4 +362,65 @@ export function findJobs(name: string, extraQuery: Object = {}): Promise<any> {
       resolve(data);
     });
   });
+}
+
+export async function payOrder(
+  orderId: string,
+  buyerJWTToken: string,
+  dealID: string
+) {
+  mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
+  mock.onPost('/deals').reply(200, { data: { id: dealID } });
+  mock.onPost(`/deals/${dealID}/payments`).reply(200);
+  mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
+  mock
+    .onGet('/handlers/NovaPoshta/costs')
+    .reply(200, { data: { handlerPrice: 2500 } });
+  await request(app)
+    .post(`/api/orders/${orderId}/pay`)
+    .set('Authorization', buyerJWTToken)
+    .send({ cvc: '123' })
+    .expect(httpStatus.CREATED)
+    .then(({ body }) => {
+      expect(body.data.payment.redirectUrl).toContain(
+        '.uapay.ua/api/payments/'
+      );
+      expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+    });
+
+  mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
+  return request(app)
+    .get(`/api/orders/${orderId}/paymentStatus`)
+    .set('Authorization', buyerJWTToken)
+    .expect(httpStatus.OK)
+    .then(({ body }) => {
+      expect(body.data.status).toBe('ua-finished');
+      expect(body.data.rawStatus).toBe('FINISHED');
+    });
+}
+
+export async function confirmOrder(
+  orderId: string,
+  sellerJwtToken: string,
+  dealID: string
+): Promise<any> {
+  mock
+    .onPost(`/deals/${dealID}/confirmations`)
+    .reply(200, dealConfirmationResp);
+  mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
+  return request(app)
+    .put(`/api/orders/${orderId}`)
+    .set('Authorization', sellerJwtToken)
+    .send({ status: 'confirmed' })
+    .expect(httpStatus.OK)
+    .then(res => {
+      const o = res.body.data;
+      expect(o.status).toBe('confirmed');
+      expect(o.transactionStatus).toBe('ua-finished');
+      expect(o.transactionId).toBe(dealID);
+      expect(o.trackingNumber).toBe(
+        sellerConfirmedResponse.data.handler.waybillNumber.toString()
+      );
+      expect(!isNaN(Date.parse(o.dateConfirmed))).toBe(true);
+    });
 }
