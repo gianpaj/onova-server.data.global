@@ -51,7 +51,9 @@ export default {
       description: validation.description,
       photos: validation.photos,
       price: validation.price,
-      quantity: validation.quantity,
+      quantity: Joi.number()
+        .min(0)
+        .max(99),
       tags: validation.tags,
       typeIds: validation.categoriesOrTypes,
     },
