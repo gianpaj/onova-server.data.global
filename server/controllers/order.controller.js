@@ -703,6 +703,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             order.shippingUpdatedAt = new Date();
             // only update first time we check
             if (!order.datePaid) order.datePaid = new Date();
+            await Product.updateOne({ _id: order.product._id }, { $pull: { carted: { orderId: order._id } } });
             await createOrderNotification(order);
             debug('notification(s) created for order:', 'paid');
           }
