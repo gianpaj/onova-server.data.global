@@ -325,6 +325,9 @@ Example:
 
 ## Node.js App
 
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+
     npm install npm -g
     npm install pm2 -g
 
