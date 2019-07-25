@@ -1203,13 +1203,14 @@ describe('## Order APIs', () => {
       quantity: 1,
       ...photos,
     };
-    let orderId;
+    let orderId, productUuid;
 
     beforeAll(async () => {
       await createProduct(product2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...product2 }, anotherJwtToken).then(o => {
           expect(o.priceOfItem).toBe(product2.price);
           orderId = o.id;
+          productUuid = product.uuid;
         })
       );
     });
@@ -1267,9 +1268,9 @@ describe('## Order APIs', () => {
           });
       });
 
-      it('should get payment status', () => {
+      it('should get payment status', async () => {
         mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
-        return request(app)
+        await request(app)
           .get(`/api/orders/${orderId}/paymentStatus`)
           .set('Authorization', anotherJwtToken)
           .expect(httpStatus.OK)
@@ -1277,6 +1278,10 @@ describe('## Order APIs', () => {
             expect(body.data.status).toBe('ua-finished');
             expect(body.data.rawStatus).toBe('FINISHED');
           });
+        await request(app)
+          .get(`/api/products/${productUuid}`)
+          .expect(httpStatus.OK)
+          .then(({ body }) => expect(body.data.quantity).toBe(0));
       });
     });
   });
