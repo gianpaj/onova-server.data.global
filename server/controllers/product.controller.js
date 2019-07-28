@@ -86,6 +86,7 @@ function loadWithComments(req: session$Request, res: express$Response, next: exp
  * @property {string} req.params.uuid The unique id (shortid) of product.
  */
 function get(req: session$Request, res: express$Response) {
+  // TODO: return boolean `hasCarted` if a Product has quantity in carted - to show a proper `reserved_message` in the Product screen
   return res.json({ data: req.product });
 }
 

@@ -124,7 +124,6 @@ export default {
     instanceLocator: envVars.CHATKIT_INSTANCE,
     key: envVars.CHATKIT_KEY,
   },
-  // hard coded settings
   JOBNAMES: {
     DROP_SUBSCRIPTION: 'drop-subscription',
     SCHEDULE: 'listing-schedule',
@@ -142,6 +141,7 @@ export default {
     },
     SHIPPING_STATUS_CHECKER: 'shipping-status-checker',
   },
+  // hard coded settings
   settings: {
     // Product stays in the `carted` array for 15 mins
     // TODO: 0 to disable

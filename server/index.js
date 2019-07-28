@@ -8,6 +8,8 @@ import app from './config/express';
 import * as https from 'https';
 import * as fs from 'fs';
 
+if (config.env === 'production') require('newrelic');
+
 const debug = require('debug')('server-data:index');
 
 const mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`;
