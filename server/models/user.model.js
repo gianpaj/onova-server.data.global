@@ -40,20 +40,6 @@ const UserSchema = new Schema(
       lowercase: true,
       // validated at API level via 'Joi' and 'isEmail' npm packages
     },
-    facebook: String,
-    tokens: [
-      {
-        kind: {
-          type: String,
-          enum: ['fb', 'vk'],
-          required: true,
-        },
-        accessToken: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
     followersCount: {
       type: Number,
       required: true,
@@ -149,11 +135,6 @@ const UserSchema = new Schema(
       trim: true,
       lowercase: true,
     },
-    types: {
-      type: [{ type: String, enum: ['designer', 'admin', 'reseller'] }],
-      default: ['designer'],
-      // required: true,
-    },
     deletedAt: Date,
   },
   // assigns 'createdAt' and 'updatedAt' fields to your schema
@@ -168,7 +149,6 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   deletedAt: ?Date;
   displayName: ?string;
   emailAddress: string;
-  facebook: ?string;
   followersCount: number;
   followingCount: number;
   sharedCount: number;
@@ -181,10 +161,8 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   ratingsTotal: number;
   reviewsCount: number;
   shippingAddress: ?any;
-  tokens: Array<any>;
   updatedAt: Date;
   username: string;
-  types: Array<string>;
 }
 
 UserSchema.loadClass(UserDoc);
@@ -263,14 +241,6 @@ UserSchema.pre('save', function(next) {
   });
 });
 
-UserSchema.post('save', function(error: Error, doc, next) {
-  console.log(error);
-  if (error.code === 11000 && error.message.includes('facebook_1 dup')) {
-    const APIerr = new APIError('Duplicate facebook id', httpStatus.BAD_REQUEST);
-    return next(APIerr);
-  }
-});
-
 // Never return these fields in the JSON representation
 // This doesn't effect `toObject` method
 UserSchema.set('toJSON', {
@@ -286,7 +256,6 @@ UserSchema.set('toJSON', {
 UserSchema.index({ emailAddress: 1 }, { unique: true });
 UserSchema.index({ username: 1 }, { unique: true });
 UserSchema.index({ createdAt: -1 });
-// UserSchema.index({ facebook: 1 }, { unique: true, sparse: true });
 
 /**
  * @memberof UserSchema

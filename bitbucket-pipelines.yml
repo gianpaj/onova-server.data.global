@@ -25,11 +25,11 @@ pipelines:
             - >
               ssh bitbucket@direct.onova.co /bin/bash << EOF
                 echo "connected to `hostname` as $USER";
-                cd /var/www/server.data &&
+                cd /var/www/server.data.global &&
                 git fetch &&
                 git reset --hard origin/master &&
                 yarn &&
-                pm2 reload server.data --silent --no-color;
+                pm2 reload server.data.global --silent --no-color;
               EOF
       - step:
           name: Sentry Finalize Release & Deploy

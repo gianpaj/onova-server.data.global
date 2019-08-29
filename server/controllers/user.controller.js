@@ -140,7 +140,6 @@ async function getPersonal(req: session$Request, res: express$Response) {
  * @property {string} req.body.password (it's salted and hashed)
  * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
- * @property {string=} req.body.type ('designer' by default)
  */
 async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body } = req;
@@ -162,7 +161,6 @@ async function create(req: session$Request, res: express$Response, next: express
       username: body.username,
       emailAddress: body.emailAddress,
       password: body.password,
-      types: [body.type],
     });
 
     if (body.mobileNumber) {
@@ -229,12 +227,7 @@ function followDefaultUsers(newUser: UserDoc, sellerTypes = ['designer']): Promi
       //   return users;
       // })
       .then(follows => follows.map(f => f.user))
-      .then(follows =>
-        User.find({
-          _id: { $in: follows },
-          types: { $in: sellerTypes },
-        })
-      )
+      .then(follows => User.find({ _id: { $in: follows } }))
       .then(users => Promise.all(users.map(u => followController.internalFollow(newUser, u._id))))
       .then(follows => follows.length)
   );
@@ -492,8 +485,6 @@ function _prepareUserJson(user: UserDoc): Object {
     reviewsCount: user.reviewsCount,
     sharedCount: user.sharedCount,
     socials: user.socials,
-    tokens: user.tokens,
-    types: user.types,
     username: user.username,
   };
 }

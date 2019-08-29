@@ -68,7 +68,6 @@ describe('## User APIs', () => {
     short: true,
   };
 
-  // $FlowFixMe
   let anotherUser: UserDoc = {
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
@@ -76,7 +75,6 @@ describe('## User APIs', () => {
     password: 'express2',
   };
 
-  // $FlowFixMe
   let thirdUser: UserDoc = {
     username: 'thirdwheel',
     emailAddress: 'gianpa+thirdwheel@gmail.com',
