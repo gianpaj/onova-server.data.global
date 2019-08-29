@@ -46,7 +46,6 @@ describe('## User APIs', () => {
     ]);
   });
 
-  // $FlowFixMe
   let user: UserDoc = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
