@@ -33,7 +33,7 @@ function isAuthorizedBuyer(req, res, next) {
   next();
 }
 
-// ALL Protected routes
+// The routes are all protected (requireAuth)
 router
   .route('/')
   // GET /api/orders - Get list of orders of the user who requested (via JWT)
@@ -60,7 +60,7 @@ router
   // GET /api/orders/:orderId/paymentStatus - Get payment from UAPAY
   .get(validate(paramValidation.orderId), authCtrl.requireAuth, isAuthorizedBuyer, orderCtrl.paymentStatus);
 
-// Load user when API with orderId route parameter is hit
+// Load user when API uses 'orderId' route parameter
 router.param('orderId', orderCtrl.load);
 
 export default router;

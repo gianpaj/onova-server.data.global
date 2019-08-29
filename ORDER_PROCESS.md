@@ -2,7 +2,7 @@
 
 Rules:
 
-- The one quantity of product SKU is added to a cart when buyer presses Buy
+- The quantity of one product SKU is added to a cart when buyer presses Buy
 - The buyer has 15 minutes to make payment
 - The seller then has 48 hours to confirm order
 - The seller has 7 days to ship
@@ -19,7 +19,7 @@ sequenceDiagram
         Onova  ->>  Onova:  Order is: 'cancelled'
     end
 
-    Buyer  ->>  Onova: Pays with UAPay/LiqPay.
+    Buyer  ->>  Onova: Pays with UAPay.
     Onova  ->>  Seller: Order is 'paid' (notif. Seller)
 
     opt Fail to confirm

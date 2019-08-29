@@ -13,7 +13,7 @@ validate.options({
 });
 
 export default {
-  // POST /api/products
+  // POST /api/products - TODO: not used by clients
   createProduct: {
     body: Joi.object({
       categoryIds: validation.categoriesOrTypes.required(),

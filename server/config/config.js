@@ -91,6 +91,12 @@ const envVarsSchema = Joi.object({
   UAPAY_BASE_URL: Joi.string()
     .required()
     .description('UAPAY API URL'),
+  STRIPE_PUBLISHABLE_KEY: Joi.string()
+    .required()
+    .description('Stripe Publishable Key'),
+  STRIPE_SECRET_KEY: Joi.string()
+    .required()
+    .description('Stripe Secret Key'),
 })
   .unknown()
   .required();
