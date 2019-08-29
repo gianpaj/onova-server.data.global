@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 const IncomingWebhook = require('@slack/client').IncomingWebhook;
 

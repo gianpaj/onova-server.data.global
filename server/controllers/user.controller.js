@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 import Chatkit from '@pusher/chatkit-server';
 import bs58 from 'bs58';

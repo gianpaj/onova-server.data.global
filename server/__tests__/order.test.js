@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 import path from 'path';
 import request from 'supertest';

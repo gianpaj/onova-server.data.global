@@ -1,5 +1,3 @@
-// @flow
-
 import express from 'express';
 import httpStatus from 'http-status';
 import validate from 'express-validation';

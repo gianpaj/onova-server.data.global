@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 import request from 'request';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';

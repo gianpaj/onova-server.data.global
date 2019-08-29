@@ -1,5 +1,3 @@
-// @flow
-
 import multer from 'multer';
 import path from 'path';
 import httpStatus from 'http-status';

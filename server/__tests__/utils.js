@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';

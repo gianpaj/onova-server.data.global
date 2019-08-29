@@ -1,5 +1,3 @@
-// @flow
-
 import mongoose from 'mongoose';
 
 const CitiesSchema = new mongoose.Schema(

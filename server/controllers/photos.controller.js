@@ -1,5 +1,3 @@
-// @flow
-
 import gcsSharp from 'multer-sharp';
 import sharp from 'sharp';
 import httpStatus from 'http-status';

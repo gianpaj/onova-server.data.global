@@ -1,5 +1,3 @@
-// @flow
-
 const debug = require('debug')('server-data:index');
 
 import axios from 'axios';

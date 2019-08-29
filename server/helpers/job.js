@@ -1,4 +1,3 @@
-// @flow
 const debug = require('debug')('server-data:index');
 
 import { agenda } from '../config/express';

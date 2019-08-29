@@ -1,5 +1,3 @@
-// @flow
-
 import request from 'supertest';
 import httpStatus from 'http-status';
 import axios from 'axios';

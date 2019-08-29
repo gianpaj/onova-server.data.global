@@ -1,5 +1,3 @@
-// @flow
-
 const debug = require('debug')('server-data:suggestedUsers');
 
 import { DiscardedUser, Follow, User, UserDoc, SuggestedUsers } from '../models';

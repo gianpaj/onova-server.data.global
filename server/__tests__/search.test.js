@@ -1,5 +1,3 @@
-// @flow
-
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';

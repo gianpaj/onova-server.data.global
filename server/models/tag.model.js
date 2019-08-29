@@ -1,5 +1,3 @@
-// @flow
-
 import mongoose from 'mongoose';
 
 const TagSchema = new mongoose.Schema(

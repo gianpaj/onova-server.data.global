@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 const debug = require('debug')('server-data:index');
 

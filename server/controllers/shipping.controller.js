@@ -1,5 +1,3 @@
-// @flow
-
 import axios from 'axios';
 import httpStatus from 'http-status';
 

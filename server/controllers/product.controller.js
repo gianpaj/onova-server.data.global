@@ -1,5 +1,3 @@
-// @flow
-
 import shortid from 'shortid';
 import httpStatus from 'http-status';
 import path from 'path';

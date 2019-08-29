@@ -1,5 +1,3 @@
-// @flow
-
 import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 

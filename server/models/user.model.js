@@ -1,4 +1,3 @@
-// @flow
 /** @namespace */
 
 import Promise from 'bluebird';

@@ -1,4 +1,3 @@
-// @flow
 import shortid from 'shortid';
 const debug = require('debug')('server-data:index');
 

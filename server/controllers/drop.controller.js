@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 import shortid from 'shortid';
 import { addMinutes, differenceInCalendarDays, differenceInSeconds, differenceInMinutes } from 'date-fns';

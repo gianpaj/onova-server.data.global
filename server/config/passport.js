@@ -1,5 +1,3 @@
-// @flow
-
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
 // import FacebookStrategy from 'passport-facebook';

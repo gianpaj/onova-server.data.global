@@ -1,4 +1,3 @@
-// @flow
 import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';

@@ -1,5 +1,3 @@
-// @flow
-
 import httpStatus from 'http-status';
 import bs58 from 'bs58';
 const debug = require('debug')('server-data:index');
