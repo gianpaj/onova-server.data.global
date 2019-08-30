@@ -39,7 +39,6 @@ declare class session$Request extends express$Request {
  */
 function load(req: session$Request, res: express$Response, next: express$NextFunction, uuid: string) {
   // use static method from ProductSchema
-  // flow-disable-next-line
   Product.get(uuid)
     .then((product: ProductDoc) => {
       req.product = product;

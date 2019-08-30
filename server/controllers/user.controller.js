@@ -31,7 +31,6 @@ declare class session$Request extends express$Request {
  */
 function load(req: session$Request, res: express$Response, next: express$NextFunction, id: string) {
   // use static method from UserSchema
-  // flow-disable-next-line
   User.get(id)
     .then((user: UserDoc) => {
       req.user = user;
@@ -213,7 +212,7 @@ async function create(req: session$Request, res: express$Response, next: express
 /**
  * A new user follows the number of users
  */
-function followDefaultUsers(newUser: UserDoc, sellerTypes = ['designer']): Promise<null | Error | number> {
+function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
   return (
     DefaultFollow.find({}, { user: 1 })
       // .then(users => {
@@ -408,7 +407,6 @@ function list(req: session$Request, res: express$Response, next: express$NextFun
   const { limit = 50, u, username } = req.query;
 
   if (username) {
-    // flow-disable-next-line
     return User.findOne({ username })
       .then((user: UserDoc) => {
         if (!user) return Promise.reject();
@@ -442,7 +440,6 @@ function list(req: session$Request, res: express$Response, next: express$NextFun
   }
 
   // use static method from UserSchema
-  // flow-disable-next-line
   return User.list({ limit })
     .then(users => res.json(users.map(_prepareUserJson)))
     .catch(e => next(e));

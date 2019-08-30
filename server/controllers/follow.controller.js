@@ -206,7 +206,6 @@ async function listFollowers(req: session$Request, res: express$Response, next: 
   const DBquery = { following: req.params.userId, status: { $ne: -1 } };
 
   // using static method from FollowSchema
-  // flow-disable-next-line
   try {
     let followers = await Follow.list({ DBquery, limit, skip });
     if (followers) {
@@ -259,7 +258,6 @@ async function listFollowing(req: session$Request, res: express$Response, next: 
   const DBquery = { follower: req.params.userId, status: { $ne: -1 } };
 
   // use static method from FollowSchema
-  // flow-disable-next-line
   try {
     let followings = await Follow.list({ DBquery, limit, skip });
     if (followings.length) {

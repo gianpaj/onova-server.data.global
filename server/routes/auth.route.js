@@ -64,15 +64,12 @@ router
 //   // }
 // );
 
-// $FlowFixMe
 router.route('/vk').get((req, res, next) => {
   const { code, onovaUserId } = req.query;
   const redirectURL = `https://onova.co/api/auth/vk%3FonovaUserId%3D${onovaUserId}`;
 
   request(
-    `https://oauth.vk.com/access_token?client_id=${config.VK_APP_ID}&client_secret=${
-      config.VK_SECRET_KEY
-    }&redirect_uri=${redirectURL}&code=${code}`,
+    `https://oauth.vk.com/access_token?client_id=${config.VK_APP_ID}&client_secret=${config.VK_SECRET_KEY}&redirect_uri=${redirectURL}&code=${code}`,
     async (resErr, response, body) => {
       try {
         const { access_token, error } = JSON.parse(body);

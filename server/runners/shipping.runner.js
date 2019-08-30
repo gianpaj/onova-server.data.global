@@ -1,5 +1,3 @@
-//@flow
-
 import { Order, OrderDoc } from '../models';
 import Shipping, { NP } from '../helpers/shipping';
 import { sendSystemMessage } from '../helpers/job';

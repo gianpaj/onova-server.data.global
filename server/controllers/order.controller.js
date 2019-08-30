@@ -113,7 +113,6 @@ const UAPAY_EXTRA = 10; // UAH
  */
 function load(req: express$Request, res: express$Response, next: express$NextFunction, id: string) {
   // use static method from OrderSchema
-  // flow-disable-next-line
   Order.get(id)
     .then((order: OrderDoc) => {
       req.order = order;
@@ -393,7 +392,6 @@ async function update(req: session$Request, res: express$Response, next: express
 function list(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
   // use static method from orderSchema
-  // flow-disable-next-line
   Order.list({ myid: req.user._id, limit, skip })
     .then(orders => res.json({ data: orders }))
     .catch(e => next(e));

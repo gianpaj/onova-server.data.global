@@ -1,5 +1,3 @@
-//@flow
-
 import { Order, OrderDoc, Product, userPopulateFields, productPopulateFields } from '../models';
 import { createOrderNotification, rejectPayment, i18n } from '../controllers/order.controller';
 import notifCtrl from '../controllers/notification.controller';

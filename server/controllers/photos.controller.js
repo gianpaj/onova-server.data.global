@@ -39,9 +39,7 @@ async function tempUploadProductImage(req: express$Request, res: express$Respons
 
   if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
     const APIerr = new APIError(
-      `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${metadata.width}x${
-        metadata.height
-      }`,
+      `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${metadata.width}x${metadata.height}`,
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
@@ -228,7 +226,6 @@ const uploadChatImage = multer({ storage: storageForChatImages });
 async function uploadToVK(req: express$Request, res: express$Response, next: express$NextFunction) {
   // TODO: check if we have access to VK.com
 
-  // $FlowFixMe
   const { upload_url, photos } = req.body;
 
   // download the photos

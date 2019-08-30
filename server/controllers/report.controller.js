@@ -48,7 +48,6 @@ function get(
   const projection = { comments: 0 };
 
   // use static method from ProductSchema
-  // flow-disable-next-line
   Product.find(query, projection)
     .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
     .populate({

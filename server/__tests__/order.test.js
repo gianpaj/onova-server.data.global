@@ -175,8 +175,7 @@ describe('## Order APIs', () => {
         expect(resUser).not.toHaveProperty('password');
         expect(typeof res.body.token).toBe('string');
         nonActiveUserJwtToken = res.body.token;
-        // flow-disable-next-line
-        nonActiveUser._id = resUser._id;
+                nonActiveUser._id = resUser._id;
       });
     const {
       body: { token: token6 },

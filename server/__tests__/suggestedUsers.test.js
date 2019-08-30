@@ -19,7 +19,6 @@ afterAll(done => {
   done();
 });
 
-/* TODO: flow - :: extends UserDoc */
 type User = {
   _id: MongoId,
   token: string,

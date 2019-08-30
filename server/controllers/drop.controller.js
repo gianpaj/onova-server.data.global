@@ -35,7 +35,6 @@ declare class session$Request extends express$Request {
  */
 function load(req: session$Request, res: express$Response, next: express$NextFunction, uuid: string) {
   // use static method from DropSchema
-  // flow-disable-next-line
   Drop.get(uuid)
     .then((drop: DropDoc) => {
       if (!drop) {

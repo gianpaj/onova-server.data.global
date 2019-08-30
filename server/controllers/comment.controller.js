@@ -69,7 +69,6 @@ function create(req: session$Request, res: express$Response, next: express$NextF
     usernames = usernames.map(u => u.replace('@', ''));
     User.find({ username: { $in: usernames } })
       .then(users => {
-        // $FlowFixMe
         usernames.forEach(u => {
           const userIndex = users.map(us => us.username).indexOf(u);
           const re = new RegExp(`@${u}`, 'g');
@@ -113,9 +112,7 @@ function create(req: session$Request, res: express$Response, next: express$NextF
 function saveComment(comment, req, res, next) {
   Product.findOneAndUpdate({ _id: req.product.id }, { $push: { comments: comment } }, { new: true })
     .then((product: ProductDoc) => {
-      // $FlowFixMe
       const lastCommment: CommentDoc = product.comments[product.comments.length - 1];
-      // $FlowFixMe
       const notif: NotifPayload = {
         data: {
           commentId: lastCommment._id,
@@ -149,7 +146,6 @@ function saveComment(comment, req, res, next) {
           // TODO: map and parallelise Promises
           comment.userIds.forEach(userId => {
             if (userId == req.user._id.toString()) return;
-            // $FlowFixMe
             const notifForMention: NotifPayload = {
               data: {
                 commentId: lastCommment._id,
@@ -198,7 +194,6 @@ function saveComment(comment, req, res, next) {
 function remove(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { product } = req;
 
-  // $FlowFixMe
   const comment: CommentDoc = product.comments.find(c => c._id == req.params.commentId);
 
   if (comment === undefined) {

@@ -92,7 +92,6 @@ describe('## User APIs', () => {
     type: 'reseller',
   };
 
-  // $FlowFixMe
   const invalidUserCredentials: UserDoc = {
     emailAddress: 'gianpa-react@gmail.com',
     password: 'IDontKnow',

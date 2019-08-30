@@ -22,6 +22,7 @@
     "@babel/node": "^7.2.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.3.0",
     "@babel/preset-env": "^7.3.0",
+    "@babel/preset-flow": "^7.0.0",
     "@google-cloud/storage": "1.5.0",
     "@pusher/chatkit-server": "^1.0.4",
     "@sentry/node": "4.6.4",

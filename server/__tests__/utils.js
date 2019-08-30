@@ -129,8 +129,7 @@ export function createUserAndLogin(
       return { resUser: body.data, jwtToken: body.token };
     })
     .then(({ resUser, jwtToken }) =>
-      // flow-disable-next-line
-      Verification.findOne({ user: resUser._id }).then(verDoc => {
+            Verification.findOne({ user: resUser._id }).then(verDoc => {
         if (!verDoc) {
           throw Error('no verification token found');
         }

@@ -3,12 +3,9 @@
   "javascript.validate.enable": false,
   "deepscan.enable": true,
   "files.exclude": {
-    "**/flow-typed": true,
     "**/yarn.lock": true,
     "**/coverage": true
   },
   "eslint.enable": true,
-  "eslint.packageManager": "yarn",
-  "flow.useNPMPackagedFlow": true,
-  "flow.enabled": false
+  "eslint.packageManager": "yarn"
 }

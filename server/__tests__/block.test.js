@@ -22,14 +22,12 @@ afterAll(done => {
 describe('## Block methods', () => {
   beforeAll(beforeAllTests);
 
-  // $FlowFixMe
   let firstUser: UserDoc = {
     username: 'firstUser',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
   };
 
-  // $FlowFixMe
   const product: ProductDoc = {
     categoryIds: [2],
     typeIds: [3],
@@ -38,7 +36,6 @@ describe('## Block methods', () => {
     photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
   };
 
-  // $FlowFixMe
   let users: Array<UserDoc> = [
     {
       username: 'user0',
@@ -108,7 +105,6 @@ describe('## Block methods', () => {
       firstUser.followers++;
 
       // firstUser -- orders --> product from user 0
-      // $FlowFixMe
       const o = await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
       await request(app)
         .put(`/api/orders/${o.id}`)
@@ -116,7 +112,6 @@ describe('## Block methods', () => {
         .send({ status: 'cancelled', reason: 'it`s already sold' })
         .expect(httpStatus.OK);
       // firstUser -- orders --> product from user 1
-      // $FlowFixMe
       const o2 = await createOrder({ ...product, uuid: p3.uuid }, firstUser.jwtToken);
       await request(app)
         .put(`/api/orders/${o2.id}`)
@@ -124,7 +119,6 @@ describe('## Block methods', () => {
         .send({ status: 'cancelled', reason: 'it`s already sold' })
         .expect(httpStatus.OK);
       // user 0 -- orders --> product from user 1
-      // $FlowFixMe
       const o3 = await createOrder({ ...product, uuid: p4.uuid }, users[0].jwtToken);
       await request(app)
         .put(`/api/orders/${o3.id}`)

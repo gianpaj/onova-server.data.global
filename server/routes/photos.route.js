@@ -17,10 +17,8 @@ const router = express.Router();
 //     console.log(info);
 //   });
 
-// $FlowFixMe
 router.route('/upload').post(photos.uploadMulter.single('photo'), requireAuth, photosCtrl.tempUploadProductImage);
 
-// $FlowFixMe
 router.route('/upload-chat-images').post(photosCtrl.uploadChatImage.single('photo'), requireAuth, (req, res, next) => {
   debug('chat image uploaded to:', req.file.path);
   res.status(httpStatus.CREATED).json({ data: req.file });
