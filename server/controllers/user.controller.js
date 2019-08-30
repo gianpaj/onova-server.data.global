@@ -215,6 +215,7 @@ async function create(req: session$Request, res: express$Response, next: express
 function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
   return (
     DefaultFollow.find({}, { user: 1 })
+      .populate('user', '_id')
       // .then(users => {
       //   if (users.length == 0) {
       //     // FIXME: hide error in a better way - see internalFollow() method
@@ -224,7 +225,6 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
       //   return users;
       // })
       .then(follows => follows.map(f => f.user))
-      .then(follows => User.find({ _id: { $in: follows } }))
       .then(users => Promise.all(users.map(u => followController.internalFollow(newUser, u._id))))
       .then(follows => follows.length)
   );
@@ -237,11 +237,9 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
- * @property {string=} req.body.accessToken - Facebook (TODO: remove)
  * @property {string=} req.body.bio
  * @property {string=} req.body.displayName
  * @property {string=} req.body.emailAddress
- * @property {string=} req.body.facebook
  * @property {boolean=} req.body.increaseShare
  * @property {string=} req.body.mobileNumber
  * @property {string=} req.body.password
@@ -280,13 +278,6 @@ function update(req: session$Request, res: express$Response, next: express$NextF
   if (body.platform) user.platform = body.platform;
   if (body.pushToken) user.pushToken = body.pushToken;
   if (body.increaseShare) user.sharedCount++;
-  if (body.facebook) {
-    user.facebook = body.facebook;
-    user.tokens.push({
-      accessToken: body.accessToken,
-      kind: 'fb',
-    });
-  }
   if (body.shippingAddress) user.shippingAddress = body.shippingAddress;
 
   if (body.paymentInfoPayload) {
@@ -472,7 +463,6 @@ function _prepareUserJson(user: UserDoc): Object {
     bio: user.bio,
     displayName: user.displayName,
     emailAddress: user.emailAddress,
-    facebook: user.facebook,
     followersCount: user.followersCount,
     followingCount: user.followingCount,
     profilePic: user.profilePic,

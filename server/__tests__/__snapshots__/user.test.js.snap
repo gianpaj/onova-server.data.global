@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`## User APIs # Create user and verify email address # POST /api/users -  should create a new user (designer - by default) 1`] = `
+exports[`## User APIs # Create user and verify email address # POST /api/users should create a new user 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -10,13 +10,11 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
 
-exports[`## User APIs # Create user and verify email address # POST /api/users -  should create a new user (reseller) 1`] = `
+exports[`## User APIs # Create user and verify email address # POST /api/users should create a new user without mobile num 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -26,24 +24,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[`## User APIs # Create user and verify email address # POST /api/users -  should create a new user without mobile num 1`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -58,8 +38,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -74,8 +52,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -90,8 +66,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -106,8 +80,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -122,8 +94,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -138,8 +108,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -158,7 +126,6 @@ Array [
   "bio",
   "createdAt",
   "emailAddress",
-  "facebook",
   "followersCount",
   "followingCount",
   "mobileNumber",
@@ -168,8 +135,6 @@ Array [
   "reviewsCount",
   "sharedCount",
   "shippingAddress",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -185,8 +150,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -201,8 +164,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -228,8 +189,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;

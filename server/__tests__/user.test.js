@@ -85,13 +85,6 @@ describe('## User APIs', () => {
     password: 'express4',
   };
 
-  const fifthUser = {
-    username: 'fifthuser',
-    emailAddress: 'gianpa+fifthuser@gmail.com',
-    password: 'express5',
-    type: 'reseller',
-  };
-
   const invalidUserCredentials: UserDoc = {
     emailAddress: 'gianpa-react@gmail.com',
     password: 'IDontKnow',
@@ -111,8 +104,8 @@ describe('## User APIs', () => {
   });
 
   describe('# Create user and verify email address', () => {
-    describe('# POST /api/users - ', () => {
-      it('should create a new user (designer - by default)', () => {
+    describe('# POST /api/users', () => {
+      it('should create a new user', () => {
         return request(app)
           .post('/api/users')
           .send(user)
@@ -127,42 +120,15 @@ describe('## User APIs', () => {
             expect(data.ratingsTotal).toBe(0);
             expect(data.reviewsCount).toBe(0);
             expect(data.username).toBe(user.username);
-            expect(data.types).toEqual(['designer']);
             expect(typeof res.body.token).toBe('string');
             expect(Object.keys(data).sort()).toMatchSnapshot();
 
             const emailMsg = mailJetParams.Messages[0];
-            expect(emailMsg.Subject).toBe('Підтвердження профілю - Welcome to Onova, verify your email address');
+            expect(emailMsg.Subject).toBe('Account verification - Welcome to Onova, verify your email address');
             expect(emailMsg.To[0].Email).toBe(user.emailAddress);
             expect(emailMsg.From.Email).toBe('noreply@onova.co');
 
             userId = data._id;
-          });
-      });
-
-      it('should create a new user (reseller)', () => {
-        return request(app)
-          .post('/api/users')
-          .send(fifthUser)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            const { data } = res.body;
-            expect(typeof data._id).toBe('string');
-            expect(data.accountStatus).toBe('notverified');
-            expect(data.emailAddress).toBe(fifthUser.emailAddress);
-            expect(data.followersCount).toBe(0);
-            expect(data.followingCount).toBe(0);
-            expect(data.ratingsTotal).toBe(0);
-            expect(data.reviewsCount).toBe(0);
-            expect(data.username).toBe(fifthUser.username);
-            expect(data.types).toEqual(['reseller']);
-            expect(typeof res.body.token).toBe('string');
-            expect(Object.keys(data).sort()).toMatchSnapshot();
-
-            const emailMsg = mailJetParams.Messages[0];
-            expect(emailMsg.Subject).toBe('Підтвердження профілю - Welcome to Drop, verify your email address');
-            expect(emailMsg.To[0].Email).toBe(fifthUser.emailAddress);
-            expect(emailMsg.From.Email).toBe('noreply@drop.uno');
           });
       });
 
@@ -623,40 +589,6 @@ describe('## User APIs', () => {
         });
     });
 
-    it("should update user's facebook access token", done => {
-      const tempuser = {
-        ...user,
-        facebook: '101010101',
-        accessToken: 'FBaccesssToen1020Numbers',
-      };
-      request(app)
-        .put(`/api/users/${userId}`)
-        .set('Authorization', jwtToken)
-        .send({
-          facebook: tempuser.facebook,
-          accessToken: tempuser.accessToken,
-        })
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.emailAddress).toBe(tempuser.emailAddress);
-          expect(body.username).toBe(tempuser.username);
-          expect(body.facebook).toBe(tempuser.facebook);
-          expect(body.tokens[0].accessToken).toBe(tempuser.accessToken);
-
-          request(app)
-            .get(`/api/users/${userId}/personal`)
-            .set('Authorization', jwtToken)
-            .expect(httpStatus.OK)
-            .then(({ body }) => {
-              expect(body.emailAddress).toBe(tempuser.emailAddress);
-              expect(body.username).toBe(tempuser.username);
-              expect(body.facebook).toBe(tempuser.facebook);
-              expect(body.tokens[0].accessToken).toBe(tempuser.accessToken);
-              done();
-            });
-        });
-    });
-
     it('should update increase sharedCount', () => {
       return request(app)
         .put(`/api/users/${userId}`)
@@ -728,7 +660,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(6);
+          expect(res.body.length).toBe(5);
           expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
         });
     });
@@ -743,7 +675,6 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/?u=<username>', () => {
-    // $FlowFixMe
     const people: Array<UserDoc> = [
       {
         username: 'johnone',

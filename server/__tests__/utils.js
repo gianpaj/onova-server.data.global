@@ -129,7 +129,7 @@ export function createUserAndLogin(
       return { resUser: body.data, jwtToken: body.token };
     })
     .then(({ resUser, jwtToken }) =>
-            Verification.findOne({ user: resUser._id }).then(verDoc => {
+      Verification.findOne({ user: resUser._id }).then(verDoc => {
         if (!verDoc) {
           throw Error('no verification token found');
         }
@@ -144,11 +144,7 @@ export function createUserAndLogin(
           expect(text).toContain('Профіль активовано');
           return { user: resUser, jwtToken };
         })
-    )
-    .catch(e => {
-      console.error(e);
-      throw e;
-    });
+    );
 }
 
 /**

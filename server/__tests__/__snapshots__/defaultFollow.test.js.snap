@@ -10,8 +10,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -26,8 +24,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -42,8 +38,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -58,8 +52,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -74,8 +66,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;
@@ -90,24 +80,6 @@ Array [
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[` 7`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
   "username",
 ]
 `;

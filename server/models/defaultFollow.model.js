@@ -12,10 +12,6 @@ const defaultFollowSchema = new Schema(
       required: true,
       unique: true,
     },
-    location: {
-      type: String,
-      default: 'UA', // country code (ISO 3166-1 alpha-2 code)
-    },
     initialFollowersCount: {
       type: Number,
       default: 0,
@@ -34,6 +30,7 @@ const defaultFollowSchema = new Schema(
 
 export class DefaultFollowDoc /*:: extends Mongoose$Document */ {
   user: MongoId;
+  initialFollowersCount: Number;
   createdAt: Date;
   updatedAt: Date;
 }

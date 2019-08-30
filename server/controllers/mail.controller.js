@@ -27,9 +27,9 @@ let mailjetOptions = {
  * @param {User} user
  */
 function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
-  let subject = 'Підтвердження профілю - Welcome to Onova, verify your email address';
-  let TemplateID = 343433;
-  let domain = 'onova.co';
+  const subject = 'Account verification - Welcome to Onova, verify your email address';
+  const TemplateID = 343433;
+  const domain = 'onova.co';
   mailjetOptions = {
     ...mailjetOptions,
     From: {
@@ -37,18 +37,6 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
       Name: 'Onova',
     },
   };
-  if (user.types.includes('reseller')) {
-    subject = 'Підтвердження профілю - Welcome to Drop, verify your email address';
-    TemplateID = 832474;
-    domain = 'drop.uno';
-    mailjetOptions = {
-      ...mailjetOptions,
-      From: {
-        Email: 'noreply@drop.uno',
-        Name: 'Drop',
-      },
-    };
-  }
 
   // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
@@ -93,9 +81,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
 
   // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
-
-  let domain = 'onova.co';
-  if (user.types.includes('reseller')) domain = 'drop.uno';
+  const domain = 'onova.co';
 
   // generate link
   Verification.create({
@@ -136,8 +122,8 @@ function sendResetEmail(emailTo: string, user: Object): void {
   // FIXME: create token in Verification model pre save Mongoose hook
   const token = crypto.randomBytes(8).toString('hex');
 
-  let TemplateID = 345696;
-  let domain = 'onova.co';
+  const TemplateID = 345696;
+  const domain = 'onova.co';
   mailjetOptions = {
     ...mailjetOptions,
     From: {
@@ -145,18 +131,6 @@ function sendResetEmail(emailTo: string, user: Object): void {
       Name: 'Onova',
     },
   };
-
-  if (user.types.includes('reseller')) {
-    TemplateID = 832656;
-    domain = 'drop.uno';
-    mailjetOptions = {
-      ...mailjetOptions,
-      From: {
-        Email: 'noreply@drop.uno',
-        Name: 'Drop',
-      },
-    };
-  }
 
   // generate link
   Verification.create({
@@ -219,7 +193,7 @@ async function sendOrderUpdate({
     throw new Error('sendOrderUpdate: no user found for ' + targetUser);
   }
 
-  let TemplateID = 670839;
+  const TemplateID = 670839;
   mailjetOptions = {
     ...mailjetOptions,
     From: {
@@ -227,17 +201,6 @@ async function sendOrderUpdate({
       Name: 'Onova',
     },
   };
-
-  if (order.seller.types.includes('reseller')) {
-    TemplateID = 832563;
-    mailjetOptions = {
-      ...mailjetOptions,
-      From: {
-        Email: 'noreply@drop.uno',
-        Name: 'Drop',
-      },
-    };
-  }
 
   if (order.trackingNumber) text = getOrderUpdateMessage(order.shippingStatus, order.trackingNumber);
 

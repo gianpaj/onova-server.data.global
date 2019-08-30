@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 const debug = require('debug')('server-data:index');
 
 import app from '../index';
-import { DefaultFollow, User } from '../models';
+import { DefaultFollow } from '../models';
 import { beforeAllTests, createUserAndLogin } from './utils';
 
 const sleep = ms => {
@@ -28,12 +28,6 @@ describe('## Default Follow methods', () => {
   const firstPerson = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
-    password: 'expressos',
-  };
-
-  const reseller = {
-    username: 'reseller',
-    emailAddress: 'gianpa+reseller@gmail.com',
     password: 'expressos',
   };
 
@@ -76,12 +70,6 @@ describe('## Default Follow methods', () => {
       debug('default user created:', defaultSellers[i].username);
     }
 
-    const { user: res, jwtToken: resJwttoken } = await createUserAndLogin(reseller);
-    reseller._id = res._id;
-    reseller.jwtToken = resJwttoken;
-    await User.updateOne({ _id: reseller._id }, { $set: { types: ['reseller'] } });
-    await DefaultFollow.create({ user: reseller._id });
-
     const { user, jwtToken } = await createUserAndLogin(firstPerson);
     firstPerson._id = user._id;
     firstPerson.jwtToken = jwtToken;
@@ -90,27 +78,15 @@ describe('## Default Follow methods', () => {
     await sleep(100);
   });
 
-  test('a designer user will automatically follow 5 users by default', () => {
+  test('a user will automatically follow 5 users by default', () => {
     return request(app)
       .get(`/api/users/${firstPerson._id}`)
       .expect(httpStatus.OK)
-      .then(res => {
-        expect(res.body.username).toBe(firstPerson.username);
-        expect(res.body.emailAddress).toBe(firstPerson.emailAddress);
-        expect(res.body.followersCount).toBe(0);
-        expect(res.body.followingCount).toBe(5);
-      });
-  });
-
-  test('a reseller user will automatically follow 0 users by default', () => {
-    return request(app)
-      .get(`/api/users/${firstPerson._id}`)
-      .expect(httpStatus.OK)
-      .then(res => {
-        expect(res.body.username).toBe(firstPerson.username);
-        expect(res.body.emailAddress).toBe(firstPerson.emailAddress);
-        expect(res.body.followersCount).toBe(0);
-        expect(res.body.followingCount).toBe(5);
+      .then(({ body }) => {
+        expect(body.username).toBe(firstPerson.username);
+        expect(body.emailAddress).toBe(firstPerson.emailAddress);
+        expect(body.followersCount).toBe(0);
+        expect(body.followingCount).toBe(5);
       });
   });
 });
