@@ -1,4 +1,31 @@
-# Onova Global API server
+# Onova Global API server (`server.data.global`)
+
+> Part of [Onova](https://www.onova.co/), a mobile marketplace for second-hand and sustainable clothing that [Gianfranco Palumbo](https://github.com/gianpaj) and Alex Kostinskyi built in Lviv, Ukraine. The company ran until September 2019. This repository is an archive and is not maintained.
+
+A copy of [server.data](https://github.com/gianpaj/onova-server.data) split off in January 2019 to become an international version of Onova. The plan was to open Ukrainian brands to buyers in Europe. In August 2019 it began to swap the Ukrainian providers for international ones: Stripe for payments and Shippo for shipping. Neither integration was finished before the company wound down.
+
+| | |
+|---|---|
+| First Onova commit | 2017-10-20 (history shared with server.data until 2019-01-02) |
+| Last commit | 2019-08-29 |
+| Commits | 1,314 by Gianfranco |
+| Code | about 20,800 lines of JavaScript |
+| Tests | 21 test files, about 370 test cases |
+
+### Onova repositories
+
+- [onova-mobileapp](https://github.com/gianpaj/onova-mobileapp): the Onova and Drop iOS and Android apps
+- [onova-server.data](https://github.com/gianpaj/onova-server.data): the REST API
+- [onova-server.data.global](https://github.com/gianpaj/onova-server.data.global): the API fork for an international version
+- [onova-server.push](https://github.com/gianpaj/onova-server.push): push notifications
+- [onova-server.chat](https://github.com/gianpaj/onova-server.chat): order messages in buyer–seller chats
+- [onova-webapp-drop](https://github.com/gianpaj/onova-webapp-drop): the Drop web app
+- [onova-forest-admin](https://github.com/gianpaj/onova-forest-admin): the back office
+- [onova-automl-server](https://github.com/gianpaj/onova-automl-server): an image classifier prototype
+
+---
+
+## Original README
 
 Functionality:
 
